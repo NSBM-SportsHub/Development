@@ -2,17 +2,16 @@
 
 This directory is reserved for the user interfaces of NSBM SportsHub, the university Sports Club Management System. Start with the [project guide](../README.md) for the full scope, team, deadlines, and contribution rules. See the [backend guide](../backend/README.md) for PHP integration responsibilities.
 
-> **Current status: folders only.** There are no pages, components, styles, package manifests, installed dependencies, or runnable frontend. `.gitkeep` files preserve empty directories in Git. Features and filenames discussed during planning are future work.
+> **Current status: initial scaffold only.** The React/Vite entry point has basic routes for sports clubs, training attendance, and announcements. Route components are empty; no UI features, APIs, or business workflows have been implemented. `.gitkeep` files preserve other empty directories in Git.
 
 ## Technology direction
 
-- HTML, CSS, and JavaScript are the required browser technologies.
-- React is the intended frontend direction from the project plan; confirm assignment permission and agree on tooling with Mukilan before scaffolding.
+- React, Vite, and React Router provide the frontend entry point and basic routing.
 - Bootstrap is the planned UI framework.
 - PHP handles server-side functionality and MySQL stores application data. Browser code communicates with PHP, never directly with MySQL.
-- Node.js, if introduced for React, is frontend development/build tooling and does not replace PHP.
+- Node.js and npm are frontend development/build tooling and do not replace PHP.
 
-No build tool, dependency versions, package scripts, development port, or API base URL has been agreed or configured in this repository. Do not assume a prior generated preview or IDE tab represents a current application.
+Install dependencies with `npm install` from this directory. Use `npm run dev` to start the development server and `npm run build` to create the production build. No API base URL or backend integration is configured.
 
 ## Directory guide
 
@@ -102,17 +101,7 @@ Development fixtures may support early UI work, but identify them clearly. A scr
 
 ## Local setup and run status
 
-The current repository cannot be launched. There is no `package.json`, lockfile, application entry point, or configured development server. Frontend scaffolding is a separate implementation task owned by Mukilan in coordination with Shahadh.
-
-Once that foundation is merged, update this guide with:
-
-- Supported Node/npm versions if applicable.
-- Exact dependency installation, development, build, and preview commands.
-- Local application URL and API proxy/base URL settings.
-- Safe frontend environment examples and backend startup prerequisites.
-- Build output/dependency ignore rules and deployment instructions.
-
-Do not infer installation or launch commands from the presence of `src/` or `public/` alone.
+The frontend can be built independently of the PHP backend. No backend startup command, API integration, or deployment configuration is set up yet.
 
 ## Workflow and acceptance
 

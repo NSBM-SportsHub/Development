@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: folder structure and project planning only.** The repository contains three README files and empty `.gitkeep` placeholders. There is no runnable application, implemented authentication, database schema, or completed business module yet. Features described below are planned work, not claims of working functionality.
+> **Current status: project planning and initial frontend scaffold.** The frontend has a React/Vite entry point and basic routes, but route components are empty. There is no implemented authentication, database schema, API, or completed business module. Features described below are planned work, not claims of working functionality.
 
 ## Start here
 
@@ -17,14 +17,14 @@ The project aims to bring sports clubs, membership applications, training, compe
 
 | Area | Requirement or direction | Current state |
 | --- | --- | --- |
-| Frontend | HTML, CSS, and JavaScript; React is the intended frontend direction from the project plan | No source, build tool, or dependencies installed in this repository |
+| Frontend | React with Vite and React Router | Basic entry point and routes; no UI features implemented |
 | UI framework | Bootstrap | Not integrated |
 | Backend | PHP | No PHP source or application entry point |
 | Database | MySQL | No schema, migrations, seeds, or connection configuration |
 | Local environment | XAMPP for PHP, Apache, and the database | Setup instructions await the agreed application structure |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
-The official assignment brief must confirm React/framework permissions before frontend scaffolding. PHP and MySQL remain the backend/database requirements; Node.js, if used for React tooling, serves development/build work only. Confirm the installed XAMPP database engine and runtime versions before finalizing compatibility.
+Confirm the official assignment brief permits the selected frontend framework before implementing UI features. PHP and MySQL remain the backend/database requirements; Node.js serves frontend development/build work only. Confirm the installed XAMPP database engine and runtime versions before finalizing backend compatibility.
 
 ## Users and access
 
