@@ -1,45 +1,57 @@
 # NSBM SportsHub frontend
 
-This branch implements Mukilan's authentication/users screens in React with a real PHP/MySQL API. See [local setup](../docs/local-development.md), the [API contract](../docs/auth-users-api.md), and [team allocation](../README.md).
+This branch combines Mukilan's PHP-backed authentication/users screens with Shahilan's club, training/attendance and announcement previews. See [local setup](../docs/local-development.md), the [authentication API contract](../docs/auth-users-api.md), and [team allocation](../README.md).
 
 ## Start locally
 
-Node.js 22.12+ and npm are required. Initialize the database and start PHP using the setup guide, then run from frontend/:
+Node.js 22.12+ and npm are required. From frontend/:
 
 ```powershell
 npm.cmd ci
 npm.cmd run dev
 ```
 
-Open http://localhost:5173. Vite proxies browser requests to /api to http://127.0.0.1:8000. Keep the browser on the React origin so session cookies and CSRF work together. PHP and MySQL/MariaDB must be running; unavailable services display a retryable error.
+Open http://localhost:5173. Module previews can be explored with their browser demo data. To register, sign in, use a profile or manage users, initialize the database and start PHP following the setup guide.
+
+Vite forwards browser /api requests to http://127.0.0.1:8000. Stay on the React origin for session cookies and CSRF. Production needs a real same-origin /api route to PHP.
 
 ```powershell
 npm.cmd run build
+node --test src/modules/sports-clubs/clubsService.test.js
 ```
 
-The build writes the ignored dist/ directory. Vite preview uses the same local API proxy; production needs a real same-origin /api route to PHP.
+The build writes the ignored dist/ directory. The club-service tests check create/update persistence, delete persistence including an empty list, and missing-record mutation errors. There is no npm test script.
 
-## Implemented routes
+## Routes and current data behavior
 
-| Route | Behavior |
+| Route | Current behavior |
 | --- | --- |
-| /login | Email/password sign-in |
-| /register | Active Student registration |
-| /profile | Signed-in profile editing and password change |
-| /admin/users | Admin search, filters, pagination, create, edit, activate/deactivate, archive |
+| /login | PHP email/password sign-in |
+| /register | PHP registration of an active Student |
+| /profile | Protected PHP-backed profile editing and password change |
+| /admin/users | Admin-only PHP user directory and create/edit/activate/deactivate/archive |
+| /sports-clubs/* | Public preview: list/search/details and local create/edit/delete |
+| /training-attendance/* | Public preview: schedules, session create/edit, attendance recording/listing |
+| /announcements/* | Public preview: announcement drafts, editing and publication controls |
 
-The first Admin is created through backend/bin/create-admin.php. There are no default credentials. PHP enforces every protected action independently of frontend navigation.
+Clubs, training sessions and attendance use sample records and localStorage in the current browser origin. Existing storage keys/data are preserved by this integration. These records are not saved through PHP/MySQL and are not shared across devices or origins.
 
-## Integration files
+Announcements are held in React memory. Refreshing or leaving the mounted module resets them to sample records. Training/attendance and announcement previews do not currently implement a complete delete workflow.
 
-- src/App.jsx: routing and protected screens.
-- src/shared/api.js: JSON transport, cookies, CSRF, safe API/network errors.
-- src/shared/AuthContext.jsx: server session, sign-in/out, refresh.
-- src/modules/authentication-users/: auth/profile forms and Admin CRUD dialogs.
-- src/shared/styles.css: responsive presentation for this module; coordinate shared UI with Shahadh.
+Public preview controls do not establish business-role permissions or announcement-audience enforcement. Those workflows need their agreed PHP endpoints and server-side authorization before acceptance as integrated features. The preview/account navigation identifies their demo-data status.
 
-No authentication values are stored in localStorage. Validation failures retain form input; writes are disabled while saving; archive requires confirmation. Loading, empty, failure, and retry states are shown.
+Authentication uses the shared server session. No auth tokens or passwords are stored in localStorage. The first Admin is provisioned by backend/bin/create-admin.php; no default credentials exist. Coach permissions remain pending team agreement.
 
-Reuse the shared API client and session conventions for partner screens. Public registration cannot choose a role. Admin creation supports Student/Admin; Coach permissions remain pending agreement.
+## Integration conventions
 
-Other business modules remain placeholders on this branch. Shahilan's screens are in his separate feature branch until reviewed and integrated. Refer to the root README for all module owners.
+- src/main.jsx owns the single BrowserRouter and AuthProvider.
+- src/App.jsx combines protected account routes with separate module preview layouts.
+- src/shared/api.js handles PHP JSON requests, cookies, CSRF and safe errors.
+- src/shared/AuthContext.jsx maintains the authoritative server session.
+- src/shared/styles.css styles the authentication/user workspace.
+- src/glass.css provides module preview presentation; coordinate shared styling with Shahadh.
+- Each module retains its own components and local data services until its agreed API integration.
+
+Preserve authentication routes, the API proxy and shared helpers when adding business APIs. Replace preview storage through the agreed client and backend contract, including loading/empty/error states, validation, permissions and reload persistence. Module owners remain responsible for their assigned workflows.
+
+Public demo data and private application records have different persistence. Test previews in a fresh browser profile/context so QA does not overwrite another person's saved local clubs.

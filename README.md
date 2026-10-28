@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current branch: Mukilan's authentication/users CRUD.** React screens and PHP/MySQL APIs implement registration, login/logout, profile/password changes, and Admin user create/read/update/archive. Shared session/CSRF helpers, an API client, and the identity schema are included. Other business modules remain planned work. See [local setup](docs/local-development.md) and the [API contract](docs/auth-users-api.md).
+> **Current status: authentication/users APIs with integrated module previews.** Registration, login/logout, profile/password changes, and Admin user management use PHP/MySQL. Shahilan's club, training/attendance, and announcement screens are included as local-data previews; their PHP workflows are still pending integration. See [local setup](docs/local-development.md), the [authentication API contract](docs/auth-users-api.md), and the [frontend guide](frontend/README.md) for data-persistence limits.
 
 ## Start here
 
@@ -17,8 +17,8 @@ The project aims to bring sports clubs, membership applications, training, compe
 
 | Area | Requirement or direction | Current state |
 | --- | --- | --- |
-| Frontend | HTML, CSS, JavaScript, React | Vite routing, shared API client, authentication and user-management screens |
-| UI framework | Bootstrap is planned | This module uses plain CSS; coordinate shared presentation with Shahadh |
+| Frontend | HTML, CSS, JavaScript, React | Shared auth/API client plus clubs, training/attendance and announcement previews |
+| UI framework | Bootstrap is planned | Shared auth CSS and module preview themes; coordinate presentation with Shahadh |
 | Backend | PHP 8.2+ | Public API router, PDO, session/CSRF helpers, auth/user handlers |
 | Database | MySQL 8+ / compatible MariaDB | Initial users/rate-limit migration and private configuration example |
 | Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
@@ -80,7 +80,7 @@ Development/
 `-- docs/                   Future requirements, architecture, API, and QA documents
 ```
 
-Both module directories contain the twelve planned module folders. Authentication/users contains this branch's implementation; other empty folders retain placeholders. Shared API/auth helpers and the initial SQL migration support this module.
+Both module directories contain the twelve planned module folders. Authentication/users has React and PHP implementations. The frontend also contains clubs, training/attendance and announcement previews. The initial SQL migration covers authentication only; other business handlers/schemas still need integration.
 
 ## Team and working ownership
 
