@@ -6,6 +6,7 @@ require_once __DIR__ . '/../src/shared/Response.php';
 require_once __DIR__ . '/../src/modules/sports-clubs/ClubController.php';
 require_once __DIR__ . '/../src/modules/sports-clubs/SportController.php';
 require_once __DIR__ . '/../src/modules/training-attendance/TrainingController.php';
+require_once __DIR__ . '/../src/modules/training-attendance/AttendanceController.php';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $rawPath = $_SERVER['REQUEST_URI'] ?? '/';
@@ -118,6 +119,32 @@ if (count($segments) >= 2 && $segments[1] === 'training-sessions') {
     }
 
     Response::json(404, ['success' => false, 'message' => 'Training session route not found.']);
+    exit;
+}
+
+if (count($segments) >= 2 && $segments[1] === 'attendance') {
+    $attendanceId = null;
+
+    if (count($segments) >= 3 && is_numeric($segments[2])) {
+        $attendanceId = (int) $segments[2];
+    }
+
+    if ($method === 'GET' && count($segments) === 2) {
+        AttendanceController::list();
+        exit;
+    }
+
+    if ($method === 'GET' && count($segments) === 3 && $attendanceId !== null) {
+        AttendanceController::details($attendanceId);
+        exit;
+    }
+
+    if ($method === 'POST' && count($segments) === 2) {
+        AttendanceController::create();
+        exit;
+    }
+
+    Response::json(404, ['success' => false, 'message' => 'Attendance route not found.']);
     exit;
 }
 
