@@ -5,6 +5,14 @@ declare(strict_types=1);
 require_once __DIR__ . '/../../shared/Database.php';
 require_once __DIR__ . '/../../shared/Response.php';
 
+/**
+ * Sport API controller.
+ *
+ * This module is intentionally designed around a small set of database query helpers so the
+ * project can swap to the real schema later without rewriting the public controller logic.
+ * Authentication and authorization are not implemented here because the project does not yet
+ * expose a working auth layer or role policy for reads/writes.
+ */
 final class SportController
 {
     private static function tableExists(PDO $pdo, string $tableName): bool
@@ -29,10 +37,65 @@ final class SportController
         }
 
         if (mb_strlen($trimmed) > $maxLength) {
-            throw new InvalidArgumentException("Filter value is too long.");
+            throw new InvalidArgumentException('Filter value is too long.');
         }
 
         return $trimmed;
+    }
+
+    private static function normalizePositiveInt(?string $value, string $fieldName, int $maxValue = 1000): int
+    {
+        if ($value === null || $value === '') {
+            return 0;
+        }
+
+        if (!ctype_digit($value)) {
+            throw new InvalidArgumentException("Field '{$fieldName}' must be a non-negative integer.");
+        }
+
+        $number = (int) $value;
+        if ($number > $maxValue) {
+            throw new InvalidArgumentException("Field '{$fieldName}' is too large.");
+        }
+
+        return $number;
+    }
+
+    private static function buildListQuery(array $filters): array
+    {
+        $sql = 'SELECT * FROM sports WHERE 1 = 1';
+        $params = [];
+
+        if (isset($filters['search']) && $filters['search'] !== null) {
+            $sql .= ' AND (name LIKE :search OR description LIKE :search)';
+            $params[':search'] = '%' . $filters['search'] . '%';
+        }
+
+        if (isset($filters['status']) && $filters['status'] !== null) {
+            $sql .= ' AND status = :status';
+            $params[':status'] = $filters['status'];
+        }
+
+        $sql .= ' ORDER BY name ASC';
+
+        if (isset($filters['limit']) && $filters['limit'] > 0) {
+            $sql .= ' LIMIT :limit';
+        }
+
+        return [$sql, $params];
+    }
+
+    private static function getSport(PDO $pdo, int $sportId): ?array
+    {
+        if (!self::tableExists($pdo, 'sports')) {
+            return null;
+        }
+
+        $stmt = $pdo->prepare('SELECT * FROM sports WHERE id = :id LIMIT 1');
+        $stmt->execute([':id' => $sportId]);
+        $sport = $stmt->fetch();
+
+        return is_array($sport) ? $sport : null;
     }
 
     public static function list(): void
@@ -47,30 +110,13 @@ final class SportController
 
             $search = self::normalizeText($_GET['search'] ?? null, 100);
             $status = self::normalizeText($_GET['status'] ?? null, 50);
-            $limit = isset($_GET['limit']) ? (int) $_GET['limit'] : 0;
+            $limit = self::normalizePositiveInt($_GET['limit'] ?? null, 'limit', 500);
 
-            if ($limit < 0) {
-                throw new InvalidArgumentException('Limit must be zero or greater.');
-            }
-
-            $sql = 'SELECT * FROM sports WHERE 1 = 1';
-            $params = [];
-
-            if ($search !== null) {
-                $sql .= ' AND (name LIKE :search OR description LIKE :search)';
-                $params[':search'] = '%' . $search . '%';
-            }
-
-            if ($status !== null) {
-                $sql .= ' AND status = :status';
-                $params[':status'] = $status;
-            }
-
-            $sql .= ' ORDER BY name ASC';
-
-            if ($limit > 0) {
-                $sql .= ' LIMIT :limit';
-            }
+            [$sql, $params] = self::buildListQuery([
+                'search' => $search,
+                'status' => $status,
+                'limit' => $limit,
+            ]);
 
             $stmt = $pdo->prepare($sql);
             foreach ($params as $key => $value) {
@@ -96,18 +142,10 @@ final class SportController
     {
         try {
             $pdo = Database::getConnection();
+            $sport = self::getSport($pdo, $sportId);
 
-            if (!self::tableExists($pdo, 'sports')) {
-                Response::json(500, ['success' => false, 'message' => 'The sports table is not available in the configured database.']);
-                return;
-            }
-
-            $stmt = $pdo->prepare('SELECT * FROM sports WHERE id = :id LIMIT 1');
-            $stmt->execute([':id' => $sportId]);
-            $sport = $stmt->fetch();
-
-            if (!$sport) {
-                Response::json(404, ['success' => false, 'message' => 'Sport not found.']);
+            if ($sport === null) {
+                Response::json(404, ['success' => false, 'message' => 'Sport not found or the sports table is unavailable.']);
                 return;
             }
 

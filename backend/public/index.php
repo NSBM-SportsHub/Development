@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../src/shared/Response.php';
 require_once __DIR__ . '/../src/modules/sports-clubs/ClubController.php';
+require_once __DIR__ . '/../src/modules/sports-clubs/SportController.php';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $rawPath = $_SERVER['REQUEST_URI'] ?? '/';
