@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: folder structure and project planning only.** The repository contains three README files and empty `.gitkeep` placeholders. There is no runnable application, implemented authentication, database schema, or completed business module yet. Features described below are planned work, not claims of working functionality.
+> **Current branch: Mukilan's authentication/users CRUD.** React screens and PHP/MySQL APIs implement registration, login/logout, profile/password changes, and Admin user create/read/update/archive. Shared session/CSRF helpers, an API client, and the identity schema are included. Other business modules remain planned work. See [local setup](docs/local-development.md) and the [API contract](docs/auth-users-api.md).
 
 ## Start here
 
@@ -17,14 +17,14 @@ The project aims to bring sports clubs, membership applications, training, compe
 
 | Area | Requirement or direction | Current state |
 | --- | --- | --- |
-| Frontend | HTML, CSS, and JavaScript; React is the intended frontend direction from the project plan | No source, build tool, or dependencies installed in this repository |
-| UI framework | Bootstrap | Not integrated |
-| Backend | PHP | No PHP source or application entry point |
-| Database | MySQL | No schema, migrations, seeds, or connection configuration |
-| Local environment | XAMPP for PHP, Apache, and the database | Setup instructions await the agreed application structure |
+| Frontend | HTML, CSS, JavaScript, React | Vite routing, shared API client, authentication and user-management screens |
+| UI framework | Bootstrap is planned | This module uses plain CSS; coordinate shared presentation with Shahadh |
+| Backend | PHP 8.2+ | Public API router, PDO, session/CSRF helpers, auth/user handlers |
+| Database | MySQL 8+ / compatible MariaDB | Initial users/rate-limit migration and private configuration example |
+| Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
-The official assignment brief must confirm React/framework permissions before frontend scaffolding. PHP and MySQL remain the backend/database requirements; Node.js, if used for React tooling, serves development/build work only. Confirm the installed XAMPP database engine and runtime versions before finalizing compatibility.
+React/Vite are used on this implementation branch. Confirm assignment framework permissions before submission. PHP and MySQL remain the backend/database requirements; Node.js serves frontend development/build work only. Confirm local XAMPP database/runtime compatibility using the setup guide.
 
 ## Users and access
 
@@ -80,7 +80,7 @@ Development/
 `-- docs/                   Future requirements, architecture, API, and QA documents
 ```
 
-Both `modules/` directories contain the same twelve folder names. Empty leaf directories have `.gitkeep` files so Git can retain the structure. These placeholders are not application code. No implementation filenames have been committed yet.
+Both module directories contain the twelve planned module folders. Authentication/users contains this branch's implementation; other empty folders retain placeholders. Shared API/auth helpers and the initial SQL migration support this module.
 
 ## Team and working ownership
 
@@ -154,7 +154,7 @@ Then:
 5. Implement a small, reviewable change in the assigned folders.
 6. Test the change and submit a pull request with evidence.
 
-There is currently no application launch command. The repository has no frontend package manifest, PHP entry point, database connection, or SQL import files. Dependency installation, environment variables, database setup, and run commands must be documented when those foundations are implemented and reviewed. No usable accounts or default login credentials exist.
+Follow [local development](docs/local-development.md) to configure the private database connection, apply the identity migration, provision your first Admin, and start PHP plus React. No default credentials or committed accounts exist.
 
 ## Development dependencies and conventions
 
@@ -168,7 +168,7 @@ The initial implementation order is:
 
 Frontend/backend pairs may work in parallel after agreeing on contracts. A screen using sample data must be identified as incomplete until its real PHP/database workflow is integrated.
 
-The database and API are not defined yet. Before integration, agree on request paths/methods, fields, validation, response shapes, status values, authorization, and error behavior. Record approved decisions in `docs/` as they are made.
+The authentication/users schema and [API contract](docs/auth-users-api.md) are implemented on this branch. Other module contracts still require coordination. Agree request paths, fields, validation, responses, permissions, and errors with each partner. Record decisions in docs; Jassim reviews the initial identity migration and shared schema changes.
 
 ## GitHub collaboration
 
