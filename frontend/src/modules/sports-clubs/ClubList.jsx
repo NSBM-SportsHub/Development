@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
+import GlassSelect from "../../shared/GlassSelect.jsx";
 
 export default function ClubList({ clubs, loading, error, onRetry }) {
   const [query, setQuery] = useState("");
@@ -32,17 +33,11 @@ export default function ClubList({ clubs, loading, error, onRetry }) {
           </label>
           <label>
             <span className="visually-hidden">Filter by sport</span>
-            <select value={sport} onChange={(event) => setSport(event.target.value)}>
-              <option value="">All sports</option>
-              {sports.map((item) => <option value={item} key={item}>{item}</option>)}
-            </select>
+            <GlassSelect label="Filter by sport" value={sport} onChange={setSport} options={[{ value: "", label: "All sports" }, ...sports.map((item) => ({ value: item, label: item }))]} />
           </label>
           <label>
             <span className="visually-hidden">Filter by status</span>
-            <select value={status} onChange={(event) => setStatus(event.target.value)}>
-              <option value="">All statuses</option>
-              {[...new Set(clubs.map((club) => club.status))].sort().map((item) => <option value={item} key={item}>{item}</option>)}
-            </select>
+            <GlassSelect label="Filter by status" value={status} onChange={setStatus} options={[{ value: "", label: "All statuses" }, ...[...new Set(clubs.map((club) => club.status))].sort().map((item) => ({ value: item, label: item }))]} />
           </label>
         </div>
 

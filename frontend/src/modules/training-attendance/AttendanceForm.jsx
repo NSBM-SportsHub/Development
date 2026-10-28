@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { attendanceService } from "./attendanceService.js";
+import GlassSelect from "../../shared/GlassSelect.jsx";
 
 export default function AttendanceForm({ sessions, loading }) {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const session = sessions.find((item) => item.id === sessionId);
   const [error, setError] = useState("");
+  const [status, setStatus] = useState("Present");
 
   if (loading) return <div className="club-state" role="status">Loading session information…</div>;
   if (!session) {
@@ -63,11 +65,7 @@ export default function AttendanceForm({ sessions, loading }) {
         <label>Participant name<input name="participantName" minLength="2" maxLength="100" autoComplete="name" required /></label>
         <label>Student ID<input name="studentId" minLength="2" maxLength="40" required /></label>
         <label>Attendance status
-          <select name="status" defaultValue="Present" required>
-            <option>Present</option>
-            <option>Late</option>
-            <option>Absent</option>
-          </select>
+          <GlassSelect label="Attendance status" name="status" value={status} onChange={setStatus} required options={["Present", "Late", "Absent"].map((item) => ({ value: item, label: item }))} />
         </label>
         <label>Notes <span className="optional-label">(optional)</span><textarea name="notes" rows="3" maxLength="300" /></label>
         {error && <p className="form-error" role="alert">{error}</p>}

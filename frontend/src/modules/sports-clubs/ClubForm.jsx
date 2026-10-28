@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import GlassSelect from "../../shared/GlassSelect.jsx";
 
 const DEFAULT_IMAGE = "https://images.unsplash.com/photo-1530549387789-4c1017266635?auto=format&fit=crop&w=900&q=85";
 
@@ -9,6 +10,15 @@ export default function ClubForm({ clubs, loading, onSave }) {
   const selectedClub = clubs.find((club) => club.id === clubId);
   const isEditing = Boolean(clubId);
   const [error, setError] = useState("");
+  const [sport, setSport] = useState(selectedClub?.sport ?? "");
+  const [status, setStatus] = useState(selectedClub?.status ?? "Recruiting");
+
+  useEffect(() => {
+    if (selectedClub) {
+      setSport(selectedClub.sport);
+      setStatus(selectedClub.status);
+    }
+  }, [selectedClub]);
 
   if (loading) {
     return <div className="club-state" role="status">Loading club information…</div>;
@@ -76,16 +86,11 @@ export default function ClubForm({ clubs, loading, onSave }) {
         </label>
         <label>
           Sport
-          <input name="sport" defaultValue={selectedClub?.sport ?? ""} list="club-sports" maxLength="40" required />
-          <datalist id="club-sports">{[...new Set(clubs.map((club) => club.sport))].map((sport) => <option key={sport} value={sport} />)}</datalist>
+          <GlassSelect label="Sport" name="sport" value={sport} onChange={setSport} allowCustom required placeholder="Choose or enter a sport" options={[...new Set(clubs.map((club) => club.sport))].map((item) => ({ value: item, label: item }))} />
         </label>
         <label>
           Status
-          <select name="status" defaultValue={selectedClub?.status ?? "Recruiting"} required>
-            <option>Recruiting</option>
-            <option>Active</option>
-            <option>Full</option>
-          </select>
+          <GlassSelect label="Status" name="status" value={status} onChange={setStatus} required options={["Recruiting", "Active", "Full"].map((item) => ({ value: item, label: item }))} />
         </label>
         <label>
           Description
