@@ -10,7 +10,7 @@ export default function App() {
         <Route path="/" element={<Navigate to="/sports-clubs" replace />} />
         <Route path="/sports-clubs/*" element={<SportsClubs />} />
         <Route path="/training-attendance/*" element={<TrainingAttendance />} />
-        <Route path="/announcements" element={<Announcements />} />
+        <Route path="/announcements/*" element={<Announcements />} />
         <Route path="*" element={<Navigate to="/sports-clubs" replace />} />
       </Routes>
     </BrowserRouter>
