@@ -5,6 +5,7 @@ declare(strict_types=1);
 require_once __DIR__ . '/../src/shared/Response.php';
 require_once __DIR__ . '/../src/modules/sports-clubs/ClubController.php';
 require_once __DIR__ . '/../src/modules/sports-clubs/SportController.php';
+require_once __DIR__ . '/../src/modules/training-attendance/TrainingController.php';
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
 $rawPath = $_SERVER['REQUEST_URI'] ?? '/';
@@ -81,6 +82,42 @@ if (count($segments) >= 2 && $segments[1] === 'sports') {
     }
 
     Response::json(404, ['success' => false, 'message' => 'Sport route not found.']);
+    exit;
+}
+
+if (count($segments) >= 2 && $segments[1] === 'training-sessions') {
+    $sessionId = null;
+
+    if (count($segments) >= 3 && is_numeric($segments[2])) {
+        $sessionId = (int) $segments[2];
+    }
+
+    if ($method === 'GET' && count($segments) === 2) {
+        TrainingController::list();
+        exit;
+    }
+
+    if ($method === 'GET' && count($segments) === 3 && $sessionId !== null) {
+        TrainingController::details($sessionId);
+        exit;
+    }
+
+    if ($method === 'POST' && count($segments) === 2) {
+        TrainingController::create();
+        exit;
+    }
+
+    if (($method === 'PUT' || $method === 'PATCH') && count($segments) === 3 && $sessionId !== null) {
+        TrainingController::update($sessionId);
+        exit;
+    }
+
+    if ($method === 'PATCH' && count($segments) === 4 && $sessionId !== null && ($segments[3] ?? '') === 'cancel') {
+        TrainingController::cancel($sessionId);
+        exit;
+    }
+
+    Response::json(404, ['success' => false, 'message' => 'Training session route not found.']);
     exit;
 }
 
