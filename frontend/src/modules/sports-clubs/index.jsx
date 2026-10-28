@@ -46,7 +46,7 @@ export default function SportsClubs() {
         </a>
         <nav className="sports-nav" aria-label="Main navigation">
           <a href="/sports-clubs">Home</a>
-          <a href="/sports-clubs">Schedule</a>
+          <a href="/training-attendance">Schedule</a>
           <a className="active" href="/sports-clubs">Clubs</a>
           <a href="/sports-clubs">Achievements</a>
           <a className="sports-signup" href="/sports-clubs/new">Sign Up</a>
