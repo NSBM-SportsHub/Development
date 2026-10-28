@@ -3,10 +3,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import "../sports-clubs/sports-clubs.css";
 import TrainingForm from "./TrainingForm.jsx";
 import TrainingSchedule from "./TrainingSchedule.jsx";
-import { sampleSessions } from "./trainingData.js";
+import { trainingService } from "./trainingService.js";
 import "./training-attendance.css";
-
-const STORAGE_KEY = "nsbm-training-sessions";
 
 export default function TrainingAttendance() {
   const [sessions, setSessions] = useState([]);
@@ -17,10 +15,9 @@ export default function TrainingAttendance() {
     setLoading(true);
     setError("");
     try {
-      const saved = window.localStorage.getItem(STORAGE_KEY);
-      setSessions(saved === null ? sampleSessions : JSON.parse(saved));
+      setSessions(trainingService.list());
     } catch (loadError) {
-      setSessions(sampleSessions);
+      setSessions([]);
       setError(loadError instanceof Error ? loadError.message : "Unable to load training sessions.");
     } finally {
       setLoading(false);
@@ -32,13 +29,9 @@ export default function TrainingAttendance() {
   }, []);
 
   function saveSession(session) {
-    const id = session.id || `${Date.now()}`;
-    const updated = session.id
-      ? sessions.map((item) => item.id === session.id ? { ...session, id } : item)
-      : [...sessions, { ...session, id }];
-    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    setSessions(updated);
-    return id;
+    const result = trainingService.save(sessions, session);
+    setSessions(result.sessions);
+    return result.id;
   }
 
   return (
