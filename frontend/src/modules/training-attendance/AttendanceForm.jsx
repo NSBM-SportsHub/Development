@@ -24,12 +24,18 @@ export default function AttendanceForm({ sessions, loading }) {
     const form = event.currentTarget;
     if (!form.reportValidity()) return;
     const values = new FormData(form);
+    const participantName = values.get("participantName").trim();
+    const studentId = values.get("studentId").trim();
+    if (participantName.length < 2 || studentId.length < 2) {
+      setError("Enter a participant name and student ID with at least 2 non-space characters.");
+      return;
+    }
 
     try {
       attendanceService.save({
         sessionId: session.id,
-        participantName: values.get("participantName").trim(),
-        studentId: values.get("studentId").trim(),
+        participantName,
+        studentId,
         status: values.get("status"),
         notes: values.get("notes").trim(),
         recordedAt: new Date().toISOString(),
