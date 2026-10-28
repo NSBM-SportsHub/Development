@@ -23,6 +23,10 @@ final class Config
             $settings = array_replace_recursive($settings, $local);
         }
 
+        // Resolve from the backend directory, regardless of the terminal's working directory.
+        // Real process variables keep priority, including explicitly empty values.
+        $fileVariables = Environment::fromFile(dirname($directory) . '/.env');
+
         $variables = [
             'SPORTSHUB_ENV' => ['environment'],
             'SPORTSHUB_APP_KEY' => ['app_key'],
@@ -36,6 +40,9 @@ final class Config
         foreach ($variables as $variable => $keys) {
             $value = getenv($variable);
             if ($value === false) {
+                $value = $fileVariables[$variable] ?? false;
+            }
+            if ($value === false) {
                 continue;
             }
             if (count($keys) === 1) {
@@ -45,6 +52,9 @@ final class Config
             }
         }
         $secure = getenv('SPORTSHUB_SESSION_SECURE');
+        if ($secure === false) {
+            $secure = $fileVariables['SPORTSHUB_SESSION_SECURE'] ?? false;
+        }
         if ($secure !== false) {
             if (!in_array($secure, ['0', '1'], true)) {
                 throw new \RuntimeException('SPORTSHUB_SESSION_SECURE must be 0 or 1.');
