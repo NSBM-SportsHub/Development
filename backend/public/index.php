@@ -62,4 +62,25 @@ if (count($segments) >= 2 && $segments[1] === 'clubs') {
     exit;
 }
 
+if (count($segments) >= 2 && $segments[1] === 'sports') {
+    $sportId = null;
+
+    if (count($segments) >= 3 && is_numeric($segments[2])) {
+        $sportId = (int) $segments[2];
+    }
+
+    if ($method === 'GET' && count($segments) === 2) {
+        SportController::list();
+        exit;
+    }
+
+    if ($method === 'GET' && count($segments) === 3 && $sportId !== null) {
+        SportController::details($sportId);
+        exit;
+    }
+
+    Response::json(404, ['success' => false, 'message' => 'Sport route not found.']);
+    exit;
+}
+
 Response::json(404, ['success' => false, 'message' => 'API endpoint not found.']);
