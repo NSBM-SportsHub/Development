@@ -8,12 +8,18 @@
   --glass-white: rgb(255 255 255 / 70%);
   --glass-border: rgb(255 255 255 / 88%);
   --glass-shadow: 0 18px 48px rgb(34 77 59 / 9%), 0 2px 8px rgb(34 77 59 / 5%);
+  --motion-ease: cubic-bezier(.22, 1, .36, 1);
+  --motion-fast: 160ms;
+  --motion-control: 220ms;
+  --motion-card: 250ms;
+  --motion-page: 300ms;
 }
 
 html {
   min-width: 320px;
   min-height: 100%;
   background: #f3f8f6;
+  scroll-behavior: smooth;
 }
 
 body {
@@ -69,7 +75,27 @@ body {
 }
 
 .sports-nav a {
-  transition: color 220ms ease, opacity 220ms ease;
+  position: relative;
+  transition: color var(--motion-control) var(--motion-ease), opacity var(--motion-control) var(--motion-ease);
+}
+
+.sports-nav a::after {
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--glass-emerald);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--motion-control) var(--motion-ease);
+}
+
+.sports-nav a:hover::after,
+.sports-nav a.active::after {
+  transform: scaleX(1);
 }
 
 .sports-nav a:hover,
@@ -125,7 +151,7 @@ body {
 .secondary-button {
   min-height: 46px;
   border-radius: 14px;
-  transition: transform 220ms ease, box-shadow 220ms ease, background-color 220ms ease;
+  transition: transform var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease);
 }
 
 .primary-button {
@@ -161,11 +187,11 @@ body {
   border: 1px solid rgb(255 255 255 / 72%);
   border-radius: 20px;
   box-shadow: 0 12px 30px rgb(24 58 43 / 12%);
-  transition: transform 240ms ease, box-shadow 240ms ease;
+  transition: transform var(--motion-card) var(--motion-ease), box-shadow var(--motion-card) var(--motion-ease);
 }
 
 .club-card:hover {
-  transform: translateY(-4px);
+  transform: translateY(-4px) scale(1.01);
   box-shadow: 0 18px 38px rgb(24 58 43 / 18%);
 }
 
@@ -184,7 +210,7 @@ body {
   background: rgb(255 255 255 / 67%);
   box-shadow: inset 0 1px 2px rgb(30 72 52 / 4%);
   color: var(--glass-ink);
-  transition: border-color 200ms ease, box-shadow 200ms ease, background-color 200ms ease;
+  transition: border-color var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease);
 }
 
 .club-filters input:focus,
@@ -335,20 +361,20 @@ body {
 }
 
 .training-card {
-  transition: transform 220ms ease, box-shadow 220ms ease;
+  transition: transform var(--motion-card) var(--motion-ease), box-shadow var(--motion-card) var(--motion-ease), border-color var(--motion-card) var(--motion-ease);
 }
 
 .training-card:hover {
-  transform: translateY(-3px);
+  transform: translateY(-4px) scale(1.01);
   box-shadow: 0 16px 34px rgb(35 77 57 / 12%);
 }
 
 .announcement-card {
-  transition: transform 220ms ease, box-shadow 220ms ease;
+  transition: transform var(--motion-card) var(--motion-ease), box-shadow var(--motion-card) var(--motion-ease);
 }
 
 .announcement-card:hover {
-  transform: translateY(-2px);
+  transform: translateY(-4px) scale(1.01);
   box-shadow: 0 15px 32px rgb(35 77 57 / 10%);
 }
 
@@ -405,7 +431,7 @@ body {
   font-size: 12px;
   text-align: left;
   cursor: pointer;
-  transition: border-color 180ms ease, box-shadow 180ms ease, background-color 180ms ease;
+  transition: border-color var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease), background-color var(--motion-fast) var(--motion-ease);
 }
 
 .glass-select-trigger:hover {
@@ -450,7 +476,7 @@ body {
   -webkit-backdrop-filter: saturate(160%) blur(20px);
   backdrop-filter: saturate(160%) blur(20px);
   transform-origin: top center;
-  animation: glass-select-open 170ms ease-out both;
+  animation: glass-select-open 180ms var(--motion-ease) both;
 }
 
 .glass-select-menu[hidden] {
@@ -464,7 +490,7 @@ body {
   color: #17352b;
   font-size: 12px;
   cursor: pointer;
-  transition: color 160ms ease, background-color 160ms ease;
+  transition: color var(--motion-fast) var(--motion-ease), background-color var(--motion-fast) var(--motion-ease);
 }
 
 .glass-select-option:hover,
@@ -614,6 +640,124 @@ body {
   outline-offset: 2px;
 }
 
+/* Shared entrance and interaction motion for the routed pages and their lists. */
+.sports-main > * {
+  animation: glass-page-enter var(--motion-page) var(--motion-ease) both;
+}
+
+.club-grid > .club-card:nth-child(-n + 6),
+.training-list > .training-card:nth-child(-n + 6),
+.announcement-list > .announcement-card:nth-child(-n + 6),
+.attendance-table tbody > tr:nth-child(-n + 6) {
+  animation: glass-list-enter 280ms var(--motion-ease) both;
+}
+
+.club-grid > .club-card:nth-child(2),
+.training-list > .training-card:nth-child(2),
+.announcement-list > .announcement-card:nth-child(2),
+.attendance-table tbody > tr:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.club-grid > .club-card:nth-child(3),
+.training-list > .training-card:nth-child(3),
+.announcement-list > .announcement-card:nth-child(3),
+.attendance-table tbody > tr:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.club-grid > .club-card:nth-child(4),
+.training-list > .training-card:nth-child(4),
+.announcement-list > .announcement-card:nth-child(4),
+.attendance-table tbody > tr:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.club-grid > .club-card:nth-child(5),
+.training-list > .training-card:nth-child(5),
+.announcement-list > .announcement-card:nth-child(5),
+.attendance-table tbody > tr:nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.club-grid > .club-card:nth-child(6),
+.training-list > .training-card:nth-child(6),
+.announcement-list > .announcement-card:nth-child(6),
+.attendance-table tbody > tr:nth-child(6) {
+  animation-delay: 200ms;
+}
+
+.club-filters:focus-within ~ .club-grid > .club-card {
+  animation: none;
+}
+
+.sports-hub button:not(.glass-select-trigger),
+.sports-hub .primary-button,
+.sports-hub .light-button,
+.sports-hub .secondary-button {
+  transition: transform var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease), color var(--motion-control) var(--motion-ease);
+}
+
+.sports-hub button:not(.glass-select-trigger):active:not(:disabled),
+.sports-hub .primary-button:active,
+.sports-hub .light-button:active,
+.sports-hub .secondary-button:active {
+  transform: scale(.98);
+}
+
+.sports-hub input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+.sports-hub select,
+.sports-hub textarea {
+  transition: border-color var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease);
+}
+
+dialog[open],
+[role="dialog"][aria-modal="true"] {
+  animation: glass-modal-enter 220ms var(--motion-ease) both;
+}
+
+dialog[open]::backdrop {
+  animation: glass-backdrop-enter 220ms var(--motion-ease) both;
+}
+
+@keyframes glass-page-enter {
+  from {
+    opacity: .2;
+    translate: 0 8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes glass-list-enter {
+  from {
+    opacity: .35;
+    translate: 0 7px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes glass-modal-enter {
+  from {
+    opacity: .5;
+    transform: scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glass-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
   .sports-header,
   .clubs-panel,
@@ -680,12 +824,31 @@ body {
   }
 }
 
+@media (hover: none) {
+  .club-card:hover,
+  .training-card:hover,
+  .announcement-card:hover,
+  .primary-button:hover,
+  .light-button:hover,
+  .secondary-button:hover {
+    transform: none;
+  }
+
+  .sports-hub button:not(.glass-select-trigger):active:not(:disabled),
+  .sports-hub .primary-button:active,
+  .sports-hub .light-button:active,
+  .sports-hub .secondary-button:active {
+    transform: scale(.98);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
   *::after {
     scroll-behavior: auto !important;
     animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: .01ms !important;
   }
