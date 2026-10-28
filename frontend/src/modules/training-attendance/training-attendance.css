@@ -1,0 +1,376 @@
+.training-hub .training-schedule {
+  padding: clamp(26px, 6vw, 64px);
+  background: #e7e8e6;
+}
+
+.training-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+
+.training-heading h1,
+.training-detail h1,
+.training-form-aside h1 {
+  margin: 0;
+  color: #006a47;
+  font-family: "Barlow Condensed", Impact, sans-serif;
+  font-size: clamp(48px, 7vw, 78px);
+  font-weight: 500;
+  line-height: .9;
+}
+
+.training-heading h1 span {
+  color: #172d28;
+}
+
+.training-heading .clubs-intro {
+  margin-top: 14px;
+}
+
+.training-list {
+  display: grid;
+  gap: 12px;
+}
+
+.training-card {
+  min-height: 100px;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  gap: 19px;
+  border: 1px solid #d5ded8;
+  border-radius: 6px;
+  background: #f7faf7;
+  color: #172d28;
+  text-decoration: none;
+  transition: border-color .18s ease, transform .18s ease;
+}
+
+.training-card:hover {
+  transform: translateY(-2px);
+  border-color: #75b89a;
+}
+
+.training-date {
+  width: 56px;
+  height: 60px;
+  flex: 0 0 auto;
+  display: grid;
+  align-content: center;
+  justify-items: center;
+  border-radius: 4px;
+  background: #d7f0e5;
+  color: #006a47;
+}
+
+.training-date strong {
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 25px;
+  line-height: 1;
+}
+
+.training-date small {
+  margin-top: 3px;
+  font-size: 10px;
+  text-transform: uppercase;
+}
+
+.training-card-main {
+  min-width: 0;
+  flex: 1;
+}
+
+.training-card-main > small,
+.training-card-main > strong,
+.training-card-main > span {
+  display: block;
+}
+
+.training-card-main > small {
+  margin-bottom: 4px;
+  color: #006a47;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.training-card-main > strong {
+  margin-bottom: 5px;
+  font-size: 16px;
+}
+
+.training-card-main > span {
+  overflow: hidden;
+  color: #68756e;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.training-arrow {
+  color: #006a47;
+  font-size: 20px;
+}
+
+.training-detail-banner {
+  min-height: 390px;
+  padding: clamp(28px, 7vw, 68px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  background: linear-gradient(120deg, #006a47, #064b39);
+  color: #fff;
+}
+
+.training-detail-banner .back-link {
+  margin-bottom: auto;
+  color: rgb(255 255 255 / 84%);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.training-detail-banner .eyebrow {
+  margin-top: 42px;
+  color: #a7e4c2;
+}
+
+.training-detail h1 {
+  color: #fff;
+  font-size: clamp(54px, 8vw, 88px);
+}
+
+.training-detail-banner > p:not(.eyebrow) {
+  max-width: 600px;
+  margin: 18px 0 24px;
+  color: rgb(255 255 255 / 84%);
+  font-size: 14px;
+  line-height: 1.7;
+}
+
+.training-facts {
+  padding: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  background: #e7f2eb;
+}
+
+.training-facts > div {
+  min-height: 75px;
+  padding: 14px;
+  border-radius: 5px;
+  background: #f7faf7;
+}
+
+.training-facts small,
+.training-facts strong {
+  display: block;
+}
+
+.training-facts small {
+  margin-bottom: 6px;
+  color: #68756e;
+  font-size: 11px;
+}
+
+.training-facts strong {
+  color: #064b39;
+  font-size: 13px;
+}
+
+.training-form-page {
+  display: grid;
+  grid-template-columns: .85fr 1.15fr;
+  overflow: hidden;
+  background: #e3f2e9;
+}
+
+.training-form-aside {
+  min-height: 100%;
+  padding: clamp(28px, 6vw, 62px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: linear-gradient(145deg, #087752, #043f31);
+  color: #fff;
+}
+
+.training-form-aside .back-link {
+  margin-bottom: auto;
+  color: rgb(255 255 255 / 82%);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.training-form-aside .eyebrow {
+  margin-top: 70px;
+  color: #a7e4c2;
+}
+
+.training-form-aside h1 {
+  color: #fff;
+  font-size: clamp(54px, 7vw, 82px);
+}
+
+.training-form-aside > p:not(.eyebrow) {
+  max-width: 340px;
+  color: rgb(255 255 255 / 82%);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.training-form-aside .form-decoration {
+  margin-top: auto;
+  color: rgb(255 255 255 / 13%);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: .9;
+}
+
+.training-form {
+  padding: clamp(26px, 5vw, 54px);
+  display: flex;
+  flex-direction: column;
+  gap: 17px;
+  background: #e5f4eb;
+}
+
+.training-form .form-title {
+  margin-bottom: 4px;
+}
+
+.training-form .form-title h2 {
+  margin: 0;
+  color: #064b39;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 35px;
+}
+
+.training-form label {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+  color: #284f40;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.training-form input,
+.training-form textarea {
+  width: 100%;
+  min-height: 43px;
+  padding: 11px 13px;
+  border: 1px solid #c8ded1;
+  border-radius: 4px;
+  outline: none;
+  background: #fff;
+  color: #172d28;
+  font: inherit;
+  font-size: 13px;
+}
+
+.training-form textarea {
+  resize: vertical;
+}
+
+.training-form input:focus,
+.training-form textarea:focus {
+  border-color: #006a47;
+  box-shadow: 0 0 0 3px rgb(0 106 71 / 12%);
+}
+
+.training-form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 14px;
+}
+
+@media (max-width: 800px) {
+  .training-form-page {
+    grid-template-columns: .8fr 1.2fr;
+  }
+
+  .training-facts {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 560px) {
+  .training-hub .training-schedule {
+    padding: 25px 18px;
+  }
+
+  .training-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 22px;
+  }
+
+  .training-heading h1 {
+    font-size: 57px;
+  }
+
+  .training-card {
+    padding: 13px;
+    gap: 12px;
+  }
+
+  .training-date {
+    width: 48px;
+    height: 54px;
+  }
+
+  .training-card-main > strong {
+    font-size: 14px;
+  }
+
+  .training-card-main > span {
+    max-width: 220px;
+    font-size: 11px;
+  }
+
+  .training-detail-banner {
+    min-height: 400px;
+    padding: 24px;
+  }
+
+  .training-facts {
+    grid-template-columns: 1fr;
+    padding: 12px;
+  }
+
+  .training-form-page {
+    grid-template-columns: 1fr;
+  }
+
+  .training-form-aside {
+    min-height: 290px;
+    padding: 24px;
+  }
+
+  .training-form-aside .eyebrow {
+    margin-top: 48px;
+  }
+
+  .training-form-aside h1 {
+    font-size: 60px;
+  }
+
+  .training-form-aside .form-decoration {
+    position: absolute;
+    right: 22px;
+    font-size: 21px;
+  }
+
+  .training-form {
+    padding: 25px 20px;
+  }
+}
