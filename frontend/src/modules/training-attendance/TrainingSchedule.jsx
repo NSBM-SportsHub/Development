@@ -39,7 +39,10 @@ export default function TrainingSchedule({ sessions, loading }) {
           <p className="eyebrow">{session.club}</p>
           <h1>{session.title}</h1>
           <p>{session.description}</p>
-          <Link className="light-button" to={`/training-attendance/${session.id}/edit`}>Edit session <span aria-hidden="true">→</span></Link>
+          <div className="training-detail-actions">
+            <Link className="light-button" to={`/training-attendance/${session.id}/attendance`}>View attendance <span aria-hidden="true">→</span></Link>
+            <Link className="training-edit-link" to={`/training-attendance/${session.id}/edit`}>Edit session</Link>
+          </div>
         </div>
         <div className="training-facts">
           <div><small>Date</small><strong>{formatDate(session.date)}</strong></div>

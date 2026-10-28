@@ -293,6 +293,113 @@
   gap: 14px;
 }
 
+.training-detail-actions {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.training-edit-link,
+.attendance-back {
+  color: #006a47;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.training-edit-link {
+  color: rgb(255 255 255 / 88%);
+}
+
+.attendance-view {
+  padding: clamp(26px, 6vw, 64px);
+  background: #e7e8e6;
+}
+
+.attendance-view .training-heading {
+  margin-bottom: 24px;
+}
+
+.attendance-view h1 {
+  margin: 10px 0 0;
+  color: #006a47;
+  font-family: "Barlow Condensed", Impact, sans-serif;
+  font-size: clamp(48px, 7vw, 74px);
+  font-weight: 500;
+  line-height: .9;
+}
+
+.attendance-view h1 span {
+  color: #172d28;
+}
+
+.attendance-table-wrap {
+  overflow-x: auto;
+  border: 1px solid #d5ded8;
+  border-radius: 6px;
+  background: #f7faf7;
+}
+
+.attendance-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.attendance-table th,
+.attendance-table td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #e1e9e3;
+  font-size: 12px;
+}
+
+.attendance-table th {
+  color: #426152;
+  font-size: 10px;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.attendance-table tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.attendance-status {
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #d7f0e5;
+  color: #006a47;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.status-late {
+  background: #fff0d6;
+  color: #8a5700;
+}
+
+.status-absent {
+  background: #fde4df;
+  color: #973b2a;
+}
+
+.attendance-view .club-state a {
+  color: #006a47;
+  font-weight: 700;
+}
+
+.training-form select {
+  width: 100%;
+  min-height: 43px;
+  padding: 11px 13px;
+  border: 1px solid #c8ded1;
+  border-radius: 4px;
+  background: #fff;
+  color: #172d28;
+  font: inherit;
+  font-size: 13px;
+}
+
 @media (max-width: 800px) {
   .training-form-page {
     grid-template-columns: .8fr 1.2fr;
@@ -340,6 +447,21 @@
   .training-detail-banner {
     min-height: 400px;
     padding: 24px;
+  }
+
+  .attendance-view {
+    padding: 25px 18px;
+  }
+
+  .attendance-view .training-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .attendance-table th,
+  .attendance-table td {
+    padding: 12px;
+    white-space: nowrap;
   }
 
   .training-facts {

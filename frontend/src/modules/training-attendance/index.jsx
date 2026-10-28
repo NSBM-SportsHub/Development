@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 import "../sports-clubs/sports-clubs.css";
+import AttendanceForm from "./AttendanceForm.jsx";
+import AttendanceList from "./AttendanceList.jsx";
 import TrainingForm from "./TrainingForm.jsx";
 import TrainingSchedule from "./TrainingSchedule.jsx";
 import { trainingService } from "./trainingService.js";
@@ -54,6 +56,8 @@ export default function TrainingAttendance() {
         <Routes>
           <Route index element={<TrainingSchedule sessions={sessions} loading={loading} />} />
           <Route path="new" element={<TrainingForm sessions={sessions} loading={loading} onSave={saveSession} />} />
+          <Route path=":sessionId/attendance/record" element={<AttendanceForm sessions={sessions} loading={loading} />} />
+          <Route path=":sessionId/attendance" element={<AttendanceList sessions={sessions} loading={loading} />} />
           <Route path=":sessionId/edit" element={<TrainingForm sessions={sessions} loading={loading} onSave={saveSession} />} />
           <Route path=":sessionId" element={<TrainingSchedule sessions={sessions} loading={loading} />} />
           <Route path="*" element={<Navigate to="/training-attendance" replace />} />
