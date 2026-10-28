@@ -8,7 +8,7 @@ export default function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Navigate to="/sports-clubs" replace />} />
-        <Route path="/sports-clubs" element={<SportsClubs />} />
+        <Route path="/sports-clubs/*" element={<SportsClubs />} />
         <Route path="/training-attendance" element={<TrainingAttendance />} />
         <Route path="/announcements" element={<Announcements />} />
         <Route path="*" element={<Navigate to="/sports-clubs" replace />} />
