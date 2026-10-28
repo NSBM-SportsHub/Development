@@ -47,8 +47,7 @@ export default function TrainingAttendance() {
           <a href="/sports-clubs">Home</a>
           <a className="active" href="/training-attendance">Schedule</a>
           <a href="/sports-clubs">Clubs</a>
-          <a href="/sports-clubs">Achievements</a>
-          <a className="sports-signup" href="/training-attendance/new">Add Session</a>
+          <a href="/announcements">Announcements</a>
         </nav>
       </header>
       <main className="sports-main">

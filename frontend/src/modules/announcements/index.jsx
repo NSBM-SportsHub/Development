@@ -30,7 +30,6 @@ export default function Announcements() {
           <a href="/training-attendance">Schedule</a>
           <a href="/sports-clubs">Clubs</a>
           <a className="active" href="/announcements">Announcements</a>
-          <a className="sports-signup" href="/announcements/new">Create</a>
         </nav>
       </header>
       <main className="sports-main">

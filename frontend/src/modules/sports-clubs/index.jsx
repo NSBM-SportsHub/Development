@@ -48,9 +48,7 @@ export default function SportsClubs() {
           <a href="/sports-clubs">Home</a>
           <a href="/training-attendance">Schedule</a>
           <a className="active" href="/sports-clubs">Clubs</a>
-          <a href="/sports-clubs">Achievements</a>
           <a href="/announcements">Announcements</a>
-          <a className="sports-signup" href="/sports-clubs/new">Sign Up</a>
         </nav>
       </header>
 
