@@ -1,7 +1,10 @@
-import { Link, useParams } from "react-router-dom";
+import { useState } from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 
-export default function ClubDetails({ clubs, loading }) {
+export default function ClubDetails({ clubs, loading, onDelete }) {
   const { clubId } = useParams();
+  const navigate = useNavigate();
+  const [deleteError, setDeleteError] = useState("");
   const club = clubs.find((item) => item.id === clubId);
 
   if (loading) {
@@ -18,6 +21,17 @@ export default function ClubDetails({ clubs, loading }) {
     );
   }
 
+  function handleDelete() {
+    if (!window.confirm(`Delete ${club.name}? This cannot be undone.`)) return;
+
+    try {
+      onDelete(club.id);
+      navigate("/sports-clubs", { replace: true });
+    } catch (deleteFailure) {
+      setDeleteError(deleteFailure instanceof Error ? deleteFailure.message : "Unable to delete the club.");
+    }
+  }
+
   return (
     <article className="club-details">
       <section className="club-hero" style={{ "--club-image": `url("${club.image}")` }}>
@@ -28,8 +42,10 @@ export default function ClubDetails({ clubs, loading }) {
           <p>{club.description}</p>
           <div className="club-actions">
             <Link className="light-button" to={`/sports-clubs/${club.id}/edit`}>Edit club <span aria-hidden="true">→</span></Link>
+            <button className="danger-button" type="button" onClick={handleDelete}>Delete club</button>
             <span className="club-status">{club.status}</span>
           </div>
+          {deleteError && <p className="form-error" role="alert">{deleteError}</p>}
         </div>
         <div className="club-mark" aria-hidden="true">{club.sport.slice(0, 1)}</div>
       </section>

@@ -23,6 +23,8 @@ export const clubsService = {
     if (!id) {
       const base = club.name.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-|-$/g, "");
       id = `${base}-${Date.now()}`;
+    } else if (!currentClubs.some((item) => item.id === id)) {
+      throw new Error("This club no longer exists. Reload the clubs and try again.");
     }
 
     const updated = club.id
@@ -30,5 +32,15 @@ export const clubsService = {
       : [...currentClubs, { ...club, id }];
     window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
     return { clubs: updated, id };
+  },
+
+  delete(currentClubs, id) {
+    if (!currentClubs.some((club) => club.id === id)) {
+      throw new Error("This club no longer exists. Reload the clubs and try again.");
+    }
+
+    const updated = currentClubs.filter((club) => club.id !== id);
+    window.localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+    return updated;
   },
 };

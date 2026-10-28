@@ -331,6 +331,7 @@
 .club-actions {
   display: flex;
   align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
 }
 
@@ -407,6 +408,25 @@
 .light-button:hover {
   background: #d8f3e4;
   color: var(--club-green);
+}
+
+.danger-button {
+  min-height: 46px;
+  padding: 0 20px;
+  border: 1px solid rgb(255 255 255 / 55%);
+  border-radius: 5px;
+  background: #8d321d;
+  color: #fff;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background .18s ease, transform .18s ease;
+}
+
+.danger-button:hover {
+  background: #742713;
+  transform: translateY(-1px);
 }
 
 .club-mark {

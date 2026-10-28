@@ -34,6 +34,11 @@ export default function SportsClubs() {
     return result.id;
   }
 
+  function deleteClub(id) {
+    const updated = clubsService.delete(clubList, id);
+    setClubList(updated);
+  }
+
   return (
     <div className="sports-hub">
       <header className="sports-header">
@@ -57,7 +62,7 @@ export default function SportsClubs() {
           <Route index element={<ClubList clubs={clubList} loading={loading} error={error} onRetry={loadClubs} />} />
           <Route path="new" element={<ClubForm clubs={clubList} loading={loading} onSave={saveClub} />} />
           <Route path=":clubId/edit" element={<ClubForm clubs={clubList} loading={loading} onSave={saveClub} />} />
-          <Route path=":clubId" element={<ClubDetails clubs={clubList} loading={loading} />} />
+          <Route path=":clubId" element={<ClubDetails clubs={clubList} loading={loading} onDelete={deleteClub} />} />
           <Route path="*" element={<Navigate to="/sports-clubs" replace />} />
         </Routes>
       </main>

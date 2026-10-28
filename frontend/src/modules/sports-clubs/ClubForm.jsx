@@ -110,7 +110,7 @@ export default function ClubForm({ clubs, loading, onSave }) {
         </label>
         {error && <p className="form-error" role="alert">{error}</p>}
         <button className="primary-button form-submit" type="submit">{isEditing ? "Save changes" : "Create club"} <span aria-hidden="true">→</span></button>
-        <p className="form-note">Preview only — saved locally in this browser.</p>
+        <p className="form-note">Demo only — saved in this browser, not the database.</p>
       </form>
     </section>
   );
