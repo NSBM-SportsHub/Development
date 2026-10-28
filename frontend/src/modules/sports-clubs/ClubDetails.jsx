@@ -1,8 +1,12 @@
 import { Link, useParams } from "react-router-dom";
 
-export default function ClubDetails({ clubs }) {
+export default function ClubDetails({ clubs, loading }) {
   const { clubId } = useParams();
   const club = clubs.find((item) => item.id === clubId);
+
+  if (loading) {
+    return <div className="club-state" role="status">Loading club details…</div>;
+  }
 
   if (!club) {
     return (
@@ -22,7 +26,10 @@ export default function ClubDetails({ clubs }) {
           <p className="eyebrow">{club.sport} · NSBM Sports Hub</p>
           <h1>{club.name}</h1>
           <p>{club.description}</p>
-          <Link className="light-button" to="/sports-clubs/new">Join this club <span aria-hidden="true">→</span></Link>
+          <div className="club-actions">
+            <Link className="light-button" to={`/sports-clubs/${club.id}/edit`}>Edit club <span aria-hidden="true">→</span></Link>
+            <span className="club-status">{club.status}</span>
+          </div>
         </div>
         <div className="club-mark" aria-hidden="true">{club.sport.slice(0, 1)}</div>
       </section>
