@@ -1,4 +1,5 @@
-:root {
+.module-preview,
+.glass-select-menu {
   color-scheme: light;
   --glass-ink: #17352b;
   --glass-muted: #60766c;
@@ -15,14 +16,14 @@
   --motion-page: 300ms;
 }
 
-html {
+.module-preview {
   min-width: 320px;
   min-height: 100%;
   background: #f3f8f6;
   scroll-behavior: smooth;
 }
 
-body {
+.module-preview {
   min-width: 320px;
   min-height: 100vh;
   margin: 0;
@@ -711,12 +712,12 @@ body {
   transition: border-color var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease);
 }
 
-dialog[open],
-[role="dialog"][aria-modal="true"] {
+.module-preview dialog[open],
+.module-preview [role="dialog"][aria-modal="true"] {
   animation: glass-modal-enter 220ms var(--motion-ease) both;
 }
 
-dialog[open]::backdrop {
+.module-preview dialog[open]::backdrop {
   animation: glass-backdrop-enter 220ms var(--motion-ease) both;
 }
 
@@ -843,9 +844,13 @@ dialog[open]::backdrop {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
+  .module-preview *,
+  .module-preview *::before,
+  .module-preview *::after,
+  .glass-select-menu,
+  .glass-select-menu *,
+  .glass-select-menu *::before,
+  .glass-select-menu *::after {
     scroll-behavior: auto !important;
     animation-duration: .01ms !important;
     animation-delay: 0ms !important;

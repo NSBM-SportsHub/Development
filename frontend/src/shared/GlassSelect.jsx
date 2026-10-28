@@ -15,6 +15,7 @@ export default function GlassSelect({
   const rootRef = useRef(null);
   const menuRef = useRef(null);
   const triggerRef = useRef(null);
+  const anchorRectRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [activeIndex, setActiveIndex] = useState(0);
   const [query, setQuery] = useState("");
@@ -38,20 +39,28 @@ export default function GlassSelect({
       setQuery("");
       return;
     }
+    anchorRectRef.current = { left: rect.left, top: rect.top };
 
     const gap = 8;
-    const viewportPadding = 8;
-    const availableBelow = window.innerHeight - rect.bottom - gap - viewportPadding;
-    const maxHeight = Math.max(0, Math.min(window.innerHeight * 0.7, availableBelow));
-    const width = Math.min(rect.width, window.innerWidth - viewportPadding * 2);
+    const viewportPadding = Math.min(8, Math.max(0, Math.min(window.innerWidth, window.innerHeight) / 2));
+    const availableBelow = Math.max(0, window.innerHeight - rect.bottom - gap - viewportPadding);
+    const availableAbove = Math.max(0, rect.top - gap - viewportPadding);
+    const heightLimit = Math.max(0, Math.min(window.innerHeight * 0.7, window.innerHeight - viewportPadding * 2));
+    const usefulHeight = Math.min(Math.max(1, visibleOptions.length) * 38 + 14, 128, heightLimit);
+    const openAbove = availableBelow < usefulHeight && availableAbove > availableBelow;
+    const maxHeight = Math.max(0, Math.min(heightLimit, openAbove ? availableAbove : availableBelow));
+    const width = Math.max(0, Math.min(rect.width, window.innerWidth - viewportPadding * 2));
 
     setMenuPosition({
       left: Math.max(viewportPadding, Math.min(rect.left, window.innerWidth - width - viewportPadding)),
-      top: rect.bottom + gap,
+      // A bottom anchor lets the actual menu content determine its height above
+      // the trigger, without estimating row heights or scrolling the page.
+      top: openAbove ? undefined : Math.max(viewportPadding, rect.bottom + gap),
+      bottom: openAbove ? Math.max(viewportPadding, window.innerHeight - rect.top + gap) : undefined,
       width,
       maxHeight,
     });
-  }, []);
+  }, [visibleOptions.length]);
 
   useEffect(() => {
     function closeOutside(event) {
@@ -78,6 +87,13 @@ export default function GlassSelect({
     };
     const closeOnScroll = (event) => {
       if (menuRef.current?.contains(event.target)) return;
+      if (event.type === "scroll" && anchorRectRef.current && triggerRef.current) {
+        const rect = triggerRef.current.getBoundingClientRect();
+        const anchor = anchorRectRef.current;
+        // Focus can queue a scroll event before opening without moving the
+        // settled anchor. Wheel/touch intent and actual anchor movement close.
+        if (Math.abs(rect.left - anchor.left) <= 0.5 && Math.abs(rect.top - anchor.top) <= 0.5) return;
+      }
       menuRef.current?.setAttribute("hidden", "");
       setOpen(false);
       setQuery("");
@@ -101,9 +117,17 @@ export default function GlassSelect({
   }, [open]);
 
   useEffect(() => {
-    if (!open || !menuRef.current) return;
-    menuRef.current.querySelector(`#${CSS.escape(`${id}-option-${activeIndex}`)}`)?.scrollIntoView({ block: "nearest" });
-  }, [activeIndex, id, open, visibleOptions.length]);
+    if (!open || !menuPosition || !menuRef.current) return;
+    const menu = menuRef.current;
+    const option = menu.querySelector(`#${CSS.escape(`${id}-option-${activeIndex}`)}`);
+    if (!option) return;
+    const optionBottom = option.offsetTop + option.offsetHeight;
+    if (option.offsetTop < menu.scrollTop) {
+      menu.scrollTop = option.offsetTop;
+    } else if (optionBottom > menu.scrollTop + menu.clientHeight) {
+      menu.scrollTop = optionBottom - menu.clientHeight;
+    }
+  }, [activeIndex, id, open, visibleOptions.length, menuPosition]);
 
   function choose(option) {
     onChange(option.value);
@@ -165,8 +189,10 @@ export default function GlassSelect({
           position: "fixed",
           left: menuPosition.left,
           top: menuPosition.top,
+          bottom: menuPosition.bottom,
           width: menuPosition.width,
           maxHeight: menuPosition.maxHeight,
+          transformOrigin: menuPosition.bottom !== undefined ? "bottom center" : "top center",
         }}
       >
         {visibleOptions.map((option, index) => (
