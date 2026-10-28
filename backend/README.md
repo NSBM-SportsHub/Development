@@ -4,7 +4,7 @@ This directory is reserved for the PHP backend of NSBM SportsHub. It will implem
 
 Read the [project guide](../README.md) for the complete scope, team allocation, milestones, and contribution rules. Read the [frontend guide](../frontend/README.md) when coordinating a module's interface.
 
-> **Current status: folders only.** There are no PHP files, handlers, endpoints, database connections, sessions, SQL schema, or automated tests. `.gitkeep` files preserve empty directories. Security and workflow behavior below are requirements for future implementation, not existing functionality.
+> **Current status:** Facilities, equipment, and bookings have a first PHP/MySQL API implementation. Authentication integration, MySQL setup, and execution tests still need to be completed in the team environment. Other module folders remain placeholders.
 
 ## Technology and runtime direction
 
@@ -103,7 +103,16 @@ Agree on and document the following before integrating handlers:
 - Configuration loading, logging, and safe exception handling.
 - Database connection, prepared query, and transaction conventions.
 
-No endpoints are currently implemented. Record approved module contracts in `docs/` so frontend/backend partners implement the same interface. Keep credentials and server-only configuration outside the public directory and out of Git. Configure the future web server to expose the agreed public directory rather than the whole repository.
+The facilities/equipment/booking contract is documented in [`docs/resource-booking-api.md`](../docs/resource-booking-api.md). The first migration is [`database/migrations/001_resources_and_bookings.sql`](../database/migrations/001_resources_and_bookings.sql). Configure the web server to expose only `backend/public/`; keep credentials outside the public directory and out of Git.
+
+### Resource and booking API (initial implementation)
+
+- PHP entry point: `backend/public/index.php`; requires PHP 8.1+, `pdo_mysql`, `mbstring`, and MySQL 8.0.16+.
+- Database environment: `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`.
+- The existing authentication owner must provide `$_SESSION['user']` with integer `id` and `role` (`Student` or `Admin`). Mutating requests require `X-CSRF-Token`; retrieve it from `GET /api/session`.
+- Import `database/migrations/001_resources_and_bookings.sql` before running the API.
+- CRUD routes are listed in the API contract. `DELETE` archives resources and cancels bookings to retain history.
+- Local PHP lint/testing could not be run in the current workspace because PHP is not installed. Partner must validate the migration and endpoint behavior under the agreed XAMPP versions before merge.
 
 ## Security requirements
 
@@ -135,9 +144,9 @@ Foreign keys alone cannot prevent overlapping reservations or aggregate equipmen
 
 ## Local setup and run status
 
-The backend cannot currently be started: no PHP entry point, configuration loader, database connection, or schema import exists. Merely enabling Apache/MySQL in XAMPP does not create the application.
+The Facilities/Equipment/Bookings API can be started after importing its migration, configuring its database environment variables, and integrating the existing authentication session. Merely enabling Apache/MySQL in XAMPP does not create the database or provision the authentication session.
 
-When the foundation is implemented, document:
+The initial implementation prerequisites are documented in [`docs/resource-booking-api.md`](../docs/resource-booking-api.md). Other modules still need their own setup and contracts. Before integration:
 
 1. Supported PHP/database versions and required extensions.
 2. Safe configuration examples, local secret exclusions, and the agreed database name/account permissions.
@@ -146,7 +155,7 @@ When the foundation is implemented, document:
 5. Startup, syntax-check, test, and troubleshooting commands.
 6. Initial user provisioning and deployment-specific configuration.
 
-No server configuration, database, or application account is created by this README. Local/deployed configuration changes should be performed as explicit implementation/deployment tasks.
+No server configuration, database, or application account is created by this README. Local/deployed configuration changes should be performed as explicit implementation/deployment tasks. PHP syntax and database-backed behavior still need to be verified in the target environment.
 
 ## Review and testing expectations
 

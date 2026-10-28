@@ -86,7 +86,7 @@ Before building a database-dependent screen, agree with the backend partner on:
 5. CSRF handling for cookie-authenticated mutations.
 6. Loading, empty, retry, success, and failure behavior.
 
-No endpoints or response contracts currently exist. Record approved contracts in `docs/` before independent frontend/backend implementations diverge. Keep transport conventions in the agreed shared client rather than duplicating them across modules.
+The initial Facilities/Equipment/Bookings API contract is documented in [`docs/resource-booking-api.md`](../docs/resource-booking-api.md); other module endpoints are not implemented. Confirm the session shape, CSRF header, and proposed booking rules with the backend/auth owners before connecting the frontend. Keep transport conventions in the agreed shared client rather than duplicating them across modules.
 
 Development fixtures may support early UI work, but identify them clearly. A screen is not complete until it uses the real PHP workflow and reflects persisted records after refresh. Keep database credentials, passwords, and session secrets out of frontend files and browser-visible configuration.
 

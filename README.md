@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: folder structure and project planning only.** The repository contains three README files and empty `.gitkeep` placeholders. There is no runnable application, implemented authentication, database schema, or completed business module yet. Features described below are planned work, not claims of working functionality.
+> **Current status:** the Facilities, Equipment, and Bookings backend has an initial PHP/MySQL implementation and API contract. It requires the existing authentication owner’s session integration and has not yet been verified against the team’s XAMPP/MySQL setup. The frontend and other backend modules remain unimplemented; planned features below are not claims of working functionality.
 
 ## Start here
 
@@ -19,9 +19,9 @@ The project aims to bring sports clubs, membership applications, training, compe
 | --- | --- | --- |
 | Frontend | HTML, CSS, and JavaScript; React is the intended frontend direction from the project plan | No source, build tool, or dependencies installed in this repository |
 | UI framework | Bootstrap | Not integrated |
-| Backend | PHP | No PHP source or application entry point |
-| Database | MySQL | No schema, migrations, seeds, or connection configuration |
-| Local environment | XAMPP for PHP, Apache, and the database | Setup instructions await the agreed application structure |
+| Backend | PHP | Initial Facilities/Equipment/Bookings API at `backend/public/index.php`; auth integration remains |
+| Database | MySQL | Initial resource/booking migration and PDO configuration added; not yet integration-tested |
+| Local environment | XAMPP for PHP, Apache, and the database | Resource API setup is documented in `docs/resource-booking-api.md`; versions still need team verification |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
 The official assignment brief must confirm React/framework permissions before frontend scaffolding. PHP and MySQL remain the backend/database requirements; Node.js, if used for React tooling, serves development/build work only. Confirm the installed XAMPP database engine and runtime versions before finalizing compatibility.
@@ -80,7 +80,7 @@ Development/
 `-- docs/                   Future requirements, architecture, API, and QA documents
 ```
 
-Both `modules/` directories contain the same twelve folder names. Empty leaf directories have `.gitkeep` files so Git can retain the structure. These placeholders are not application code. No implementation filenames have been committed yet.
+Both `modules/` directories contain the same twelve folder names. Most leaf directories still contain only `.gitkeep` placeholders; the resource/booking backend implementation files are the initial exception.
 
 ## Team and working ownership
 
