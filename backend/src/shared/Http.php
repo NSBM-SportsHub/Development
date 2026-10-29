@@ -32,6 +32,18 @@ final class Http
         exit;
     }
 
+    public static function noContent(): never
+    {
+        http_response_code(204);
+        exit;
+    }
+
+    // Stored UTC DATETIME values are returned as ISO-8601 strings, e.g. 2026-10-30T09:00:00Z.
+    public static function timestamp(?string $value): ?string
+    {
+        return $value === null ? null : str_replace(' ', 'T', $value) . 'Z';
+    }
+
     public static function error(ApiException $exception): never
     {
         http_response_code($exception->status);

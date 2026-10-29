@@ -19,3 +19,9 @@ require_once dirname(__DIR__) . '/modules/authentication-users/UserController.ph
 require_once __DIR__ . '/ResourceBookingHttp.php';
 require_once dirname(__DIR__) . '/modules/resources/ResourceController.php';
 require_once dirname(__DIR__) . '/modules/bookings/BookingController.php';
+require_once dirname(__DIR__) . '/modules/memberships/MembershipService.php';
+require_once dirname(__DIR__) . '/modules/memberships/MembershipController.php';
+require_once dirname(__DIR__) . '/modules/tournaments/TournamentService.php';
+require_once dirname(__DIR__) . '/modules/tournaments/TournamentController.php';
+require_once dirname(__DIR__) . '/modules/matches-results/ResultService.php';
+require_once dirname(__DIR__) . '/modules/matches-results/MatchController.php';
