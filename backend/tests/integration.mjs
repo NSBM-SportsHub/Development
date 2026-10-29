@@ -5,6 +5,7 @@ import { mkdirSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { testResourcesAndBookings } from './resources-bookings.mjs';
 
 // Real PHP + MySQL/MariaDB HTTP tests. Creates and drops ONLY a random test DB.
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -72,6 +73,10 @@ class Client {
       if (cookie.includes('=') && !cookie.startsWith('deleted=')) this.cookie = cookie.split(';')[0];
     }
     assert.match(response.headers.get('content-type') || '', /application\/json/);
+    if (response.status === 204) {
+      assert.equal(await response.text(), '');
+      return { status: 204, data: null, error: null, headers: response.headers };
+    }
     const json = await response.json();
     assert.equal(Object.hasOwn(json, 'data'), true);
     assert.equal(Object.hasOwn(json, 'error'), true);
@@ -206,6 +211,8 @@ try {
     assert.equal(other.error.message, result.error.message);
     assert.equal((await admin.request('/auth/login', { method: 'POST', body: { email: adminEmail, password: adminPassword } })).data.user.role, 'admin');
   });
+  await testResourcesAndBookings({ check, Client, admin, student, cli });
+
   await check('Admin can create/read a user and duplicate email is rejected', async () => {
     targetEmail = `managed-${suffix}@example.test`;
     const body = { name: 'Managed Student', email: targetEmail, password, role: 'student', status: 'active' };

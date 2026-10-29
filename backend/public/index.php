@@ -3,9 +3,11 @@ declare(strict_types=1);
 
 use SportsHub\ApiException;
 use SportsHub\AuthController;
+use SportsHub\BookingController;
 use SportsHub\Config;
 use SportsHub\Database;
 use SportsHub\Http;
+use SportsHub\ResourceController;
 use SportsHub\Session;
 use SportsHub\UserController;
 
@@ -29,6 +31,18 @@ try {
         '/api/users' => ['GET', 'POST'],
     ];
     $userId = null;
+    $moduleRoute = null;
+    $moduleId = null;
+    if (preg_match('~\A/api/(facilities|equipment|bookings)(?:/([1-9][0-9]{0,18}))?\z~', $path, $match)) {
+        $moduleRoute = $match[1];
+        if (isset($match[2])) {
+            $moduleId = filter_var($match[2], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($moduleId === false) {
+                throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+            }
+        }
+        $routes[$path] = $moduleId === null ? ['GET', 'POST'] : ['GET', 'PUT', 'PATCH', 'DELETE'];
+    }
     if (!isset($routes[$path]) && preg_match('~\A/api/users/([1-9][0-9]{0,18})\z~', $path, $match)) {
         $userId = filter_var($match[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($userId === false) {
@@ -47,6 +61,17 @@ try {
     }
     Session::start();
     Session::currentUser(); // Refresh the account status and session version on every request.
+    if ($moduleRoute !== null) {
+        $actor = Session::requireUser();
+        if ($method !== 'GET') {
+            Session::verifyCsrf();
+        }
+        if ($moduleRoute === 'bookings') {
+            (new BookingController(Database::get()))->dispatch($method, $moduleId, $actor);
+        }
+        $type = $moduleRoute === 'facilities' ? 'facility' : 'equipment';
+        (new ResourceController(Database::get(), $type, $moduleRoute))->dispatch($method, $moduleId, $actor);
+    }
     $body = [];
     if (in_array($method, ['POST', 'PATCH', 'DELETE'], true)) {
         $body = Http::body();
@@ -77,4 +102,3 @@ try {
     error_log('SportsHub application failure: ' . $exception::class . ': ' . $exception->getMessage());
     Http::error(new ApiException(500, 'internal_error', 'The request could not be completed. Please try again later.'));
 }
-

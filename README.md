@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: authentication/users APIs with integrated module previews.** Registration, login/logout, profile/password changes, and Admin user management use PHP/MySQL. Shahilan's club, training/attendance, and announcement screens are included as local-data previews; their PHP workflows are still pending integration. See [local setup](docs/local-development.md), the [authentication API contract](docs/auth-users-api.md), and the [frontend guide](frontend/README.md) for data-persistence limits.
+> **Current status: authentication/users and resource/booking APIs with integrated module previews.** Registration, login/logout, profile/password changes, Admin user management, facilities/equipment CRUD, and booking requests/review use PHP/MySQL. Resource/booking interfaces remain pending. Shahilan's club, training/attendance, and announcement screens are included as local-data previews; their PHP workflows are still pending integration. See [local setup](docs/local-development.md), the [authentication API contract](docs/auth-users-api.md), the [resource/booking API contract](docs/resource-booking-api.md), and the [frontend guide](frontend/README.md).
 
 ## Start here
 
@@ -19,8 +19,8 @@ The project aims to bring sports clubs, membership applications, training, compe
 | --- | --- | --- |
 | Frontend | HTML, CSS, JavaScript, React | Shared auth/API client plus clubs, training/attendance and announcement previews |
 | UI framework | Bootstrap is planned | Shared auth CSS and module preview themes; coordinate presentation with Shahadh |
-| Backend | PHP 8.2+ | Public API router, PDO, session/CSRF helpers, auth/user handlers |
-| Database | MySQL 8+ / compatible MariaDB | Initial users/rate-limit migration and private configuration example |
+| Backend | PHP 8.2+ | Shared API router, PDO, session/CSRF, auth/users and resource/booking handlers |
+| Database | MySQL 8+ / compatible MariaDB | Ordered authentication and resource/booking migrations; private configuration example |
 | Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
@@ -80,7 +80,7 @@ Development/
 `-- docs/                   Future requirements, architecture, API, and QA documents
 ```
 
-Both module directories contain the twelve planned module folders. Authentication/users has React and PHP implementations. The frontend also contains clubs, training/attendance and announcement previews. The initial SQL migration covers authentication only; other business handlers/schemas still need integration.
+Both module directories contain the twelve planned module folders. Authentication/users has React and PHP implementations. The frontend also contains clubs, training/attendance and announcement previews. Resource/booking PHP handlers reuse the shared login session and PDO connection. Ordered migrations cover authentication and resources/bookings; other business handlers/schemas still need integration.
 
 ## Team and working ownership
 
@@ -154,7 +154,7 @@ Then:
 5. Implement a small, reviewable change in the assigned folders.
 6. Test the change and submit a pull request with evidence.
 
-Follow [local development](docs/local-development.md) to configure the private database connection, apply the identity migration, provision your first Admin, and start PHP plus React. No default credentials or committed accounts exist.
+Follow [local development](docs/local-development.md) to configure the private database connection, apply the ordered migrations, provision your first Admin, and start PHP plus React. No default credentials or committed accounts exist.
 
 ## Development dependencies and conventions
 

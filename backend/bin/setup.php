@@ -11,7 +11,7 @@ if (PHP_SAPI !== 'cli') {
     exit;
 }
 if (in_array('--help', $argv, true)) {
-    fwrite(STDOUT, "Usage: php backend/bin/setup.php\nConfigure SPORTSHUB_DB_* first. Creates the database and missing authentication tables; never alters or replaces existing tables.\n");
+    fwrite(STDOUT, "Usage: php backend/bin/setup.php\nConfigure SPORTSHUB_DB_* first. Creates the database and missing authentication, resource and booking tables; never alters or replaces existing tables.\n");
     exit(0);
 }
 
@@ -30,6 +30,23 @@ try {
             'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime',
         ],
         'auth_rate_limits' => ['key_hash' => 'char(64)', 'attempts' => 'int unsigned', 'expires_at' => 'datetime'],
+        'facilities' => [
+            'id' => 'bigint unsigned', 'name' => 'varchar(120)', 'description' => 'text',
+            'location' => 'varchar(160)', 'capacity' => 'int unsigned', 'is_active' => 'tinyint(1)',
+            'created_at' => 'timestamp', 'updated_at' => 'timestamp',
+        ],
+        'equipment' => [
+            'id' => 'bigint unsigned', 'name' => 'varchar(120)', 'description' => 'text',
+            'total_quantity' => 'int unsigned', 'is_active' => 'tinyint(1)',
+            'created_at' => 'timestamp', 'updated_at' => 'timestamp',
+        ],
+        'bookings' => [
+            'id' => 'bigint unsigned', 'facility_id' => 'bigint unsigned', 'equipment_id' => 'bigint unsigned',
+            'requested_by' => 'bigint unsigned', 'reviewed_by' => 'bigint unsigned',
+            'starts_at' => 'datetime', 'ends_at' => 'datetime', 'quantity' => 'int unsigned',
+            'notes' => 'varchar(1000)', 'status' => 'varchar(16)',
+            'created_at' => 'timestamp', 'updated_at' => 'timestamp',
+        ],
     ];
     foreach ($expected as $table => $columns) {
         $statement = $connection->prepare('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?');
@@ -61,21 +78,27 @@ try {
                 $uniqueColumns[$index['Key_name']][] = $index['Column_name'];
             }
         }
-        foreach ($table === 'users' ? ['id', 'email', 'student_id'] : ['key_hash'] as $field) {
+        $requiredUnique = match ($table) {
+            'users' => ['id', 'email', 'student_id'],
+            'auth_rate_limits' => ['key_hash'],
+            default => ['id'],
+        };
+        foreach ($requiredUnique as $field) {
             if (!in_array([$field], $uniqueColumns, true)) {
                 throw new RuntimeException('Existing table ' . $table . ' requires a unique ' . $field . ' index. Review it manually; no changes were applied to it.');
             }
         }
     }
 
-    $migration = dirname(__DIR__, 2) . '/database/migrations/001_authentication_users.sql';
-    $sql = file_get_contents($migration);
-    if ($sql === false) {
-        throw new RuntimeException('The authentication migration could not be read.');
-    }
-    foreach (preg_split('/;\s*(?:\r?\n|$)/', $sql) as $statement) {
-        if (trim($statement) !== '') {
-            $connection->exec($statement);
+    foreach (['001_authentication_users.sql', '002_resources_and_bookings.sql'] as $migration) {
+        $sql = file_get_contents(dirname(__DIR__, 2) . '/database/migrations/' . $migration);
+        if ($sql === false) {
+            throw new RuntimeException('The migration ' . $migration . ' could not be read.');
+        }
+        foreach (preg_split('/;\s*(?:\r?\n|$)/', $sql) as $statement) {
+            if (trim($statement) !== '') {
+                $connection->exec($statement);
+            }
         }
     }
     fwrite(STDOUT, 'Database ' . $database . " is ready. Existing records were preserved.\n");

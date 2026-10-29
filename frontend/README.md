@@ -1,6 +1,6 @@
 # NSBM SportsHub frontend
 
-This branch combines Mukilan's PHP-backed authentication/users screens with Shahilan's club, training/attendance and announcement previews. See [local setup](../docs/local-development.md), the [authentication API contract](../docs/auth-users-api.md), and [team allocation](../README.md).
+This branch combines Mukilan's PHP-backed authentication/users screens with Shahilan's club, training/attendance and announcement previews. Mursid's resource/booking APIs share the login session; their screens remain pending. See [local setup](../docs/local-development.md), the [authentication API](../docs/auth-users-api.md), the [resource/booking API](../docs/resource-booking-api.md), and [team allocation](../README.md).
 
 ## Start locally
 
@@ -47,6 +47,7 @@ Authentication uses the shared server session. No auth tokens or passwords are s
 - src/main.jsx owns the single BrowserRouter and AuthProvider.
 - src/App.jsx combines protected account routes with separate module preview layouts.
 - src/shared/api.js handles PHP JSON requests, cookies, CSRF and safe errors.
+- The shared API client also accepts successful 204 archive/cancellation responses without trying to parse an empty JSON body.
 - src/shared/AuthContext.jsx maintains the authoritative server session.
 - src/shared/styles.css styles the authentication/user workspace.
 - src/glass.css provides module preview presentation; coordinate shared styling with Shahadh.
