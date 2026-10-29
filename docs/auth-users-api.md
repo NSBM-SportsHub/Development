@@ -1,6 +1,6 @@
 # Authentication and users API
 
-Mukilan owns these PHP handlers, React screens, and shared authentication helpers. This branch implements the authentication/users module; other module owners add their endpoints separately. Jassim should review the initial identity migration and shared PDO conventions before the branch is merged.
+Mukilan owns these PHP handlers, React screens, and shared authentication helpers. This branch implements authentication/users and announcements endpoints with the shared PDO conventions.
 
 ## Development URLs
 
@@ -53,8 +53,15 @@ Paths below are relative to `/api`.
 | `POST /users` | Admin + CSRF | `{name,email,password,role,status,phone?,student_id?}` → 201 `User` |
 | `PATCH /users/{id}` | Admin + CSRF | Any of `{name,email,role,status,phone,student_id}` → `User` |
 | `DELETE /users/{id}` | Admin + CSRF | `{}` → `{message}`; archives the account |
+| `GET /announcements` | Signed in | `{announcements: Announcement[]}`; excludes soft-deleted records |
+| `GET /announcements/{uuid}` | Signed in | `Announcement`; Students cannot read deleted records |
+| `POST /announcements` | Admin + CSRF | `{title,body,club_id?,is_pinned?}` → 201 `Announcement` |
+| `PATCH /announcements/{uuid}` | Admin + CSRF | Any of `{title,body,club_id,is_pinned}` → `Announcement` |
+| `DELETE /announcements/{uuid}` | Admin + CSRF | `{}` → `{message}`; sets `is_deleted` |
 
 Admin listing accepts `page`, `per_page`, `search`, `role`, and `status` query parameters. Role is `student` or `admin`; status is `active` or `inactive`. Coach workflows remain pending team agreement; this module grants no Coach privileges.
+
+Admins may request `GET /announcements?include_deleted=1` to read soft-deleted records. A null `club_id` denotes a campus-wide announcement; non-null values reference `clubs.id`. Announcements contain `announcement_id`, `club_id`, `title`, `body`, `is_pinned`, and `is_deleted`.
 
 ## User fields and account behavior
 

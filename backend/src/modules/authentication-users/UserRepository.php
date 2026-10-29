@@ -91,7 +91,7 @@ final class UserRepository
         return self::find($id) ?? [];
     }
 
-    private static function handleDuplicate(PDOException $exception): never
+    private static function handleDuplicate(PDOException $exception): void
     {
         if (($exception->errorInfo[1] ?? null) === 1062) {
             $field = str_contains($exception->getMessage(), 'uq_users_student_id') ? 'student_id' : 'email';
@@ -132,4 +132,3 @@ final class UserRepository
         return $ids;
     }
 }
-

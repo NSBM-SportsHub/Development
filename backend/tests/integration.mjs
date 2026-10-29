@@ -206,6 +206,62 @@ try {
     assert.equal(other.error.message, result.error.message);
     assert.equal((await admin.request('/auth/login', { method: 'POST', body: { email: adminEmail, password: adminPassword } })).data.user.role, 'admin');
   });
+  await check('Announcement reads require authentication and Students cannot mutate announcements', async () => {
+    const anonymous = new Client();
+    await anonymous.session();
+    assert.equal((await anonymous.request('/announcements')).status, 401);
+    assert.equal((await student.request('/announcements')).status, 200);
+    assert.equal((await student.request('/announcements', { method: 'POST', body: {} })).status, 403);
+    assert.equal((await student.request('/announcements/00000000-0000-4000-8000-000000000000', {
+      method: 'PATCH', body: { is_pinned: true },
+    })).status, 403);
+    assert.equal((await student.request('/announcements/00000000-0000-4000-8000-000000000000', { method: 'DELETE' })).status, 403);
+    assert.equal((await student.request('/announcements?include_deleted=1')).status, 403);
+  });
+  await check('Admin announcement CRUD, pinning and database persistence work; invalid fields are rejected', async () => {
+    const invalid = await admin.request('/announcements', {
+      method: 'POST', body: { title: 'Valid title', body: 'A sufficiently long announcement body', is_deleted: false },
+    });
+    assert.equal(invalid.status, 422);
+    assert.equal((await admin.request('/announcements', {
+      method: 'POST', body: { title: 'Valid title', body: 'A sufficiently long announcement body', club_id: 2147483647 },
+    })).status, 422);
+    const created = await admin.request('/announcements', {
+      method: 'POST', body: {
+        title: 'Training update', body: 'The training session begins at four this afternoon.',
+        club_id: null, is_pinned: false,
+      },
+    });
+    assert.equal(created.status, 201);
+    assert.match(created.data.announcement_id, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    assert.equal(created.data.is_deleted, false);
+    const id = created.data.announcement_id;
+    const updated = await admin.request(`/announcements/${id}`, {
+      method: 'PATCH', body: { title: 'Updated training', is_pinned: true },
+    });
+    assert.equal(updated.status, 200);
+    assert.equal(updated.data.title, 'Updated training');
+    assert.equal(updated.data.is_pinned, true);
+    const saved = await admin.request(`/announcements/${id}`);
+    assert.equal(saved.data.body, created.data.body);
+    assert.equal(saved.data.is_pinned, true);
+    assert.equal((await student.request(`/announcements/${id}`)).data.is_pinned, true);
+    assert.equal((await admin.request(`/announcements/${id}`, { method: 'PATCH', body: { is_pinned: 'true' } })).status, 422);
+    assert.equal((await admin.request(`/announcements/${id}`, { method: 'PATCH', token: false, body: { title: 'Changed title' } })).status, 403);
+    assert.equal((await admin.request(`/announcements/${id}`, { method: 'DELETE' })).status, 200);
+    assert.equal((await student.request('/announcements')).data.announcements.some((item) => item.announcement_id === id), false);
+    assert.equal((await student.request(`/announcements/${id}`)).status, 404);
+    assert.equal((await admin.request(`/announcements/${id}`)).data.is_deleted, true);
+    assert.equal((await admin.request('/announcements?include_deleted=1')).data.announcements.some((item) => item.announcement_id === id), true);
+    assert.equal((await admin.request(`/announcements/${id}`, { method: 'PATCH', body: { title: 'Restore?' } })).status, 404);
+    const largeBody = 'x'.repeat(20_000);
+    const large = await admin.request('/announcements', {
+      method: 'POST', body: { title: 'Long announcement', body: largeBody },
+    });
+    assert.equal(large.status, 201);
+    assert.equal(large.data.body.length, largeBody.length);
+    assert.equal((await admin.request(`/announcements/${large.data.announcement_id}`, { method: 'DELETE' })).status, 200);
+  });
   await check('Admin can create/read a user and duplicate email is rejected', async () => {
     targetEmail = `managed-${suffix}@example.test`;
     const body = { name: 'Managed Student', email: targetEmail, password, role: 'student', status: 'active' };

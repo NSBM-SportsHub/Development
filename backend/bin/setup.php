@@ -11,7 +11,7 @@ if (PHP_SAPI !== 'cli') {
     exit;
 }
 if (in_array('--help', $argv, true)) {
-    fwrite(STDOUT, "Usage: php backend/bin/setup.php\nConfigure SPORTSHUB_DB_* first. Creates the database and missing authentication tables; never alters or replaces existing tables.\n");
+    fwrite(STDOUT, "Usage: php backend/bin/setup.php\nConfigure SPORTSHUB_DB_* first. Creates the database and missing tables; never alters or replaces existing tables.\n");
     exit(0);
 }
 
@@ -30,6 +30,11 @@ try {
             'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime',
         ],
         'auth_rate_limits' => ['key_hash' => 'char(64)', 'attempts' => 'int unsigned', 'expires_at' => 'datetime'],
+        'clubs' => ['id' => 'int'],
+        'announcements' => [
+            'announcement_id' => 'char(36)', 'club_id' => 'int', 'title' => 'varchar(255)',
+            'body' => 'text', 'is_pinned' => 'tinyint(1)', 'is_deleted' => 'tinyint(1)',
+        ],
     ];
     foreach ($expected as $table => $columns) {
         $statement = $connection->prepare('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?');
@@ -61,21 +66,33 @@ try {
                 $uniqueColumns[$index['Key_name']][] = $index['Column_name'];
             }
         }
-        foreach ($table === 'users' ? ['id', 'email', 'student_id'] : ['key_hash'] as $field) {
+        $uniqueFields = match ($table) {
+            'users' => ['id', 'email', 'student_id'],
+            'auth_rate_limits' => ['key_hash'],
+            'clubs' => ['id'],
+            'announcements' => ['announcement_id'],
+        };
+        foreach ($uniqueFields as $field) {
             if (!in_array([$field], $uniqueColumns, true)) {
                 throw new RuntimeException('Existing table ' . $table . ' requires a unique ' . $field . ' index. Review it manually; no changes were applied to it.');
             }
         }
     }
 
-    $migration = dirname(__DIR__, 2) . '/database/migrations/001_authentication_users.sql';
-    $sql = file_get_contents($migration);
-    if ($sql === false) {
-        throw new RuntimeException('The authentication migration could not be read.');
+    $migrations = glob(dirname(__DIR__, 2) . '/database/migrations/[0-9][0-9][0-9]_*.sql');
+    if ($migrations === false || $migrations === []) {
+        throw new RuntimeException('No database migrations could be found.');
     }
-    foreach (preg_split('/;\s*(?:\r?\n|$)/', $sql) as $statement) {
-        if (trim($statement) !== '') {
-            $connection->exec($statement);
+    sort($migrations, SORT_STRING);
+    foreach ($migrations as $migration) {
+        $sql = file_get_contents($migration);
+        if ($sql === false) {
+            throw new RuntimeException('A database migration could not be read: ' . basename($migration));
+        }
+        foreach (preg_split('/;\s*(?:\r?\n|$)/', $sql) as $statement) {
+            if (trim($statement) !== '') {
+                $connection->exec($statement);
+            }
         }
     }
     fwrite(STDOUT, 'Database ' . $database . " is ready. Existing records were preserved.\n");
@@ -84,4 +101,3 @@ try {
     fwrite(STDERR, 'Setup failed: ' . $exception->getMessage() . PHP_EOL);
     exit(1);
 }
-

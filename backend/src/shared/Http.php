@@ -5,12 +5,19 @@ namespace SportsHub;
 
 final class ApiException extends \RuntimeException
 {
+    public int $status;
+    public string $errorCode;
+    public array $fields;
+
     public function __construct(
-        public readonly int $status,
-        public readonly string $errorCode,
+        int $status,
+        string $errorCode,
         string $message,
-        public readonly array $fields = [],
+        array $fields = [],
     ) {
+        $this->status = $status;
+        $this->errorCode = $errorCode;
+        $this->fields = $fields;
         parent::__construct($message);
     }
 }
@@ -25,14 +32,14 @@ final class Http
         header('Referrer-Policy: no-referrer');
     }
 
-    public static function json(mixed $data, int $status = 200): never
+    public static function json(mixed $data, int $status = 200): void
     {
         http_response_code($status);
         echo json_encode(['data' => $data, 'error' => null], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
-    public static function error(ApiException $exception): never
+    public static function error(ApiException $exception): void
     {
         http_response_code($exception->status);
         echo json_encode([
@@ -46,13 +53,12 @@ final class Http
         exit;
     }
 
-    public static function body(): array
+    public static function body(int $maximum = 16384): array
     {
         $type = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
         if ($type !== 'application/json') {
             throw new ApiException(415, 'unsupported_media_type', 'Send an application/json request body.');
         }
-        $maximum = 16384;
         if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > $maximum) {
             throw new ApiException(413, 'request_too_large', 'The request body is too large.');
         }
@@ -83,4 +89,3 @@ final class Http
         }
     }
 }
-

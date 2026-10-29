@@ -34,7 +34,7 @@
 
 .announcement-card {
   position: relative;
-  padding: 21px 70px 21px 22px;
+  padding: 21px 230px 21px 22px;
   border: 1px solid #d5ded8;
   border-radius: 6px;
   background: #f7faf7;
@@ -86,20 +86,48 @@
   -webkit-line-clamp: 2;
 }
 
-.announcement-card-audience {
-  margin-top: 11px;
-  color: #65756c;
-  font-size: 10px;
-}
-
-.announcement-edit {
+.announcement-actions {
   position: absolute;
   top: 24px;
   right: 22px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.announcement-edit {
+  padding: 0;
+  border: 0;
+  background: none;
   color: #006a47;
   font-size: 12px;
   font-weight: 700;
   text-decoration: none;
+  cursor: pointer;
+}
+
+.announcement-delete {
+  padding: 0;
+  border: 0;
+  background: none;
+  color: #a52c2c;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.announcement-admin-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.announcement-pin-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 
 .announcement-detail {
@@ -126,11 +154,6 @@
 .announcement-detail h1 {
   margin-bottom: 15px;
   color: #064b39;
-}
-
-.announcement-audience {
-  color: #68756e;
-  font-size: 12px;
 }
 
 .announcement-body {
@@ -217,6 +240,11 @@
   font-weight: 700;
 }
 
+.announcement-form > .announcement-pin-option {
+  flex-direction: row;
+  align-items: center;
+}
+
 .announcement-form input:not([type="checkbox"]),
 .announcement-form textarea {
   width: 100%;
@@ -239,40 +267,6 @@
 .announcement-form textarea:focus {
   border-color: #006a47;
   box-shadow: 0 0 0 3px rgb(0 106 71 / 12%);
-}
-
-.audience-fieldset {
-  margin: 0;
-  padding: 14px;
-  border: 1px solid #c8ded1;
-  border-radius: 4px;
-}
-
-.audience-fieldset legend {
-  padding: 0 5px;
-  color: #284f40;
-  font-size: 12px;
-  font-weight: 700;
-}
-
-.audience-fieldset > p {
-  margin: 0 0 12px;
-  color: #68756e;
-  font-size: 11px;
-}
-
-.audience-options {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px 16px;
-}
-
-.audience-options label {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  color: #284f40;
-  font-size: 11px;
 }
 
 .announcement-form-actions {
@@ -317,10 +311,10 @@
   }
 
   .announcement-card {
-    padding: 17px 58px 17px 16px;
+    padding: 64px 16px 17px;
   }
 
-  .announcement-edit {
+  .announcement-actions {
     top: 19px;
     right: 15px;
   }
