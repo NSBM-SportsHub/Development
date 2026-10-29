@@ -87,6 +87,15 @@ try {
             'status' => "enum('active','recruiting','full','inactive')", 'is_archived' => 'tinyint(1)',
             'created_at' => 'datetime', 'updated_at' => 'datetime',
         ],
+        'club_coaches' => [
+            'id' => 'bigint unsigned', 'club_id' => 'bigint unsigned', 'user_id' => 'bigint unsigned',
+            'ended_at' => 'datetime', 'active_flag' => 'tinyint unsigned',
+        ],
+        'memberships' => [
+            'id' => 'bigint unsigned', 'club_id' => 'bigint unsigned', 'user_id' => 'bigint unsigned',
+            'status' => "enum('pending','approved','rejected','withdrawn','ended')",
+            'reviewed_by' => 'bigint unsigned', 'active_flag' => 'tinyint unsigned',
+        ],
     ];
     foreach ($expected as $table => $columns) {
         $statement = $connection->prepare('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?');
