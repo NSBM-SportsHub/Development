@@ -78,6 +78,15 @@ try {
             'notes' => 'varchar(1000)', 'status' => 'varchar(16)',
             'created_at' => 'timestamp', 'updated_at' => 'timestamp',
         ],
+        'sports' => [
+            'id' => 'bigint unsigned', 'name' => 'varchar(80)', 'is_active' => 'tinyint(1)',
+            'created_at' => 'datetime', 'updated_at' => 'datetime',
+        ],
+        'clubs' => [
+            'id' => 'bigint unsigned', 'sport_id' => 'bigint unsigned', 'name' => 'varchar(120)',
+            'status' => "enum('active','recruiting','full','inactive')", 'is_archived' => 'tinyint(1)',
+            'created_at' => 'datetime', 'updated_at' => 'datetime',
+        ],
     ];
     foreach ($expected as $table => $columns) {
         $statement = $connection->prepare('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?');
