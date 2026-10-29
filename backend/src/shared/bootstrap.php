@@ -16,3 +16,6 @@ require_once __DIR__ . '/Session.php';
 require_once __DIR__ . '/LoginRateLimiter.php';
 require_once dirname(__DIR__) . '/modules/authentication-users/AuthController.php';
 require_once dirname(__DIR__) . '/modules/authentication-users/UserController.php';
+require_once __DIR__ . '/ResourceBookingHttp.php';
+require_once dirname(__DIR__) . '/modules/resources/ResourceController.php';
+require_once dirname(__DIR__) . '/modules/bookings/BookingController.php';

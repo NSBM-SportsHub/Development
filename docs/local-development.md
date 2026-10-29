@@ -1,6 +1,6 @@
-# Local development: Mukilan's authentication/users CRUD
+# Local development: authentication/users and resources/bookings
 
-Branch: `feat/mukilan-auth-users-crud`. This branch starts from `main`; Shahilan's feature branch is separate and has not been merged into it.
+This integration combines authentication/users, resource/booking APIs, and Shahilan's frontend module previews. All PHP modules use the same private configuration, PDO connection, session and CSRF helpers.
 
 ## Requirements
 
@@ -49,9 +49,9 @@ php backend/bin/create-admin.php --name="Mukilan" --email="your-real-email@examp
 
 Replace the example email with yours. The Admin command prompts for a password without showing it on an interactive terminal. There is no default password. For automation, `SPORTSHUB_ADMIN_PASSWORD` can be supplied through the process environment; keep it out of scripts and shell arguments.
 
-The setup command creates the configured database and applies `database/migrations/001_authentication_users.sql` without dropping data or altering existing tables. The setup account needs permission to create that database/tables. Use a restricted application database account for normal runtime after initialization. The Admin command only provisions the first Admin and refuses repeated bootstrap or existing-email promotion. Later Admins are created by an authorized Admin through the UI/API.
+The setup command creates the configured database and applies `database/migrations/001_authentication_users.sql`, then `database/migrations/002_resources_and_bookings.sql`, without dropping data or altering existing tables. The setup account needs permission to create that database/tables. Use a restricted application database account for normal runtime after initialization. The Admin command only provisions the first Admin and refuses repeated bootstrap or existing-email promotion. Later Admins are created by an authorized Admin through the UI/API.
 
-This is the initial users/rate-limit migration for Mukilan's module. Review it with Jassim before merging or adding related foreign keys. Future schema changes need new ordered migrations.
+The first migration creates users/rate limits; the second creates facilities, equipment and bookings. Setup checks existing schema compatibility and preserves records on repeat runs. Mursid's original resource-only migration was renamed from 001_resources_and_bookings.sql to 002_resources_and_bookings.sql; existing compatible tables can be retained. Review schema changes with Jassim; future schema changes need new ordered migrations.
 
 ## 3. Start PHP and React
 
@@ -94,4 +94,4 @@ node backend/tests/integration.mjs
 
 Set `SPORTSHUB_PHP` to a PHP executable path if necessary. The test process creates a random `sportshub_test_<16 hex characters>` database, provisions a temporary Admin with a random password, launches its own PHP server on a free loopback port, exercises real HTTP/database operations, then drops only that test database. The configured database account needs CREATE/DROP DATABASE permissions for this suite. The application's configured database is not used for test records. Session artifacts under `.artifacts/` are ignored by Git.
 
-The suite checks registration, login/logout, CSRF, field validation, private-field protection, Student/Admin access, profile persistence, user create/read/update/archive, pagination/search/filtering, password changes, session revocation, and Admin lockout protection. Browser verification should additionally cover forms, confirmations, mobile layouts, and backend-unavailable feedback.
+The suite checks registration, login/logout, CSRF, field validation, private-field protection, Student/Admin access, profile persistence, user create/read/update/archive, pagination/search/filtering, password changes, session revocation, and Admin lockout protection. It also checks authenticated resource CRUD, booking ownership, Admin review, facility overlap, equipment stock limits, cancellation, archival, repeatable setup and revoked-account access. These HTTP tests exercise sequential conflicts; simultaneous multi-request booking concurrency needs separate verification. Browser verification should additionally cover forms, confirmations, mobile layouts, and backend-unavailable feedback.
