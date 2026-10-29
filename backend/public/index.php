@@ -7,6 +7,7 @@ use SportsHub\BookingController;
 use SportsHub\Config;
 use SportsHub\Database;
 use SportsHub\Http;
+use SportsHub\MembershipController;
 use SportsHub\ResourceController;
 use SportsHub\Session;
 use SportsHub\UserController;
@@ -43,6 +44,24 @@ try {
         }
         $routes[$path] = $moduleId === null ? ['GET', 'POST'] : ['GET', 'PUT', 'PATCH', 'DELETE'];
     }
+    // Membership routes: /api/{collection}[/{id}].
+    $competitionRoute = null;
+    $competitionId = null;
+    if (preg_match('~\A/api/(memberships|club-coaches)(?:/([1-9][0-9]{0,18}))?\z~', $path, $match)) {
+        if (isset($match[2])) {
+            $competitionId = filter_var($match[2], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($competitionId === false) {
+                throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+            }
+        }
+        $competitionRoute = $match[1] . (isset($match[2]) ? '/{id}' : '');
+        $routes[$path] = [
+            'memberships' => ['GET', 'POST'],
+            'memberships/{id}' => ['GET', 'PATCH'],
+            'club-coaches' => ['GET', 'POST'],
+            'club-coaches/{id}' => ['DELETE'],
+        ][$competitionRoute] ?? throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+    }
     if (!isset($routes[$path]) && preg_match('~\A/api/users/([1-9][0-9]{0,18})\z~', $path, $match)) {
         $userId = filter_var($match[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($userId === false) {
@@ -71,6 +90,18 @@ try {
         }
         $type = $moduleRoute === 'facilities' ? 'facility' : 'equipment';
         (new ResourceController(Database::get(), $type, $moduleRoute))->dispatch($method, $moduleId, $actor);
+    }
+    if ($competitionRoute !== null) {
+        $actor = Session::requireUser();
+        $body = in_array($method, ['POST', 'PATCH', 'PUT'], true) ? Http::body() : [];
+        if ($method !== 'GET') {
+            Session::verifyCsrf();
+        }
+        $data = MembershipController::handle($competitionRoute, $method, $competitionId, $body, $_GET, $actor);
+        if ($method === 'DELETE') {
+            Http::noContent();
+        }
+        Http::json($data, $method === 'POST' ? 201 : 200);
     }
     $body = [];
     if (in_array($method, ['POST', 'PATCH', 'DELETE'], true)) {
