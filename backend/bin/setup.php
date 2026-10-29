@@ -96,6 +96,25 @@ try {
             'status' => "enum('pending','approved','rejected','withdrawn','ended')",
             'reviewed_by' => 'bigint unsigned', 'active_flag' => 'tinyint unsigned',
         ],
+        'tournaments' => [
+            'id' => 'bigint unsigned', 'sport_id' => 'bigint unsigned', 'name' => 'varchar(150)',
+            'format' => "enum('league','knockout')",
+            'status' => "enum('draft','registration_open','registration_closed','in_progress','completed','cancelled')",
+            'starts_on' => 'date', 'ends_on' => 'date',
+        ],
+        'tournament_entries' => [
+            'id' => 'bigint unsigned', 'tournament_id' => 'bigint unsigned', 'name' => 'varchar(120)',
+            'status' => "enum('pending','approved','rejected','withdrawn')", 'active_flag' => 'tinyint unsigned',
+        ],
+        'tournament_entry_members' => [
+            'id' => 'bigint unsigned', 'tournament_id' => 'bigint unsigned', 'entry_id' => 'bigint unsigned',
+            'user_id' => 'bigint unsigned', 'active_flag' => 'tinyint unsigned',
+        ],
+        'matches' => [
+            'id' => 'bigint unsigned', 'tournament_id' => 'bigint unsigned', 'home_entry_id' => 'bigint unsigned',
+            'away_entry_id' => 'bigint unsigned', 'winner_entry_id' => 'bigint unsigned',
+            'status' => "enum('scheduled','postponed','completed','cancelled')",
+        ],
     ];
     foreach ($expected as $table => $columns) {
         $statement = $connection->prepare('SELECT ENGINE FROM information_schema.TABLES WHERE TABLE_SCHEMA = ? AND TABLE_NAME = ?');
