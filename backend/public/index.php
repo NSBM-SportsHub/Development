@@ -7,6 +7,7 @@ use SportsHub\BookingController;
 use SportsHub\Config;
 use SportsHub\Database;
 use SportsHub\Http;
+use SportsHub\MatchController;
 use SportsHub\MembershipController;
 use SportsHub\ResourceController;
 use SportsHub\TournamentController;
@@ -48,7 +49,7 @@ try {
     // Membership and competition routes: /api/{collection}[/{id}[/{action}]].
     $competitionRoute = null;
     $competitionId = null;
-    if (preg_match('~\A/api/(memberships|club-coaches|tournaments|tournament-entries)(?:/([1-9][0-9]{0,18})(?:/(entries|eligible-members))?)?\z~', $path, $match)) {
+    if (preg_match('~\A/api/(memberships|club-coaches|tournaments|tournament-entries|matches)(?:/([1-9][0-9]{0,18})(?:/(entries|eligible-members|matches|fixtures|standings|result))?)?\z~', $path, $match)) {
         if (isset($match[2])) {
             $competitionId = filter_var($match[2], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
             if ($competitionId === false) {
@@ -65,7 +66,12 @@ try {
             'tournaments/{id}' => ['GET', 'PATCH', 'DELETE'],
             'tournaments/{id}/entries' => ['GET', 'POST'],
             'tournaments/{id}/eligible-members' => ['GET'],
+            'tournaments/{id}/matches' => ['GET', 'POST'],
+            'tournaments/{id}/fixtures' => ['POST'],
+            'tournaments/{id}/standings' => ['GET'],
             'tournament-entries/{id}' => ['GET', 'PATCH'],
+            'matches/{id}' => ['GET', 'PATCH', 'DELETE'],
+            'matches/{id}/result' => ['PUT'],
         ][$competitionRoute] ?? throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
     }
     if (!isset($routes[$path]) && preg_match('~\A/api/users/([1-9][0-9]{0,18})\z~', $path, $match)) {
@@ -105,6 +111,7 @@ try {
         }
         $controller = match (true) {
             in_array(strtok($competitionRoute, '/'), ['memberships', 'club-coaches'], true) => MembershipController::class,
+            str_starts_with($competitionRoute, 'matches') || preg_match('~/(matches|fixtures|standings)\z~', $competitionRoute) === 1 => MatchController::class,
             default => TournamentController::class,
         };
         $data = $controller::handle($competitionRoute, $method, $competitionId, $body, $_GET, $actor);
