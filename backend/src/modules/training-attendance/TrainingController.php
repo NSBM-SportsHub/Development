@@ -17,18 +17,22 @@ final class TrainingController
 {
     private static function tableExists(PDO $pdo, string $tableName): bool
     {
-        try {
-            $stmt = $pdo->query("SHOW TABLES LIKE '{$tableName}'");
-            return $stmt !== false && $stmt->fetch() !== false;
-        } catch (Throwable $exception) {
-            return false;
-        }
+        $stmt = $pdo->prepare(
+            'SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :table_name LIMIT 1'
+        );
+        $stmt->execute([':table_name' => $tableName]);
+
+        return $stmt->fetchColumn() !== false;
     }
 
-    private static function normalizeText(?string $value, int $maxLength = 255): ?string
+    private static function normalizeText(mixed $value, int $maxLength = 255): ?string
     {
         if ($value === null) {
             return null;
+        }
+
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Field value must be a string.');
         }
 
         $trimmed = trim($value);
@@ -43,9 +47,9 @@ final class TrainingController
         return $trimmed;
     }
 
-    private static function normalizeDate(?string $value, string $fieldName): string
+    private static function normalizeDate(mixed $value, string $fieldName): string
     {
-        if ($value === null || trim($value) === '') {
+        if (!is_string($value) || trim($value) === '') {
             throw new InvalidArgumentException("Field '{$fieldName}' is required.");
         }
 
@@ -57,9 +61,9 @@ final class TrainingController
         return $date->format('Y-m-d');
     }
 
-    private static function normalizeTime(?string $value, string $fieldName): string
+    private static function normalizeTime(mixed $value, string $fieldName): string
     {
-        if ($value === null || trim($value) === '') {
+        if (!is_string($value) || trim($value) === '') {
             throw new InvalidArgumentException("Field '{$fieldName}' is required.");
         }
 
@@ -71,10 +75,14 @@ final class TrainingController
         return $time->format('H:i');
     }
 
-    private static function normalizePositiveInt(?string $value, string $fieldName, int $maxValue = 2147483647): int
+    private static function normalizePositiveInt(mixed $value, string $fieldName, int $maxValue = 2147483647): int
     {
-        if ($value === null || trim((string) $value) === '') {
+        if ($value === null || $value === '') {
             throw new InvalidArgumentException("Field '{$fieldName}' is required.");
+        }
+
+        if (!is_string($value) && !is_int($value)) {
+            throw new InvalidArgumentException("Field '{$fieldName}' must be a positive integer.");
         }
 
         if (!ctype_digit((string) $value)) {
@@ -115,7 +123,7 @@ final class TrainingController
             $search = self::normalizeText($_GET['search'] ?? null, 100);
             $status = self::normalizeText($_GET['status'] ?? null, 50);
             $date = self::normalizeText($_GET['date'] ?? null, 10);
-            $clubId = isset($_GET['club_id']) ? self::normalizePositiveInt((string) $_GET['club_id'], 'club_id', 2147483647) : null;
+            $clubId = isset($_GET['club_id']) ? self::normalizePositiveInt($_GET['club_id'], 'club_id', 2147483647) : null;
 
             $sql = 'SELECT * FROM training_sessions WHERE 1 = 1';
             $params = [];
@@ -196,7 +204,7 @@ final class TrainingController
             $sessionDate = self::normalizeDate($input['session_date'] ?? null, 'session_date');
             $startTime = self::normalizeTime($input['start_time'] ?? null, 'start_time');
             $endTime = self::normalizeTime($input['end_time'] ?? null, 'end_time');
-            $clubId = self::normalizePositiveInt((string) ($input['club_id'] ?? ''), 'club_id');
+            $clubId = self::normalizePositiveInt($input['club_id'] ?? '', 'club_id');
             $notes = self::normalizeText($input['notes'] ?? '', 2000) ?? '';
 
             if (strtotime($endTime) <= strtotime($startTime)) {
@@ -266,7 +274,7 @@ final class TrainingController
             $sessionDate = array_key_exists('session_date', $input) ? self::normalizeDate($input['session_date'] ?? null, 'session_date') : (string) ($session['session_date'] ?? '');
             $startTime = array_key_exists('start_time', $input) ? self::normalizeTime($input['start_time'] ?? null, 'start_time') : (string) ($session['start_time'] ?? '');
             $endTime = array_key_exists('end_time', $input) ? self::normalizeTime($input['end_time'] ?? null, 'end_time') : (string) ($session['end_time'] ?? '');
-            $clubId = array_key_exists('club_id', $input) ? self::normalizePositiveInt((string) $input['club_id'], 'club_id') : (int) ($session['club_id'] ?? 0);
+            $clubId = array_key_exists('club_id', $input) ? self::normalizePositiveInt($input['club_id'], 'club_id') : (int) ($session['club_id'] ?? 0);
             $notes = array_key_exists('notes', $input) ? (self::normalizeText($input['notes'] ?? '', 2000) ?? '') : (string) ($session['notes'] ?? '');
 
             if (strtotime($endTime) <= strtotime($startTime)) {

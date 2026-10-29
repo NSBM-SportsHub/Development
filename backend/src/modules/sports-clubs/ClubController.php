@@ -10,12 +10,12 @@ final class ClubController
 {
     private static function tableExists(PDO $pdo, string $tableName): bool
     {
-        try {
-            $query = $pdo->query("SHOW TABLES LIKE '{$tableName}'");
-            return $query !== false && $query->fetch() !== false;
-        } catch (Throwable $exception) {
-            return false;
-        }
+        $query = $pdo->prepare(
+            'SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :table_name LIMIT 1'
+        );
+        $query->execute([':table_name' => $tableName]);
+
+        return $query->fetchColumn() !== false;
     }
 
     private static function getClub(PDO $pdo, int $clubId): ?array
@@ -206,28 +206,9 @@ final class ClubController
             return;
         }
 
-        $pdo = null;
-
-        try {
-            $pdo = Database::getConnection();
-            if (self::getClub($pdo, $clubId) === null) {
-                Response::json(404, ['success' => false, 'message' => 'Club not found or the clubs table is unavailable.']);
-                return;
-            }
-
-            $pdo->beginTransaction();
-            if (self::tableExists($pdo, 'memberships')) {
-                $pdo->prepare('DELETE FROM memberships WHERE club_id = :id')->execute([':id' => $clubId]);
-            }
-            $pdo->prepare('DELETE FROM clubs WHERE id = :id')->execute([':id' => $clubId]);
-            $pdo->commit();
-
-            Response::json(200, ['success' => true, 'message' => 'Club deleted successfully.']);
-        } catch (Throwable $exception) {
-            if ($pdo && $pdo->inTransaction()) {
-                $pdo->rollBack();
-            }
-            Response::json(500, ['success' => false, 'message' => 'Failed to delete club.']);
-        }
+        Response::json(409, [
+            'success' => false,
+            'message' => 'Club deletion is disabled until historical-record retention rules are confirmed.',
+        ]);
     }
 }

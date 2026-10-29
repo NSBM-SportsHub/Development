@@ -17,18 +17,22 @@ final class AttendanceController
 {
     private static function tableExists(PDO $pdo, string $tableName): bool
     {
-        try {
-            $stmt = $pdo->query("SHOW TABLES LIKE '{$tableName}'");
-            return $stmt !== false && $stmt->fetch() !== false;
-        } catch (Throwable $exception) {
-            return false;
-        }
+        $stmt = $pdo->prepare(
+            'SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :table_name LIMIT 1'
+        );
+        $stmt->execute([':table_name' => $tableName]);
+
+        return $stmt->fetchColumn() !== false;
     }
 
-    private static function normalizeText(?string $value, int $maxLength = 255): ?string
+    private static function normalizeText(mixed $value, int $maxLength = 255): ?string
     {
         if ($value === null) {
             return null;
+        }
+
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Filter value must be a string.');
         }
 
         $trimmed = trim($value);
@@ -43,10 +47,14 @@ final class AttendanceController
         return $trimmed;
     }
 
-    private static function normalizePositiveInt(?string $value, string $fieldName, int $maxValue = 2147483647): int
+    private static function normalizePositiveInt(mixed $value, string $fieldName, int $maxValue = 2147483647): int
     {
-        if ($value === null || trim((string) $value) === '') {
+        if ($value === null || $value === '') {
             throw new InvalidArgumentException("Field '{$fieldName}' is required.");
+        }
+
+        if (!is_string($value) && !is_int($value)) {
+            throw new InvalidArgumentException("Field '{$fieldName}' must be a positive integer.");
         }
 
         if (!ctype_digit((string) $value)) {
@@ -84,8 +92,8 @@ final class AttendanceController
                 return;
             }
 
-            $sessionId = isset($_GET['session_id']) ? self::normalizePositiveInt((string) $_GET['session_id'], 'session_id') : null;
-            $participantId = isset($_GET['participant_id']) ? self::normalizePositiveInt((string) $_GET['participant_id'], 'participant_id') : null;
+            $sessionId = isset($_GET['session_id']) ? self::normalizePositiveInt($_GET['session_id'], 'session_id') : null;
+            $participantId = isset($_GET['participant_id']) ? self::normalizePositiveInt($_GET['participant_id'], 'participant_id') : null;
             $status = self::normalizeText($_GET['status'] ?? null, 50);
 
             $sql = 'SELECT * FROM training_attendance WHERE 1 = 1';
@@ -134,8 +142,8 @@ final class AttendanceController
         try {
             $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
 
-            $sessionId = self::normalizePositiveInt((string) ($input['session_id'] ?? ''), 'session_id');
-            $participantId = self::normalizePositiveInt((string) ($input['participant_id'] ?? ''), 'participant_id');
+            $sessionId = self::normalizePositiveInt($input['session_id'] ?? '', 'session_id');
+            $participantId = self::normalizePositiveInt($input['participant_id'] ?? '', 'participant_id');
             $status = self::normalizeText($input['status'] ?? 'present', 50) ?? 'present';
             $notes = self::normalizeText($input['notes'] ?? '', 2000) ?? '';
 

@@ -13,6 +13,17 @@ $rawPath = $_SERVER['REQUEST_URI'] ?? '/';
 $path = parse_url($rawPath, PHP_URL_PATH) ?: '/';
 $path = preg_replace('#/+#', '/', $path);
 $segments = array_values(array_filter(explode('/', trim($path, '/')), 'strlen'));
+$parseIntegerId = static function (string $value): ?int {
+    if (!ctype_digit($value)) {
+        return null;
+    }
+
+    $normalized = ltrim($value, '0');
+    $normalized = $normalized === '' ? '0' : $normalized;
+    $id = filter_var($normalized, FILTER_VALIDATE_INT);
+
+    return $id === false ? null : $id;
+};
 
 if ($segments === [] || $segments[0] !== 'api') {
     Response::json(404, ['success' => false, 'message' => 'API endpoint not found.']);
@@ -23,8 +34,8 @@ if (count($segments) >= 2 && $segments[1] === 'clubs') {
     $clubId = null;
     $archiveMode = false;
 
-    if (count($segments) >= 3 && is_numeric($segments[2])) {
-        $clubId = (int) $segments[2];
+    if (count($segments) >= 3) {
+        $clubId = $parseIntegerId($segments[2]);
     }
 
     if (count($segments) >= 4 && $segments[3] === 'archive') {
@@ -68,8 +79,8 @@ if (count($segments) >= 2 && $segments[1] === 'clubs') {
 if (count($segments) >= 2 && $segments[1] === 'sports') {
     $sportId = null;
 
-    if (count($segments) >= 3 && is_numeric($segments[2])) {
-        $sportId = (int) $segments[2];
+    if (count($segments) >= 3) {
+        $sportId = $parseIntegerId($segments[2]);
     }
 
     if ($method === 'GET' && count($segments) === 2) {
@@ -89,8 +100,8 @@ if (count($segments) >= 2 && $segments[1] === 'sports') {
 if (count($segments) >= 2 && $segments[1] === 'training-sessions') {
     $sessionId = null;
 
-    if (count($segments) >= 3 && is_numeric($segments[2])) {
-        $sessionId = (int) $segments[2];
+    if (count($segments) >= 3) {
+        $sessionId = $parseIntegerId($segments[2]);
     }
 
     if ($method === 'GET' && count($segments) === 2) {
@@ -125,8 +136,8 @@ if (count($segments) >= 2 && $segments[1] === 'training-sessions') {
 if (count($segments) >= 2 && $segments[1] === 'attendance') {
     $attendanceId = null;
 
-    if (count($segments) >= 3 && is_numeric($segments[2])) {
-        $attendanceId = (int) $segments[2];
+    if (count($segments) >= 3) {
+        $attendanceId = $parseIntegerId($segments[2]);
     }
 
     if ($method === 'GET' && count($segments) === 2) {

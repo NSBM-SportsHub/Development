@@ -113,9 +113,8 @@ table name is unconfirmed.
    parsing, PHP parameter types, FK validation, and generated-ID handling with the confirmed ID
    representation; do not cast UUIDs to integers.
 3. Confirm whether club deletion is allowed and how related membership/training/attendance history
-   must be retained. Until confirmed, avoid using the current hard-delete endpoint: it explicitly
-   deletes matching membership rows before deleting the club. The archive endpoint also assumes
-   `is_archived` and a status value of `archived`.
+   must be retained. Hard-delete is currently disabled and returns a conflict response. The archive
+   endpoint still assumes `is_archived` and a status value of `archived`.
 4. Confirm attendance participant identity, duplicate-record rules, editable/correctable
    attendance policy, and whether attendance is append-only/history-bearing before changing its
    insert behavior.
@@ -136,14 +135,19 @@ The current review made only schema-independent request/query fixes:
   connection disables emulated prepares, where reusing a named placeholder can fail.
 - Write handlers now require a top-level JSON object; JSON arrays and scalar values are rejected
   with the existing validation response convention.
+- Integer route IDs now reject decimal, exponent, signed, and out-of-range forms instead of
+  coercing them to a different integer. Text/date/time and integer filters reject non-scalar
+  values as validation errors rather than allowing PHP type errors or array-to-string warnings.
+- Table checks use a bound MySQL metadata query and allow unexpected database errors to reach the
+  existing generic server-error response instead of reporting them as missing tables.
+- Club hard-delete is disabled with a conflict response; no membership or club rows are deleted.
 
 The following remain integration blockers rather than safe local fixes:
 
 - Schema-dependent table/column/ID assumptions and the `training_attendance` versus
   `SESSION_ATTENDANCE` naming question listed above.
-- The club DELETE handler explicitly deletes matching membership rows before deleting the club.
-  Do not rely on this as a history-safe operation until Jassim confirms FK behavior and the team
-  confirms retention policy; do not replace it with a guessed cascade/archive design.
+- Club deletion remains unavailable until Jassim confirms FK behavior and the team confirms
+  retention policy; do not replace the disabled handler with a guessed cascade/archive design.
 - Authentication/authorization are not in place. The team leader must wire the agreed auth and
   access rules to protected routes before production exposure; this work does not introduce a
   separate authorization system.

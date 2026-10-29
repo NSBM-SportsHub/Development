@@ -34,13 +34,22 @@ final class Validator
 
     public static function requireInt(array $data, string $key): int
     {
-        if (!array_key_exists($key, $data) || !is_numeric($data[$key])) {
+        if (!array_key_exists($key, $data)) {
             throw new InvalidArgumentException("Field '{$key}' is required and must be an integer.");
         }
 
-        $value = (int) $data[$key];
-        if ((string) $value !== trim((string) $data[$key])) {
+        $input = $data[$key];
+        if (is_int($input)) {
+            return $input;
+        }
+
+        if (!is_string($input) || !preg_match('/^-?(0|[1-9][0-9]*)$/D', $input)) {
             throw new InvalidArgumentException("Field '{$key}' must be a valid integer.");
+        }
+
+        $value = filter_var($input, FILTER_VALIDATE_INT);
+        if ($value === false) {
+            throw new InvalidArgumentException("Field '{$key}' is out of range.");
         }
 
         return $value;

@@ -17,18 +17,22 @@ final class SportController
 {
     private static function tableExists(PDO $pdo, string $tableName): bool
     {
-        try {
-            $stmt = $pdo->query("SHOW TABLES LIKE '{$tableName}'");
-            return $stmt !== false && $stmt->fetch() !== false;
-        } catch (Throwable $exception) {
-            return false;
-        }
+        $stmt = $pdo->prepare(
+            'SELECT 1 FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = :table_name LIMIT 1'
+        );
+        $stmt->execute([':table_name' => $tableName]);
+
+        return $stmt->fetchColumn() !== false;
     }
 
-    private static function normalizeText(?string $value, int $maxLength = 255): ?string
+    private static function normalizeText(mixed $value, int $maxLength = 255): ?string
     {
         if ($value === null) {
             return null;
+        }
+
+        if (!is_string($value)) {
+            throw new InvalidArgumentException('Filter value must be a string.');
         }
 
         $trimmed = trim($value);
@@ -43,13 +47,17 @@ final class SportController
         return $trimmed;
     }
 
-    private static function normalizePositiveInt(?string $value, string $fieldName, int $maxValue = 1000): int
+    private static function normalizePositiveInt(mixed $value, string $fieldName, int $maxValue = 1000): int
     {
         if ($value === null || $value === '') {
             return 0;
         }
 
-        if (!ctype_digit($value)) {
+        if (!is_string($value) && !is_int($value)) {
+            throw new InvalidArgumentException("Field '{$fieldName}' must be an integer.");
+        }
+
+        if (!ctype_digit((string) $value)) {
             throw new InvalidArgumentException("Field '{$fieldName}' must be a non-negative integer.");
         }
 
