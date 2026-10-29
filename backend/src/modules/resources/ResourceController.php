@@ -1,10 +1,15 @@
 <?php
 declare(strict_types=1);
 
+namespace SportsHub;
+
+use InvalidArgumentException;
+use PDO;
+use RuntimeException;
+use Throwable;
+
 final class ResourceController
 {
-    private const RESOURCE_FIELDS = ['name', 'description', 'location', 'capacity', 'total_quantity'];
-
     public function __construct(
         private readonly PDO $db,
         private readonly string $type,
@@ -22,8 +27,7 @@ final class ResourceController
             $this->listOrRead($id, $user);
         }
 
-        requireAdmin($user);
-        requireCsrfToken();
+        Session::requireAdmin();
 
         if ($method === 'POST' && $id === null) {
             $this->create();
@@ -42,7 +46,7 @@ final class ResourceController
     {
         if ($id !== null) {
             $query = "SELECT * FROM {$this->table} WHERE id = :id";
-            if ($user['role'] !== 'Admin') {
+            if ($user['role'] !== 'admin') {
                 $query .= ' AND is_active = 1';
             }
             $statement = $this->db->prepare($query);
@@ -55,7 +59,7 @@ final class ResourceController
         }
 
         $query = "SELECT * FROM {$this->table}";
-        if ($user['role'] !== 'Admin') {
+        if ($user['role'] !== 'admin') {
             $query .= ' WHERE is_active = 1';
         }
         $query .= ' ORDER BY name, id';
@@ -64,8 +68,8 @@ final class ResourceController
 
     private function create(): never
     {
-        $data = readJsonBody();
-        rejectUnknownFields($data, self::RESOURCE_FIELDS);
+        $data = Http::body();
+        rejectUnknownFields($data, $this->allowedFields());
         requireFields($data, ['name']);
         $values = $this->validatedValues($data, false);
 
@@ -85,8 +89,8 @@ final class ResourceController
 
     private function update(int $id): never
     {
-        $data = readJsonBody();
-        rejectUnknownFields($data, self::RESOURCE_FIELDS);
+        $data = Http::body();
+        rejectUnknownFields($data, $this->allowedFields());
         if ($data === []) {
             sendJson(['error' => 'At least one field is required.'], 422);
         }
@@ -166,6 +170,13 @@ final class ResourceController
             $this->ensureExists($id);
         }
         sendJson(null, 204);
+    }
+
+    private function allowedFields(): array
+    {
+        return $this->type === 'facility'
+            ? ['name', 'description', 'location', 'capacity']
+            : ['name', 'description', 'total_quantity'];
     }
 
     private function validatedValues(array $data, bool $partial): array

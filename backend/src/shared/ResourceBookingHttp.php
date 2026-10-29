@@ -1,35 +1,37 @@
 <?php
 declare(strict_types=1);
 
-function sendJson(mixed $data, int $status = 200): never
+namespace SportsHub;
+
+use DateTimeImmutable;
+use DateTimeZone;
+
+// Preserve the module's validators while sharing the application's response contract.
+function sendJson(mixed $payload, int $status = 200): never
 {
-    http_response_code($status);
-    header('Content-Type: application/json; charset=utf-8');
-    header('Cache-Control: no-store');
-    if ($status !== 204) {
-        echo json_encode($data, JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
+    if ($status >= 400) {
+        $code = match ($status) {
+            400 => 'invalid_request',
+            401 => 'unauthenticated',
+            403 => 'forbidden',
+            404 => 'not_found',
+            405 => 'method_not_allowed',
+            409 => 'conflict',
+            422 => 'validation_failed',
+            default => 'internal_error',
+        };
+        $fields = [];
+        foreach ($payload['fields'] ?? [] as $field) {
+            $fields[$field] = $payload['error'];
+        }
+        // Throw so controller transactions roll back before the common error handler runs.
+        throw new ApiException($status, $code, $payload['error'], $fields);
     }
-    exit;
-}
-
-function readJsonBody(): array
-{
-    $raw = file_get_contents('php://input');
-    if ($raw === false || trim($raw) === '') {
-        return [];
+    if ($status === 204) {
+        http_response_code(204);
+        exit;
     }
-
-    try {
-        $decoded = json_decode($raw, true, 512, JSON_THROW_ON_ERROR);
-    } catch (JsonException) {
-        sendJson(['error' => 'Request body must be valid JSON.'], 400);
-    }
-
-    if (!is_array($decoded) || array_is_list($decoded)) {
-        sendJson(['error' => 'Request body must be a JSON object.'], 400);
-    }
-
-    return $decoded;
+    Http::json($payload['data'] ?? null, $status);
 }
 
 function rejectUnknownFields(array $data, array $allowed): void
@@ -97,37 +99,6 @@ function optionalDescription(array $data): ?string
     return $description === '' ? null : $description;
 }
 
-function currentUser(): array
-{
-    $user = $_SESSION['user'] ?? null;
-    if (!is_array($user) || !isset($user['id'], $user['role'])) {
-        sendJson(['error' => 'Authentication is required.'], 401);
-    }
-
-    $id = filter_var($user['id'], FILTER_VALIDATE_INT);
-    if ($id === false || $id < 1 || !in_array($user['role'], ['Student', 'Admin'], true)) {
-        sendJson(['error' => 'The authenticated account is invalid.'], 401);
-    }
-
-    return ['id' => $id, 'role' => $user['role']];
-}
-
-function requireAdmin(array $user): void
-{
-    if ($user['role'] !== 'Admin') {
-        sendJson(['error' => 'Administrator permission is required.'], 403);
-    }
-}
-
-function requireCsrfToken(): void
-{
-    $provided = $_SERVER['HTTP_X_CSRF_TOKEN'] ?? '';
-    $expected = $_SESSION['csrf_token'] ?? '';
-    if (!is_string($provided) || !is_string($expected) || $expected === '' || !hash_equals($expected, $provided)) {
-        sendJson(['error' => 'A valid CSRF token is required.'], 403);
-    }
-}
-
 function parseUtcDateTime(mixed $value, string $field): string
 {
     if (!is_string($value)
@@ -145,9 +116,4 @@ function parseUtcDateTime(mixed $value, string $field): string
     }
 
     return $date->setTimezone(new DateTimeZone('UTC'))->format('Y-m-d H:i:s');
-}
-
-function routeNotFound(): never
-{
-    sendJson(['error' => 'Endpoint not found.'], 404);
 }

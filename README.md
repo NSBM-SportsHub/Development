@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status:** the Facilities, Equipment, and Bookings backend has an initial PHP/MySQL implementation and API contract. It requires the existing authentication owner’s session integration and has not yet been verified against the team’s XAMPP/MySQL setup. The frontend and other backend modules remain unimplemented; planned features below are not claims of working functionality.
+> **Current status: authentication/users and resource/booking APIs with integrated module previews.** Registration, login/logout, profile/password changes, Admin user management, facilities/equipment CRUD, and booking requests/review use PHP/MySQL. Resource/booking interfaces remain pending. Shahilan's club, training/attendance, and announcement screens are included as local-data previews; their PHP workflows are still pending integration. See [local setup](docs/local-development.md), the [authentication API contract](docs/auth-users-api.md), the [resource/booking API contract](docs/resource-booking-api.md), and the [frontend guide](frontend/README.md).
 
 ## Start here
 
@@ -17,14 +17,14 @@ The project aims to bring sports clubs, membership applications, training, compe
 
 | Area | Requirement or direction | Current state |
 | --- | --- | --- |
-| Frontend | HTML, CSS, and JavaScript; React is the intended frontend direction from the project plan | No source, build tool, or dependencies installed in this repository |
-| UI framework | Bootstrap | Not integrated |
-| Backend | PHP | Initial Facilities/Equipment/Bookings API at `backend/public/index.php`; auth integration remains |
-| Database | MySQL | Initial resource/booking migration and PDO configuration added; not yet integration-tested |
-| Local environment | XAMPP for PHP, Apache, and the database | Resource API setup is documented in `docs/resource-booking-api.md`; versions still need team verification |
+| Frontend | HTML, CSS, JavaScript, React | Shared auth/API client plus clubs, training/attendance and announcement previews |
+| UI framework | Bootstrap is planned | Shared auth CSS and module preview themes; coordinate presentation with Shahadh |
+| Backend | PHP 8.2+ | Shared API router, PDO, session/CSRF, auth/users and resource/booking handlers |
+| Database | MySQL 8+ / compatible MariaDB | Ordered authentication and resource/booking migrations; private configuration example |
+| Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
-The official assignment brief must confirm React/framework permissions before frontend scaffolding. PHP and MySQL remain the backend/database requirements; Node.js, if used for React tooling, serves development/build work only. Confirm the installed XAMPP database engine and runtime versions before finalizing compatibility.
+React/Vite are used on this implementation branch. Confirm assignment framework permissions before submission. PHP and MySQL remain the backend/database requirements; Node.js serves frontend development/build work only. Confirm local XAMPP database/runtime compatibility using the setup guide.
 
 ## Users and access
 
@@ -80,7 +80,7 @@ Development/
 `-- docs/                   Future requirements, architecture, API, and QA documents
 ```
 
-Both `modules/` directories contain the same twelve folder names. Most leaf directories still contain only `.gitkeep` placeholders; the resource/booking backend implementation files are the initial exception.
+Both module directories contain the twelve planned module folders. Authentication/users has React and PHP implementations. The frontend also contains clubs, training/attendance and announcement previews. Resource/booking PHP handlers reuse the shared login session and PDO connection. Ordered migrations cover authentication and resources/bookings; other business handlers/schemas still need integration.
 
 ## Team and working ownership
 
@@ -154,7 +154,7 @@ Then:
 5. Implement a small, reviewable change in the assigned folders.
 6. Test the change and submit a pull request with evidence.
 
-There is currently no application launch command. The repository has no frontend package manifest, PHP entry point, database connection, or SQL import files. Dependency installation, environment variables, database setup, and run commands must be documented when those foundations are implemented and reviewed. No usable accounts or default login credentials exist.
+Follow [local development](docs/local-development.md) to configure the private database connection, apply the ordered migrations, provision your first Admin, and start PHP plus React. No default credentials or committed accounts exist.
 
 ## Development dependencies and conventions
 
@@ -168,7 +168,7 @@ The initial implementation order is:
 
 Frontend/backend pairs may work in parallel after agreeing on contracts. A screen using sample data must be identified as incomplete until its real PHP/database workflow is integrated.
 
-The database and API are not defined yet. Before integration, agree on request paths/methods, fields, validation, response shapes, status values, authorization, and error behavior. Record approved decisions in `docs/` as they are made.
+The authentication/users schema and [API contract](docs/auth-users-api.md) are implemented on this branch. Other module contracts still require coordination. Agree request paths, fields, validation, responses, permissions, and errors with each partner. Record decisions in docs; Jassim reviews the initial identity migration and shared schema changes.
 
 ## GitHub collaboration
 

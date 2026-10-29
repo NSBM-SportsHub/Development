@@ -1,6 +1,12 @@
 <?php
 declare(strict_types=1);
 
+namespace SportsHub;
+
+use PDO;
+use RuntimeException;
+use Throwable;
+
 final class BookingController
 {
     public function __construct(private readonly PDO $db)
@@ -13,7 +19,6 @@ final class BookingController
             $this->listOrRead($id, $user);
         }
 
-        requireCsrfToken();
         if ($method === 'POST' && $id === null) {
             $this->create($user);
         }
@@ -38,11 +43,11 @@ final class BookingController
         if ($id !== null) {
             $query .= ' WHERE b.id = :id';
             $parameters['id'] = $id;
-            if ($user['role'] !== 'Admin') {
+            if ($user['role'] !== 'admin') {
                 $query .= ' AND b.requested_by = :user_id';
                 $parameters['user_id'] = $user['id'];
             }
-        } elseif ($user['role'] !== 'Admin') {
+        } elseif ($user['role'] !== 'admin') {
             $query .= ' WHERE b.requested_by = :user_id';
             $parameters['user_id'] = $user['id'];
         }
@@ -59,7 +64,7 @@ final class BookingController
 
     private function create(array $user): never
     {
-        $data = readJsonBody();
+        $data = Http::body();
         rejectUnknownFields($data, ['resource_type', 'resource_id', 'starts_at', 'ends_at', 'quantity', 'notes']);
         requireFields($data, ['resource_type', 'resource_id', 'starts_at', 'ends_at']);
 
@@ -116,8 +121,8 @@ final class BookingController
 
     private function update(int $id, array $user): never
     {
-        $data = readJsonBody();
-        if ($user['role'] === 'Admin') {
+        $data = Http::body();
+        if ($user['role'] === 'admin') {
             rejectUnknownFields($data, ['status']);
             requireFields($data, ['status']);
             if (!in_array($data['status'], ['approved', 'rejected', 'cancelled'], true)) {
@@ -227,7 +232,7 @@ final class BookingController
 
     private function cancel(int $id, array $user): never
     {
-        if ($user['role'] === 'Admin') {
+        if ($user['role'] === 'admin') {
             $statement = $this->db->prepare(
                 'UPDATE bookings SET status = \'cancelled\', reviewed_by = :reviewed_by, updated_at = CURRENT_TIMESTAMP
                  WHERE id = :id AND status IN (\'pending\', \'approved\')'
@@ -241,7 +246,7 @@ final class BookingController
             $statement->execute(['id' => $id, 'requested_by' => $user['id']]);
         }
         if ($statement->rowCount() === 0) {
-            $this->ensurePending($id, $user['role'] === 'Admin' ? null : $user['id']);
+            $this->ensurePending($id, $user['role'] === 'admin' ? null : $user['id']);
         }
         sendJson(null, 204);
     }

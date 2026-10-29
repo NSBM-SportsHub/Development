@@ -1,4 +1,4 @@
-CREATE TABLE facilities (
+CREATE TABLE IF NOT EXISTS facilities (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(120) NOT NULL,
     description TEXT NULL,
@@ -11,7 +11,7 @@ CREATE TABLE facilities (
     KEY idx_facilities_active_name (is_active, name)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE equipment (
+CREATE TABLE IF NOT EXISTS equipment (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     name VARCHAR(120) NOT NULL,
     description TEXT NULL,
@@ -24,7 +24,7 @@ CREATE TABLE equipment (
     CONSTRAINT chk_equipment_total_quantity CHECK (total_quantity > 0)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
-CREATE TABLE bookings (
+CREATE TABLE IF NOT EXISTS bookings (
     id BIGINT UNSIGNED NOT NULL AUTO_INCREMENT,
     facility_id BIGINT UNSIGNED NULL,
     equipment_id BIGINT UNSIGNED NULL,

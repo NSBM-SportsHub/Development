@@ -1,84 +1,104 @@
 <?php
 declare(strict_types=1);
 
-require_once __DIR__ . '/../src/shared/http.php';
-require_once __DIR__ . '/../config/database.php';
-require_once __DIR__ . '/../src/modules/resources/ResourceController.php';
-require_once __DIR__ . '/../src/modules/bookings/BookingController.php';
+use SportsHub\ApiException;
+use SportsHub\AuthController;
+use SportsHub\BookingController;
+use SportsHub\Config;
+use SportsHub\Database;
+use SportsHub\Http;
+use SportsHub\ResourceController;
+use SportsHub\Session;
+use SportsHub\UserController;
 
-ini_set('display_errors', '0');
-ini_set('session.use_strict_mode', '1');
-ini_set('session.use_only_cookies', '1');
-error_reporting(E_ALL);
+require dirname(__DIR__) . '/src/shared/bootstrap.php';
+Http::headers();
 
-session_set_cookie_params([
-    'httponly' => true,
-    'secure' => isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off',
-    'samesite' => 'Lax',
-    'path' => '/',
-]);
-session_start();
-
-set_exception_handler(static function (Throwable $exception): void {
-    error_log((string) $exception);
-    sendJson(['error' => 'An unexpected server error occurred.'], 500);
-});
-
-$method = strtoupper($_SERVER['REQUEST_METHOD'] ?? 'GET');
-$path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
-if (!is_string($path)) {
-    routeNotFound();
-}
-
-if ($path === '/api/session' && $method === 'GET') {
-    if (!isset($_SESSION['csrf_token'])) {
-        $_SESSION['csrf_token'] = bin2hex(random_bytes(32));
+try {
+    $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';
+    $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH);
+    if (!is_string($path)) {
+        throw new ApiException(400, 'invalid_request', 'The request URL is invalid.');
     }
-    $sessionUser = $_SESSION['user'] ?? null;
-    $publicUser = null;
-    if (is_array($sessionUser) && isset($sessionUser['id'], $sessionUser['role'])) {
-        $sessionUserId = filter_var($sessionUser['id'], FILTER_VALIDATE_INT);
-        if ($sessionUserId !== false
-            && $sessionUserId > 0
-            && in_array($sessionUser['role'], ['Student', 'Admin'], true)) {
-            $publicUser = ['id' => $sessionUserId, 'role' => $sessionUser['role']];
+    $routes = [
+        '/api/health' => ['GET'],
+        '/api/auth/session' => ['GET'],
+        '/api/auth/register' => ['POST'],
+        '/api/auth/login' => ['POST'],
+        '/api/auth/logout' => ['POST'],
+        '/api/users/me' => ['GET', 'PATCH'],
+        '/api/users/me/password' => ['PATCH'],
+        '/api/users' => ['GET', 'POST'],
+    ];
+    $userId = null;
+    $moduleRoute = null;
+    $moduleId = null;
+    if (preg_match('~\A/api/(facilities|equipment|bookings)(?:/([1-9][0-9]{0,18}))?\z~', $path, $match)) {
+        $moduleRoute = $match[1];
+        if (isset($match[2])) {
+            $moduleId = filter_var($match[2], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($moduleId === false) {
+                throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+            }
         }
+        $routes[$path] = $moduleId === null ? ['GET', 'POST'] : ['GET', 'PUT', 'PATCH', 'DELETE'];
     }
-    sendJson([
-        'data' => [
-            'user' => $publicUser,
-            'csrf_token' => $_SESSION['csrf_token'],
-        ],
-    ]);
-}
-
-$user = currentUser();
-$routeDefinitions = [
-    'facilities' => ['type' => 'facility', 'table' => 'facilities'],
-    'equipment' => ['type' => 'equipment', 'table' => 'equipment'],
-];
-
-foreach ($routeDefinitions as $route => $definition) {
-    if (preg_match('#^/api/' . $route . '(?:/([1-9][0-9]*))?$#', $path, $matches) === 1) {
-        $id = isset($matches[1]) ? filter_var($matches[1], FILTER_VALIDATE_INT) : null;
-        if (isset($matches[1]) && ($id === false || $id < 1)) {
-            sendJson(['error' => 'Identifier is invalid.'], 400);
+    if (!isset($routes[$path]) && preg_match('~\A/api/users/([1-9][0-9]{0,18})\z~', $path, $match)) {
+        $userId = filter_var($match[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+        if ($userId === false) {
+            throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
         }
-        $controller = new ResourceController(
-            database(),
-            $definition['type'],
-            $definition['table']
-        );
-        $controller->dispatch($method, $id, $user);
+        $routes[$path] = ['GET', 'PATCH', 'DELETE'];
     }
-}
-
-if (preg_match('#^/api/bookings(?:/([1-9][0-9]*))?$#', $path, $matches) === 1) {
-    $id = isset($matches[1]) ? filter_var($matches[1], FILTER_VALIDATE_INT) : null;
-    if (isset($matches[1]) && ($id === false || $id < 1)) {
-        sendJson(['error' => 'Identifier is invalid.'], 400);
+    if (!isset($routes[$path])) {
+        throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
     }
-    (new BookingController(database()))->dispatch($method, $id, $user);
+    Http::requireMethod($method, $routes[$path]);
+    Config::requireAppKey();
+    if ($path === '/api/health') {
+        Database::get()->query('SELECT 1');
+        Http::json(['status' => 'ok', 'database' => 'connected']);
+    }
+    Session::start();
+    Session::currentUser(); // Refresh the account status and session version on every request.
+    if ($moduleRoute !== null) {
+        $actor = Session::requireUser();
+        if ($method !== 'GET') {
+            Session::verifyCsrf();
+        }
+        if ($moduleRoute === 'bookings') {
+            (new BookingController(Database::get()))->dispatch($method, $moduleId, $actor);
+        }
+        $type = $moduleRoute === 'facilities' ? 'facility' : 'equipment';
+        (new ResourceController(Database::get(), $type, $moduleRoute))->dispatch($method, $moduleId, $actor);
+    }
+    $body = [];
+    if (in_array($method, ['POST', 'PATCH', 'DELETE'], true)) {
+        $body = Http::body();
+        Session::verifyCsrf();
+    }
+    $data = match (true) {
+        $path === '/api/auth/session' => Session::payload(),
+        $path === '/api/auth/register' => AuthController::register($body),
+        $path === '/api/auth/login' => AuthController::login($body),
+        $path === '/api/auth/logout' => AuthController::logout($body),
+        $path === '/api/users/me' && $method === 'GET' => UserController::me(),
+        $path === '/api/users/me' => UserController::updateMe($body),
+        $path === '/api/users/me/password' => UserController::password($body),
+        $path === '/api/users' && $method === 'GET' => UserController::listing($_GET),
+        $path === '/api/users' => UserController::create($body),
+        $userId !== null && $method === 'GET' => UserController::show($userId),
+        $userId !== null && $method === 'PATCH' => UserController::update($userId, $body),
+        $userId !== null && $method === 'DELETE' => UserController::delete($userId, $body),
+        default => throw new ApiException(404, 'not_found', 'This endpoint could not be found.'),
+    };
+    Http::json($data, $method === 'POST' && in_array($path, ['/api/auth/register', '/api/users'], true) ? 201 : 200);
+} catch (ApiException $exception) {
+    Http::error($exception);
+} catch (PDOException $exception) {
+    error_log('SportsHub database failure [' . $exception->getCode() . ']: ' . $exception->getMessage());
+    Http::error(new ApiException(503, 'service_unavailable', 'The service is temporarily unavailable. Please try again later.'));
+} catch (Throwable $exception) {
+    error_log('SportsHub application failure: ' . $exception::class . ': ' . $exception->getMessage());
+    Http::error(new ApiException(500, 'internal_error', 'The request could not be completed. Please try again later.'));
 }
-
-routeNotFound();
