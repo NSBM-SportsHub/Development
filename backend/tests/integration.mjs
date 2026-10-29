@@ -5,6 +5,7 @@ import { mkdirSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { testMemberships } from './memberships.mjs';
 import { testResourcesAndBookings } from './resources-bookings.mjs';
 
 // Real PHP + MySQL/MariaDB HTTP tests. Creates and drops ONLY a random test DB.
@@ -212,6 +213,7 @@ try {
     assert.equal((await admin.request('/auth/login', { method: 'POST', body: { email: adminEmail, password: adminPassword } })).data.user.role, 'admin');
   });
   await testResourcesAndBookings({ check, Client, admin, student, cli });
+  await testMemberships({ check, Client, admin, cli, suffix, password });
 
   await check('Admin can create/read a user and duplicate email is rejected', async () => {
     targetEmail = `managed-${suffix}@example.test`;
