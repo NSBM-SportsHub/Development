@@ -4,24 +4,51 @@ PHP 8.2+ with PDO MySQL and mbstring implements Mukilan's authentication/users m
 
 See [local development](../docs/local-development.md) for configuration, migrations, first-Admin provisioning, startup, and tests. The [authentication API](../docs/auth-users-api.md) and [resource/booking API](../docs/resource-booking-api.md) describe implemented endpoints and request/response shapes.
 
+Run `php tests/configuration.php` from `backend/` for isolated configuration checks. The HTTP/database integration runner remains `node backend/tests/integration.mjs` from the repository root.
+
 ## Quick start
 
-Copy config/config.example.php to the ignored config/local.php and set a random application key plus private database credentials. Start MySQL/MariaDB, then from the repository root:
+Keep MySQL/MariaDB running in its own terminal. Open PowerShell **in `backend/`**. On a new clone without `.env`, create your private persistent configuration and generate an application key:
 
 ```powershell
-php backend/bin/setup.php
-php backend/bin/create-admin.php --name="Mukilan" --email="your-real-email@example.com"
-php -S 127.0.0.1:8000 -t backend/public backend/router.php
+Copy-Item .env.example .env
+& ../.tools/php/php.exe -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
 ```
 
-Replace the email and enter your own password at the prompt. CLI bootstrap only provisions the first Admin; it refuses repeat provisioning and existing-email promotion. No default credentials or committed accounts exist.
+Keep an existing `.env` instead of replacing it. Edit `.env` with your generated `SPORTSHUB_APP_KEY` and database settings. The safe example uses the workstation's portable database: `127.0.0.1:3307`, database `nsbm_sportshub`, user `root`, and an empty password for isolated local development. If your XAMPP database uses port `3306`, change `SPORTSHUB_DB_PORT` accordingly. Actual `.env` files are ignored; only the example is tracked.
+
+Initialize the schema and provision your first Admin **once, from `backend/`**:
+
+```powershell
+& ../.tools/php/php.exe bin/setup.php
+& ../.tools/php/php.exe bin/create-admin.php --name="Mukilan" --email="your-real-email@example.com"
+```
+
+Replace the email and enter your own password at the prompt. Skip Admin provisioning if the first Admin already exists. CLI bootstrap only provisions the first Admin; it refuses repeat provisioning and existing-email promotion. No default credentials or committed accounts exist.
+
+To start PHP **on each run, from `backend/`**:
+
+```powershell
+& ../.tools/php/php.exe -S 127.0.0.1:8000 -t public router.php
+```
+
+These commands use the ignored portable PHP tools already on this workstation. With PHP installed on PATH, replace `& ../.tools/php/php.exe` with `php`; the remaining arguments stay the same. No `Set-Location` or environment-variable assignments are needed in a terminal already in `backend/`. The [local development guide](../docs/local-development.md#portable-tools-on-this-workstation) includes the portable database startup command, which is run separately from the repository root.
 
 The API base URL is http://127.0.0.1:8000/api. The React development server proxies same-origin /api calls to PHP. GET /api/health checks database access too.
+
+## Persistent configuration
+
+The API and CLI locate `backend/.env` independently of the terminal's working directory. The dependency-free loader accepts `KEY=value`, blank lines, `#` comment lines, optional `export`, and single- or double-quoted values. It performs no variable interpolation or command execution.
+
+Precedence is defaults in `config/config.example.php` < optional private `config/local.php` < `backend/.env` < process environment. Process variables win even when empty. Existing `local.php` configurations remain supported; `.env` overrides them. Stop and restart PHP after editing configuration. If an old inherited variable overrides your file, remove that override and open a fresh terminal before restarting PHP.
+
+Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP. Production requires `SPORTSHUB_ENV=production`, secure cookies, HTTPS, and private production credentials. Keep actual application keys and database passwords out of Git and frontend configuration.
 
 ## Structure
 
 - bin/: database setup and initial Admin CLI.
-- config/: example and ignored private local.php.
+- .env.example: tracked safe configuration template; .env: ignored private persistent settings.
+- config/: defaults and optional ignored private local.php.
 - public/: only PHP web document root; API index and Apache rewrite rules.
 - router.php: development PHP-server router.
 - src/shared/: HTTP, config, PDO, validation, session/CSRF, login throttling.

@@ -1,7 +1,7 @@
 <?php
 declare(strict_types=1);
 
-// Copy to local.php for private local settings, or use SPORTSHUB_* environment variables.
+// Defaults. Prefer backend/.env; local.php and real SPORTSHUB_* process variables also work.
 // Never put this directory under the web server document root.
 return [
     'environment' => 'development',
