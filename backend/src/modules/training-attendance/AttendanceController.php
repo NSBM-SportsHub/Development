@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../shared/Database.php';
 require_once __DIR__ . '/../../shared/Response.php';
+require_once __DIR__ . '/../../shared/Validator.php';
 
 /**
  * Attendance controller.
@@ -131,10 +132,7 @@ final class AttendanceController
         }
 
         try {
-            $input = json_decode((string) file_get_contents('php://input') ?: '[]', true);
-            if (!is_array($input)) {
-                throw new InvalidArgumentException('Request body must be a JSON object.');
-            }
+            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
 
             $sessionId = self::normalizePositiveInt((string) ($input['session_id'] ?? ''), 'session_id');
             $participantId = self::normalizePositiveInt((string) ($input['participant_id'] ?? ''), 'participant_id');

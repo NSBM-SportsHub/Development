@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 require_once __DIR__ . '/../../shared/Database.php';
 require_once __DIR__ . '/../../shared/Response.php';
+require_once __DIR__ . '/../../shared/Validator.php';
 
 /**
  * Training session controller placeholder.
@@ -120,8 +121,10 @@ final class TrainingController
             $params = [];
 
             if ($search !== null) {
-                $sql .= ' AND (title LIKE :search OR notes LIKE :search)';
-                $params[':search'] = '%' . $search . '%';
+                $sql .= ' AND (title LIKE :title_search OR notes LIKE :notes_search)';
+                $searchPattern = '%' . $search . '%';
+                $params[':title_search'] = $searchPattern;
+                $params[':notes_search'] = $searchPattern;
             }
 
             if ($status !== null) {
@@ -182,10 +185,7 @@ final class TrainingController
         }
 
         try {
-            $input = json_decode((string) file_get_contents('php://input') ?: '[]', true);
-            if (!is_array($input)) {
-                throw new InvalidArgumentException('Request body must be a JSON object.');
-            }
+            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
 
             $title = self::normalizeText($input['title'] ?? null, 150);
             if ($title === null) {
@@ -252,10 +252,7 @@ final class TrainingController
         }
 
         try {
-            $input = json_decode((string) file_get_contents('php://input') ?: '[]', true);
-            if (!is_array($input)) {
-                throw new InvalidArgumentException('Request body must be a JSON object.');
-            }
+            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
 
             $pdo = Database::getConnection();
             $session = self::fetchSession($pdo, $sessionId);

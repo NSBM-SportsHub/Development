@@ -4,6 +4,16 @@ declare(strict_types=1);
 
 final class Validator
 {
+    public static function decodeJsonObject(string $json): array
+    {
+        $value = json_decode($json);
+        if (!$value instanceof stdClass) {
+            throw new InvalidArgumentException('Request body must be a JSON object.');
+        }
+
+        return get_object_vars($value);
+    }
+
     public static function requireString(array $data, string $key, int $minLength = 1, ?int $maxLength = null): string
     {
         if (!array_key_exists($key, $data) || !is_string($data[$key])) {

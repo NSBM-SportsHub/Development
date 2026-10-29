@@ -67,8 +67,10 @@ final class SportController
         $params = [];
 
         if (isset($filters['search']) && $filters['search'] !== null) {
-            $sql .= ' AND (name LIKE :search OR description LIKE :search)';
-            $params[':search'] = '%' . $filters['search'] . '%';
+            $sql .= ' AND (name LIKE :name_search OR description LIKE :description_search)';
+            $search = '%' . $filters['search'] . '%';
+            $params[':name_search'] = $search;
+            $params[':description_search'] = $search;
         }
 
         if (isset($filters['status']) && $filters['status'] !== null) {

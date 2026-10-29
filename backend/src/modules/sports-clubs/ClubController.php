@@ -75,10 +75,7 @@ final class ClubController
         }
 
         try {
-            $input = json_decode(file_get_contents('php://input') ?: '[]', true);
-            if (!is_array($input)) {
-                throw new InvalidArgumentException('Request body must be a JSON object.');
-            }
+            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
 
             $name = Validator::requireString($input, 'name', 2, 255);
             $description = Validator::optionalString($input, 'description', 2000) ?? '';
@@ -131,10 +128,7 @@ final class ClubController
         }
 
         try {
-            $input = json_decode(file_get_contents('php://input') ?: '[]', true);
-            if (!is_array($input)) {
-                throw new InvalidArgumentException('Request body must be a JSON object.');
-            }
+            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
 
             $pdo = Database::getConnection();
             $club = self::getClub($pdo, $clubId);

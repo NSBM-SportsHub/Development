@@ -78,3 +78,74 @@ Phase 1 is complete when:
 4. The club CRUD scope and review criteria are clear enough to implement without guessing.
 
 Do not begin training/attendance implementation as part of this phase. After Phase 1, implement the club CRUD slice and obtain Jassim's review before expanding the module.
+
+## Schema integration status
+
+The current repository contains PHP controllers and routes, but no authoritative SQL schema,
+migration, database dump, or ERD image. The ERD screenshots are not present in the repository
+workspace. The controller details below are implementation assumptions only; they are not
+confirmation of the database contract. Do not change ID handling or queries based only on these
+assumptions.
+
+| Entity | Current controller assumption | PK/FK type comparison still required |
+|---|---|---|
+| `SPORTS` (`sports`) | PK column `id`, treated as an integer in detail lookup and club sport validation. List also assumes `name`, `description`, and `status`. | Confirm actual PK name/type and compare it with `CLUBS.sport_id`. |
+| `CLUBS` (`clubs`) | PK column `id`, treated as an integer in routes, CRUD, and `lastInsertId()`. `sport_id` is treated as an integer FK to `sports.id`. Assumes `name`, `description`, `status`, `is_archived`, `created_at`, and `updated_at`. | Confirm actual PK name/type and whether `sport_id` exists, its type/nullability, and its referenced `SPORTS` key/type. |
+| `TRAINING_SESSIONS` (`training_sessions`) | PK column `id`, treated as an integer in routes and controller methods. `club_id` is treated as an integer FK to `clubs.id`. Assumes `title`, `status`, `session_date`, `start_time`, `end_time`, `notes`, `created_at`, and `updated_at`. | Confirm actual PK name/type and compare `club_id` with the actual `CLUBS` PK name/type. |
+| `SESSION_ATTENDANCE` | Controller currently queries a table named `training_attendance` with integer `id`, `session_id`, and `participant_id`; it assumes `session_id` references `training_sessions.id`. It also assumes `status`, `notes`, and `recorded_at`. | Confirm whether the table is actually `SESSION_ATTENDANCE` or `training_attendance`; confirm its PK, the `session_id` target/name/type, and the participant FK target/name/type. The participant entity is not established by this module. |
+
+**No exact ERD-versus-controller type mismatch can be asserted from repository evidence.** The
+exact unresolved comparisons are `CLUBS.sport_id` ↔ `SPORTS` PK,
+`TRAINING_SESSIONS.club_id` ↔ `CLUBS` PK, `SESSION_ATTENDANCE.session_id` ↔
+`TRAINING_SESSIONS` PK, and `SESSION_ATTENDANCE.participant_id` ↔ its participant-table PK.
+For each comparison, both the referenced column names and database types remain unverified.
+The code currently assumes integer IDs for all of them, including numeric-only route parsing;
+this is not evidence that the actual schema uses integers. The `SESSION_ATTENDANCE` table-name
+difference is known from the controller versus the requested ERD entity name, but the canonical
+table name is unconfirmed.
+
+### Safe integration steps after Jassim confirms the schema
+
+1. Request the authoritative `CREATE TABLE` definitions or exported schema for all four entities,
+   including exact column names/types, PKs, FKs, nullability, unique constraints, indexes, and
+   `ON DELETE`/`ON UPDATE` actions. Confirm the schema/database version and canonical table names.
+2. Compare each controller query and request field against that schema. Align route parameter
+   parsing, PHP parameter types, FK validation, and generated-ID handling with the confirmed ID
+   representation; do not cast UUIDs to integers.
+3. Confirm whether club deletion is allowed and how related membership/training/attendance history
+   must be retained. Until confirmed, avoid using the current hard-delete endpoint: it explicitly
+   deletes matching membership rows before deleting the club. The archive endpoint also assumes
+   `is_archived` and a status value of `archived`.
+4. Confirm attendance participant identity, duplicate-record rules, editable/correctable
+   attendance policy, and whether attendance is append-only/history-bearing before changing its
+   insert behavior.
+5. Confirm the authentication implementation, allowed roles/club scope, and write/CSRF rules.
+   Authentication and authorization are not implemented in these controllers; keep protected
+   operations unavailable to production clients until those rules and enforcement are reviewed.
+6. Add focused tests against the confirmed schema for ID parsing, FK validation, CRUD, archive and
+   historical-record behavior, duplicate attendance, and the existing JSON response conventions.
+
+The present PHP uses prepared statements for data values and shared JSON response shapes, but
+those practices do not resolve schema compatibility or provide authentication/authorization.
+
+## Backend review follow-up
+
+The current review made only schema-independent request/query fixes:
+
+- Search filters use distinct named placeholders for each compared column. The shared PDO
+  connection disables emulated prepares, where reusing a named placeholder can fail.
+- Write handlers now require a top-level JSON object; JSON arrays and scalar values are rejected
+  with the existing validation response convention.
+
+The following remain integration blockers rather than safe local fixes:
+
+- Schema-dependent table/column/ID assumptions and the `training_attendance` versus
+  `SESSION_ATTENDANCE` naming question listed above.
+- The club DELETE handler explicitly deletes matching membership rows before deleting the club.
+  Do not rely on this as a history-safe operation until Jassim confirms FK behavior and the team
+  confirms retention policy; do not replace it with a guessed cascade/archive design.
+- Authentication/authorization are not in place. The team leader must wire the agreed auth and
+  access rules to protected routes before production exposure; this work does not introduce a
+  separate authorization system.
+- No automated tests are configured. After schema and access rules are confirmed, add tests for
+  database behavior, historical records, access enforcement, and invalid request types.
