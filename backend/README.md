@@ -57,7 +57,7 @@ Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP.
 - src/shared/ResourceBookingHttp.php: module validation and shared-response adapter, distinct from Http.php on every operating system.
 - tests/: real HTTP/database integration runner.
 
-Setup applies 001_authentication_users.sql (users and auth_rate_limits), then 002_resources_and_bookings.sql (facilities, equipment and bookings). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
+Setup applies every database/migrations/NNN_name.sql file in numeric order and refuses duplicate numbers: 001 (users, auth_rate_limits), 002 (facilities, equipment, bookings), 003 (sports, clubs), 004 (memberships, club_coaches), 005 (tournaments and entries) and 006 (matches). `--seed` also loads reference sports and demo clubs. See [database design](../docs/database-erd.md) and [backend conventions](../docs/backend-conventions.md). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
 
 ## Implemented behavior
 
