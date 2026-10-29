@@ -9,6 +9,7 @@ use SportsHub\Database;
 use SportsHub\Http;
 use SportsHub\MembershipController;
 use SportsHub\ResourceController;
+use SportsHub\TournamentController;
 use SportsHub\Session;
 use SportsHub\UserController;
 
@@ -44,22 +45,27 @@ try {
         }
         $routes[$path] = $moduleId === null ? ['GET', 'POST'] : ['GET', 'PUT', 'PATCH', 'DELETE'];
     }
-    // Membership routes: /api/{collection}[/{id}].
+    // Membership and competition routes: /api/{collection}[/{id}[/{action}]].
     $competitionRoute = null;
     $competitionId = null;
-    if (preg_match('~\A/api/(memberships|club-coaches)(?:/([1-9][0-9]{0,18}))?\z~', $path, $match)) {
+    if (preg_match('~\A/api/(memberships|club-coaches|tournaments|tournament-entries)(?:/([1-9][0-9]{0,18})(?:/(entries|eligible-members))?)?\z~', $path, $match)) {
         if (isset($match[2])) {
             $competitionId = filter_var($match[2], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
             if ($competitionId === false) {
                 throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
             }
         }
-        $competitionRoute = $match[1] . (isset($match[2]) ? '/{id}' : '');
+        $competitionRoute = $match[1] . (isset($match[2]) ? '/{id}' : '') . (isset($match[3]) ? '/' . $match[3] : '');
         $routes[$path] = [
             'memberships' => ['GET', 'POST'],
             'memberships/{id}' => ['GET', 'PATCH'],
             'club-coaches' => ['GET', 'POST'],
             'club-coaches/{id}' => ['DELETE'],
+            'tournaments' => ['GET', 'POST'],
+            'tournaments/{id}' => ['GET', 'PATCH', 'DELETE'],
+            'tournaments/{id}/entries' => ['GET', 'POST'],
+            'tournaments/{id}/eligible-members' => ['GET'],
+            'tournament-entries/{id}' => ['GET', 'PATCH'],
         ][$competitionRoute] ?? throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
     }
     if (!isset($routes[$path]) && preg_match('~\A/api/users/([1-9][0-9]{0,18})\z~', $path, $match)) {
@@ -97,7 +103,11 @@ try {
         if ($method !== 'GET') {
             Session::verifyCsrf();
         }
-        $data = MembershipController::handle($competitionRoute, $method, $competitionId, $body, $_GET, $actor);
+        $controller = match (true) {
+            in_array(strtok($competitionRoute, '/'), ['memberships', 'club-coaches'], true) => MembershipController::class,
+            default => TournamentController::class,
+        };
+        $data = $controller::handle($competitionRoute, $method, $competitionId, $body, $_GET, $actor);
         if ($method === 'DELETE') {
             Http::noContent();
         }
