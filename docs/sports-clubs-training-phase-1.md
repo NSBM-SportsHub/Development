@@ -6,8 +6,8 @@ The original phase notes below describe the standalone implementation. The integ
 
 # Sports/Clubs and Training/Attendance — Phase 1 Alignment
 
-**Status:** Pending stakeholder confirmation  
-**Branch:** `feat/Natheeshan-club-backend`  
+**Status:** Pending stakeholder confirmation
+**Branch:** `feat/Natheeshan-club-backend`
 **Scope:** Agree on the contracts and policies needed before implementing the club CRUD workflow.
 
 This document records the questions to resolve for Phase 1. Decisions remain pending until confirmed by the named owners; do not treat examples or unanswered questions as approved requirements. The first implementation slice is club CRUD, followed by Jassim's schema review before expanding scope.
