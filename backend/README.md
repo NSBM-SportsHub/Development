@@ -1,8 +1,8 @@
 # NSBM SportsHub backend
 
-PHP 8.2+ with PDO MySQL and mbstring implements Mukilan's authentication/users module and Mursid's resources/bookings module. MySQL 8+ or MariaDB 10.6+ stores their data. No Composer dependencies are required.
+PHP 8.2+ with PDO MySQL and mbstring implements Mukilan's authentication/users module, Mursid's resources/bookings module and Jassim's membership/competition modules. MySQL 8+ or MariaDB 10.6+ stores their data. No Composer dependencies are required.
 
-See [local development](../docs/local-development.md) for configuration, migrations, first-Admin provisioning, startup, and tests. The [authentication API](../docs/auth-users-api.md) and [resource/booking API](../docs/resource-booking-api.md) describe implemented endpoints and request/response shapes.
+See [local development](../docs/local-development.md) for configuration, migrations, first-Admin provisioning, startup, and tests. The [authentication API](../docs/auth-users-api.md), [resource/booking API](../docs/resource-booking-api.md), [membership API](../docs/memberships-api.md) and [competition API](../docs/competitions-api.md) describe implemented endpoints and request/response shapes.
 
 Run `php tests/configuration.php` from `backend/` for isolated configuration checks. The HTTP/database integration runner remains `node backend/tests/integration.mjs` from the repository root.
 
@@ -71,7 +71,7 @@ Setup applies every database/migrations/NNN_name.sql file in numeric order and r
 - Admins cannot demote, deactivate, or archive themselves; transactions prevent concurrent removal of the last active Admin.
 - All writes require JSON objects and CSRF headers, including registration/login/logout and DELETE. Login is rate limited.
 
-Roles are student/admin. Coach policies, email verification, and password recovery remain separate work.
+Account roles are student/admin. Active club coach assignments grant scoped membership and competition permissions without adding an account role. Coach interfaces and training permissions, email verification and password recovery remain separate work.
 
 Facilities/equipment writes require Admin access; Students read active resources and create/edit/cancel their own pending bookings. Admins review and cancel bookings. Availability checks use transactions and resource locks. All modules reuse Session, Database, Http and SPORTSHUB_* configuration. Resource archival and booking cancellation return 204 with no body.
 
