@@ -33,3 +33,6 @@ require_once dirname(__DIR__) . '/modules/sports-clubs/SportController.php';
 require_once dirname(__DIR__) . '/modules/training-attendance/TrainingController.php';
 require_once dirname(__DIR__) . '/modules/training-attendance/AttendanceController.php';
 require_once __DIR__ . '/SportsTrainingRoutes.php';
+
+require_once dirname(__DIR__) . '/modules/announcements/AnnouncementRepository.php';
+require_once dirname(__DIR__) . '/modules/announcements/AnnouncementController.php';

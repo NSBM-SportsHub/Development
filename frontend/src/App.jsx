@@ -38,7 +38,7 @@ function Shell() {
     finally { setBusy(false); }
   }
   const Layout = user.role === "admin" ? AdminLayout : StudentLayout;
-  return <Layout user={user} busy={busy} error={error} onSignOut={signOut}><Outlet /></Layout>;
+  return <Layout user={user} busy={busy} error={error} onSignOut={signOut}><Outlet context={{ onSignOut: signOut, signingOut: busy }} /></Layout>;
 }
 
 function HomeRedirect() {
@@ -66,7 +66,7 @@ function ModulePreview() {
     <div className="module-preview">
       <a href="#module-content" className="skip-link">Skip to module content</a>
       <div className="module-account-bar">
-        <p><strong>Preview</strong><span>Demo records stay in this browser. Announcements reset on reload.</span></p>
+        <p><strong>Preview</strong><span>Club and training previews use browser demo data. Announcements are saved to SportsHub.</span></p>
         <nav aria-label="Account">
           {loading ? <span role="status">Checking sign-in…</span> : user ? (
             <>
@@ -97,6 +97,7 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Shell />}>
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/announcements/*" element={<Announcements />} />
           <Route path="/tournaments" element={<TournamentList />} />
           <Route path="/tournaments/:tournamentId" element={<TournamentDetails />} />
           <Route path="/tournaments/:tournamentId/matches" element={<Fixtures />} />
@@ -108,7 +109,6 @@ export default function App() {
       <Route element={<ModulePreview />}>
         <Route path="/sports-clubs/*" element={<SportsClubs />} />
         <Route path="/training-attendance/*" element={<TrainingAttendance />} />
-        <Route path="/announcements/*" element={<Announcements />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

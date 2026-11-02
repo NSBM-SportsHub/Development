@@ -214,6 +214,10 @@ final class AttendanceController
             Response::json(201, ['success' => true, 'message' => 'Attendance recorded successfully.', 'data' => $saved->fetch()]);
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
+        } catch (PDOException $exception) {
+            if (Database::isDuplicateKey($exception)) Response::json(409, ['message' => 'Attendance for this participant and session already exists.']);
+            self::logFailure($exception);
+            Response::json(500, ['message' => 'Failed to record attendance.']);
         } catch (Throwable $exception) {
             self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to record attendance.']);

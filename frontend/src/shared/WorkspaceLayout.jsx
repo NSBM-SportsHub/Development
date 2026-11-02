@@ -21,7 +21,7 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
           <NavLink to="/tournaments">Tournaments</NavLink>
           <NavLink to="/sports-clubs">Clubs preview</NavLink>
           <NavLink to="/training-attendance">Training preview</NavLink>
-          <NavLink to="/announcements">Announcements preview</NavLink>
+          <NavLink to="/announcements">Announcements</NavLink>
         </nav>
         <div className="sidebar-note">
           <Icon name="shield" />
