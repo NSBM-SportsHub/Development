@@ -28,6 +28,7 @@ const adminEmail = `admin-${suffix}@example.test`;
 const adminPassword = `Admin!${randomBytes(18).toString('hex')}`;
 const password = `Student!${randomBytes(16).toString('hex')}`;
 let backend;
+let concurrentBackend;
 let serverLog = '';
 let count = 0;
 
@@ -58,6 +59,10 @@ class Client {
   cookie = '';
   csrf = '';
 
+  constructor(requestBase = null) {
+    this.requestBase = requestBase;
+  }
+
   async request(path, { method = 'GET', body, token = true, raw, headers = {} } = {}) {
     const requestHeaders = { ...headers };
     if (this.cookie) requestHeaders.Cookie = this.cookie;
@@ -65,7 +70,7 @@ class Client {
       requestHeaders['Content-Type'] ??= 'application/json';
       if (token && this.csrf) requestHeaders['X-CSRF-Token'] = this.csrf;
     }
-    const response = await fetch(`${base}${path}`, {
+    const response = await fetch(`${this.requestBase ?? base}${path}`, {
       method, headers: requestHeaders,
       body: raw ?? (body === undefined ? (method === 'GET' ? undefined : '{}') : JSON.stringify(body)),
       redirect: 'manual',
@@ -123,6 +128,20 @@ try {
     await new Promise((accept) => setTimeout(accept, 100));
   }
   assert.equal(ready, true, `PHP did not start: ${serverLog}`);
+  const concurrentPort = await freePort();
+  const concurrentBase = `http://127.0.0.1:${concurrentPort}/api`;
+  concurrentBackend = spawn(php, ['-S', `127.0.0.1:${concurrentPort}`, '-t', 'backend/public', 'backend/router.php'], {
+    cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true,
+  });
+  concurrentBackend.stderr.on('data', (data) => { serverLog = (serverLog + data).slice(-12_000); });
+  concurrentBackend.on('error', (error) => { serverLog += String(error); });
+  let concurrentReady = false;
+  for (let attempt = 0; attempt < 60; attempt += 1) {
+    try { if ((await fetch(`${concurrentBase}/health`)).ok) { concurrentReady = true; break; } } catch { /* starting */ }
+    if (concurrentBackend.exitCode !== null) break;
+    await new Promise((accept) => setTimeout(accept, 100));
+  }
+  assert.equal(concurrentReady, true, `Second PHP server did not start: ${serverLog}`);
   const student = new Client();
   const admin = new Client();
   let studentId;
@@ -213,7 +232,18 @@ try {
     assert.equal(other.error.message, result.error.message);
     assert.equal((await admin.request('/auth/login', { method: 'POST', body: { email: adminEmail, password: adminPassword } })).data.user.role, 'admin');
   });
-  await testResourcesAndBookings({ check, Client, admin, student, cli });
+  let concurrentAdminClientIndex = 0;
+  const createAdminClient = async () => {
+    const requestBase = concurrentAdminClientIndex++ % 2 === 0 ? base : concurrentBase;
+    const client = new Client(requestBase);
+    await client.session();
+    const result = await client.request('/auth/login', {
+      method: 'POST', body: { email: adminEmail, password: adminPassword },
+    });
+    assert.equal(result.status, 200);
+    return client;
+  };
+  await testResourcesAndBookings({ check, Client, admin, student, cli, createAdminClient });
   const membershipContext = await testMemberships({ check, Client, admin, cli, suffix, password });
   await testCompetitions({ check, Client, admin, ...membershipContext });
 
@@ -327,9 +357,11 @@ try {
   console.error(serverLog);
   process.exitCode = 1;
 } finally {
-  if (backend && backend.exitCode === null && backend.signalCode === null) {
-    backend.kill();
-    await new Promise((accept) => backend.once('exit', accept));
+  for (const server of [backend, concurrentBackend]) {
+    if (server && server.exitCode === null && server.signalCode === null) {
+      server.kill();
+      await new Promise((accept) => server.once('exit', accept));
+    }
   }
   try { cli('backend/tests/cleanup-database.php'); } catch (error) { console.error(error.message); process.exitCode = 1; }
 }

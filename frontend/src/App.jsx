@@ -5,6 +5,7 @@ import { Avatar, Brand, Button, Icon, Loading, Notice } from "./shared/ui.jsx";
 import AuthPage from "./modules/authentication-users/AuthPage.jsx";
 import ProfilePage from "./modules/authentication-users/ProfilePage.jsx";
 import UsersPage from "./modules/authentication-users/UsersPage.jsx";
+import BookingsPage from "./modules/bookings/index.jsx";
 import Announcements from "./modules/announcements/index.jsx";
 import SportsClubs from "./modules/sports-clubs/index.jsx";
 import TrainingAttendance from "./modules/training-attendance/index.jsx";
@@ -33,7 +34,12 @@ function Shell() {
     catch (failure) { setError(failure.message); }
     finally { setBusy(false); }
   }
-  return <div className="app-shell"><a href="#main-content" className="skip-link">Skip to content</a><aside className="sidebar"><NavLink to="/profile" className="brand-link" aria-label="NSBM SportsHub home"><Brand /></NavLink><div className="sidebar-section-label">YOUR WORKSPACE</div><nav className="side-nav" aria-label="Workspace"><NavLink to="/profile"><Icon name="user" />My profile</NavLink>{user.role === "admin" && <NavLink to="/admin/users"><Icon name="users" />User management</NavLink>}<NavLink to="/sports-clubs">Clubs preview</NavLink><NavLink to="/training-attendance">Training preview</NavLink><NavLink to="/announcements">Announcements preview</NavLink></nav><div className="sidebar-note"><Icon name="shield" /><strong>Your university. Your team.</strong><p>One account for your SportsHub community.</p></div><div className="sidebar-account"><Avatar user={user} /><div><strong>{user.name}</strong><span>{user.role === "admin" ? "Administrator" : "Student"}</span></div><button className="icon-button" onClick={signOut} disabled={busy} aria-label={busy ? "Signing out" : "Sign out"} title="Sign out">{busy ? <span className="spinner" /> : <Icon name="logout" />}</button></div></aside><div className="workspace"><header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <strong>{location.pathname.startsWith("/admin") ? "User management" : "My profile"}</strong></div><span className="session-label"><span /> Signed in</span></header><main id="main-content" className="main-content">{error && <Notice>{error} You are still signed in. Try signing out again.</Notice>}<Outlet /></main><footer className="workspace-footer"><span>NSBM SportsHub</span><span>Built for our sporting community.</span></footer></div></div>;
+  const breadcrumb = location.pathname.startsWith("/admin/bookings")
+    ? "Booking management"
+    : location.pathname.startsWith("/admin")
+      ? "User management"
+      : "My profile";
+  return <div className="app-shell"><a href="#main-content" className="skip-link">Skip to content</a><aside className="sidebar"><NavLink to="/profile" className="brand-link" aria-label="NSBM SportsHub home"><Brand /></NavLink><div className="sidebar-section-label">YOUR WORKSPACE</div><nav className="side-nav" aria-label="Workspace"><NavLink to="/profile"><Icon name="user" />My profile</NavLink>{user.role === "admin" && <><NavLink to="/admin/users"><Icon name="users" />User management</NavLink><NavLink to="/admin/bookings"><Icon name="check" />Booking management</NavLink></>}<NavLink to="/sports-clubs">Clubs preview</NavLink><NavLink to="/training-attendance">Training preview</NavLink><NavLink to="/announcements">Announcements preview</NavLink></nav><div className="sidebar-note"><Icon name="shield" /><strong>Your university. Your team.</strong><p>One account for your SportsHub community.</p></div><div className="sidebar-account"><Avatar user={user} /><div><strong>{user.name}</strong><span>{user.role === "admin" ? "Administrator" : "Student"}</span></div><button className="icon-button" onClick={signOut} disabled={busy} aria-label={busy ? "Signing out" : "Sign out"} title="Sign out">{busy ? <span className="spinner" /> : <Icon name="logout" />}</button></div></aside><div className="workspace"><header className="topbar"><div className="breadcrumb">Workspace <span>/</span> <strong>{breadcrumb}</strong></div><span className="session-label"><span /> Signed in</span></header><main id="main-content" className="main-content">{error && <Notice>{error} You are still signed in. Try signing out again.</Notice>}<Outlet /></main><footer className="workspace-footer"><span>NSBM SportsHub</span><span>Built for our sporting community.</span></footer></div></div>;
 }
 
 function HomeRedirect() {
@@ -94,6 +100,7 @@ export default function App() {
           <Route path="/profile" element={<ProfilePage />} />
           <Route element={<ProtectedRoute admin />}>
             <Route path="/admin/users" element={<UsersPage />} />
+            <Route path="/admin/bookings" element={<BookingsPage />} />
           </Route>
         </Route>
       </Route>
