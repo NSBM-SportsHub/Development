@@ -2,6 +2,12 @@
 
 declare(strict_types=1);
 
+namespace SportsHub;
+
+use stdClass;
+use InvalidArgumentException;
+use DateTimeImmutable;
+
 final class Validator
 {
     public static function decodeJsonObject(string $json): array

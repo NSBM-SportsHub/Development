@@ -1,0 +1,354 @@
+.announcements-hub .announcement-page,
+.announcements-hub .announcement-detail {
+  padding: clamp(26px, 6vw, 64px);
+  background: #e7e8e6;
+}
+
+.announcement-heading {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 30px;
+}
+
+.announcement-heading h1,
+.announcement-detail h1,
+.announcement-form-aside h1 {
+  margin: 0;
+  color: #006a47;
+  font-family: "Barlow Condensed", Impact, sans-serif;
+  font-size: clamp(48px, 7vw, 78px);
+  font-weight: 500;
+  line-height: .92;
+}
+
+.announcement-heading h1 span {
+  color: #172d28;
+}
+
+.announcement-list {
+  display: grid;
+  gap: 13px;
+}
+
+.announcement-card {
+  position: relative;
+  padding: 21px 70px 21px 22px;
+  border: 1px solid #d5ded8;
+  border-radius: 6px;
+  background: #f7faf7;
+}
+
+.announcement-card-link {
+  display: flex;
+  flex-direction: column;
+  color: #172d28;
+  text-decoration: none;
+}
+
+.announcement-card-meta {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 11px;
+  color: #6b7770;
+  font-size: 11px;
+}
+
+.announcement-status {
+  padding: 5px 9px;
+  border-radius: 20px;
+  background: #d7f0e5;
+  color: #006a47;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.announcement-status.draft {
+  background: #fff0d6;
+  color: #8a5700;
+}
+
+.announcement-card-link > strong {
+  margin-bottom: 7px;
+  color: #064b39;
+  font-size: 17px;
+}
+
+.announcement-preview {
+  display: -webkit-box;
+  overflow: hidden;
+  color: #68756e;
+  font-size: 13px;
+  line-height: 1.6;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.announcement-card-audience {
+  margin-top: 11px;
+  color: #65756c;
+  font-size: 10px;
+}
+
+.announcement-edit {
+  position: absolute;
+  top: 24px;
+  right: 22px;
+  color: #006a47;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.announcement-detail {
+  min-height: 480px;
+}
+
+.announcement-back {
+  display: inline-block;
+  margin-bottom: 40px;
+  color: #006a47;
+  font-size: 12px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.announcement-detail-heading {
+  max-width: 760px;
+}
+
+.announcement-detail-heading .eyebrow {
+  margin-top: 18px;
+}
+
+.announcement-detail h1 {
+  margin-bottom: 15px;
+  color: #064b39;
+}
+
+.announcement-audience {
+  color: #68756e;
+  font-size: 12px;
+}
+
+.announcement-body {
+  max-width: 760px;
+  margin: 25px 0;
+  color: #334940;
+  font-size: 15px;
+  line-height: 1.85;
+  white-space: pre-wrap;
+}
+
+.announcement-form-page {
+  display: grid;
+  grid-template-columns: .85fr 1.15fr;
+  overflow: hidden;
+  background: #e3f2e9;
+}
+
+.announcement-form-aside {
+  min-height: 100%;
+  padding: clamp(28px, 6vw, 62px);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: linear-gradient(145deg, #087752, #043f31);
+  color: #fff;
+}
+
+.announcement-form-aside .back-link {
+  margin-bottom: auto;
+  color: rgb(255 255 255 / 82%);
+  font-size: 12px;
+  text-decoration: none;
+}
+
+.announcement-form-aside .eyebrow {
+  margin-top: 70px;
+  color: #a7e4c2;
+}
+
+.announcement-form-aside h1 {
+  color: #fff;
+  font-size: clamp(54px, 7vw, 82px);
+}
+
+.announcement-form-aside > p:not(.eyebrow) {
+  max-width: 340px;
+  color: rgb(255 255 255 / 82%);
+  font-size: 14px;
+  line-height: 1.8;
+}
+
+.announcement-form-aside .form-decoration {
+  margin-top: auto;
+  color: rgb(255 255 255 / 13%);
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 34px;
+  font-weight: 700;
+  letter-spacing: .08em;
+  line-height: .9;
+}
+
+.announcement-form {
+  padding: clamp(26px, 5vw, 54px);
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  background: #e5f4eb;
+}
+
+.announcement-form .form-title h2 {
+  margin: 0;
+  color: #064b39;
+  font-family: "Barlow Condensed", sans-serif;
+  font-size: 35px;
+}
+
+.announcement-form > label {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  color: #284f40;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.announcement-form input:not([type="checkbox"]),
+.announcement-form textarea {
+  width: 100%;
+  min-height: 44px;
+  padding: 11px 13px;
+  border: 1px solid #c8ded1;
+  border-radius: 4px;
+  outline: none;
+  background: #fff;
+  color: #172d28;
+  font: inherit;
+  font-size: 13px;
+}
+
+.announcement-form textarea {
+  resize: vertical;
+}
+
+.announcement-form input:focus,
+.announcement-form textarea:focus {
+  border-color: #006a47;
+  box-shadow: 0 0 0 3px rgb(0 106 71 / 12%);
+}
+
+.audience-fieldset {
+  margin: 0;
+  padding: 14px;
+  border: 1px solid #c8ded1;
+  border-radius: 4px;
+}
+
+.audience-fieldset legend {
+  padding: 0 5px;
+  color: #284f40;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.audience-fieldset > p {
+  margin: 0 0 12px;
+  color: #68756e;
+  font-size: 11px;
+}
+
+.audience-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px 16px;
+}
+
+.audience-options label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: #284f40;
+  font-size: 11px;
+}
+
+.announcement-form-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.secondary-button {
+  min-height: 46px;
+  padding: 0 18px;
+  border: 1px solid #006a47;
+  border-radius: 5px;
+  background: transparent;
+  color: #006a47;
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 800px) {
+  .announcement-form-page {
+    grid-template-columns: .8fr 1.2fr;
+  }
+}
+
+@media (max-width: 560px) {
+  .announcements-hub .announcement-page,
+  .announcements-hub .announcement-detail {
+    padding: 25px 18px;
+  }
+
+  .announcement-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    margin-bottom: 22px;
+  }
+
+  .announcement-heading h1 {
+    font-size: 56px;
+  }
+
+  .announcement-card {
+    padding: 17px 58px 17px 16px;
+  }
+
+  .announcement-edit {
+    top: 19px;
+    right: 15px;
+  }
+
+  .announcement-form-page {
+    grid-template-columns: 1fr;
+  }
+
+  .announcement-form-aside {
+    min-height: 290px;
+    padding: 24px;
+  }
+
+  .announcement-form-aside .eyebrow {
+    margin-top: 48px;
+  }
+
+  .announcement-form-aside h1 {
+    font-size: 60px;
+  }
+
+  .announcement-form-aside .form-decoration {
+    position: absolute;
+    right: 22px;
+    font-size: 21px;
+  }
+
+  .announcement-form {
+    padding: 25px 20px;
+  }
+}

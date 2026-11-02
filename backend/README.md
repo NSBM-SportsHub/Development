@@ -1,177 +1,84 @@
-# NSBM SportsHub - Backend
+# NSBM SportsHub backend
 
-This directory is reserved for the PHP backend of NSBM SportsHub. It will implement authentication, authorization, validated business operations, MySQL access, and integration with the frontend.
+PHP 8.2+ with PDO MySQL and mbstring implements Mukilan's authentication/users module, Mursid's resources/bookings module and Jassim's membership/competition modules. MySQL 8+ or MariaDB 10.6+ stores their data. No Composer dependencies are required.
 
-Read the [project guide](../README.md) for the complete scope, team allocation, milestones, and contribution rules. Read the [frontend guide](../frontend/README.md) when coordinating a module's interface.
+See [local development](../docs/local-development.md) for configuration, migrations, first-Admin provisioning, startup, and tests. The [authentication API](../docs/auth-users-api.md), [resource/booking API](../docs/resource-booking-api.md), [membership API](../docs/memberships-api.md) and [competition API](../docs/competitions-api.md) describe implemented endpoints and request/response shapes.
 
-> **Current status: folders only.** There are no PHP files, handlers, endpoints, database connections, sessions, SQL schema, or automated tests. `.gitkeep` files preserve empty directories. Security and workflow behavior below are requirements for future implementation, not existing functionality.
+Run `php tests/configuration.php` from `backend/` for isolated configuration checks. The HTTP/database integration runner remains `node backend/tests/integration.mjs` from the repository root.
 
-## Technology and runtime direction
+## Quick start
 
-- PHP is the required backend language.
-- MySQL is the required database technology; confirm the actual local XAMPP engine/version and agreed compatibility.
-- XAMPP is the planned local PHP/Apache/database environment.
-- Browser clients call PHP; they never access the database directly.
-- Shared connection/query conventions should use prepared statements, with PDO proposed for review by Jassim.
+Keep MySQL/MariaDB running in its own terminal. Open PowerShell **in `backend/`**. On a new clone without `.env`, create your private persistent configuration and generate an application key:
 
-A PHP framework, dependency manager, runtime version, routing mechanism, and response format have not yet been selected or implemented. Agree on these before introducing module-specific alternatives. Node.js/MongoDB are not replacements for the required backend/database stack.
-
-## Directory guide
-
-```text
-backend/
-|-- README.md
-|-- config/             Planned server and database configuration
-|-- public/             Planned web entry point directory
-`-- src/
-    |-- shared/         Planned routing, auth, validation, and database helpers
-    `-- modules/
-        |-- authentication-users/
-        |-- sports-clubs/
-        |-- memberships/
-        |-- facilities/
-        |-- equipment/
-        |-- bookings/
-        |-- training-attendance/
-        |-- tournaments/
-        |-- matches-results/
-        |-- announcements/
-        |-- notifications/
-        `-- reports/
+```powershell
+Copy-Item .env.example .env
+& ../.tools/php/php.exe -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
 ```
 
-Related repository directories:
+Keep an existing `.env` instead of replacing it. Edit `.env` with your generated `SPORTSHUB_APP_KEY` and database settings. The safe example uses the workstation's portable database: `127.0.0.1:3307`, database `nsbm_sportshub`, user `root`, and an empty password for isolated local development. If your XAMPP database uses port `3306`, change `SPORTSHUB_DB_PORT` accordingly. Actual `.env` files are ignored; only the example is tracked.
 
-- [`database/migrations/`](../database/migrations/): future ordered schema changes.
-- [`database/seeds/`](../database/seeds/): future safe reference/development data.
-- [`docs/`](../docs/): future requirements, ERD/architecture notes, contracts, and test evidence.
+Initialize the schema and provision your first Admin **once, from `backend/`**:
 
-These directories currently contain placeholders only. Controller/service names discussed in planning are suggestions, not existing files or a fixed framework structure.
+```powershell
+& ../.tools/php/php.exe bin/setup.php
+& ../.tools/php/php.exe bin/create-admin.php --name="Mukilan" --email="your-real-email@example.com"
+```
 
-## Ownership and responsibilities
+Replace the email and enter your own password at the prompt. Skip Admin provisioning if the first Admin already exists. CLI bootstrap only provisions the first Admin; it refuses repeat provisioning and existing-email promotion. No default credentials or committed accounts exist.
 
-| Area | Backend owner | Planned functionality | Frontend partner |
-| --- | --- | --- | --- |
-| Authentication/users | Mukilan | Registration, login/logout, profiles, user management, role checks | Mukilan |
-| Sports/clubs | Looga | Listings, details, search, validated CRUD, historical-record handling | Shahilan |
-| Memberships | Jassim | Applications, status, review decisions, membership records | Sanudi |
-| Facilities | Mursid | Resource CRUD and permitted availability information | Sanudi |
-| Equipment | Mursid | Equipment/stock CRUD and quantity validation | Sanudi |
-| Bookings | Mursid | Requests, ownership, cancellation, review, conflict and inventory checks | Sanudi: Student; Mursid: Admin |
-| Training/attendance | Looga | Sessions, schedules, attendance records, eligibility checks | Shahilan |
-| Tournaments | Jassim | Tournament lifecycle, eligible entries, fixtures according to approved rules | Shahadh |
-| Matches/results | Jassim | Matches, result recording/correction, agreed standings logic | Shahadh |
-| Announcements | Shahilan | Validated CRUD/publication and audience restrictions | Shahilan |
-| Notifications | Nimesha | Recipient access, read updates, notification generation integration | Nimesha |
-| Reports | Nimesha | Scoped history/report queries, agreed filters and totals | Nimesha |
+To start PHP **on each run, from `backend/`**:
 
-### Shared backend ownership
+```powershell
+& ../.tools/php/php.exe -S 127.0.0.1:8000 -t public router.php
+```
 
-- **Mukilan:** public entry/routing integration, authentication, role/ownership enforcement conventions, sessions, and CSRF helpers.
-- **Jassim:** architecture, database configuration/access, initial schema, response/validation conventions, and transaction review.
-- **Module owners:** module handlers, business validation, and tests; use the agreed shared helpers.
-- **Nimesha:** overall QA coordination; each owner still tests their implementation.
+These commands use the ignored portable PHP tools already on this workstation. With PHP installed on PATH, replace `& ../.tools/php/php.exe` with `php`; the remaining arguments stay the same. No `Set-Location` or environment-variable assignments are needed in a terminal already in `backend/`. The [local development guide](../docs/local-development.md#portable-tools-on-this-workstation) includes the portable database startup command, which is run separately from the repository root.
 
-Looga should start with one reviewed CRUD slice. Mursid should implement resource CRUD before complex booking rules. Jassim/Mukilan provide review support without taking away module ownership.
+The API base URL is http://127.0.0.1:8000/api. The React development server proxies same-origin /api calls to PHP. GET /api/health checks database access too.
 
-## Database state and coordination
+## Persistent configuration
 
-**No database tables, relationships, database name, connection settings, or SQL import files are currently defined in this repository.** An external/local database has not been verified.
+The API and CLI locate `backend/.env` independently of the terminal's working directory. The dependency-free loader accepts `KEY=value`, blank lines, `#` comment lines, optional `export`, and single- or double-quoted values. It performs no variable interpolation or command execution.
 
-Jassim leads the ERD and initial schema, with review from Mukilan and the relevant module owners. The model must cover identity/roles, clubs/memberships, resources/bookings, training/attendance, competition participation/results, and communications as required.
+Precedence is defaults in `config/config.example.php` < optional private `config/local.php` < `backend/.env` < process environment. Process variables win even when empty. Existing `local.php` configurations remain supported; `.env` overrides them. Stop and restart PHP after editing configuration. If an old inherited variable overrides your file, remove that override and open a fresh terminal before restarting PHP.
 
-Before a database-dependent implementation:
+Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP. Production requires `SPORTSHUB_ENV=production`, secure cookies, HTTPS, and private production credentials. Keep actual application keys and database passwords out of Git and frontend configuration.
 
-1. Agree on entities, names, fields, relationships, and identifiers.
-2. Define required/optional values, uniqueness, foreign keys, status values, and delete/archive behavior.
-3. Define transaction boundaries and cross-record business rules.
-4. Agree on time storage/display and any date-only fields.
-5. Coordinate an ordered migration and safe seed data.
+## Structure
 
-Do not create independent competing schemas or infer table names from module folders. Module owners propose changes; Jassim coordinates migration numbering/order and reviews consistency. Once a migration has been shared/applied, add a new migration for subsequent changes rather than silently changing its history.
+- bin/: database setup and initial Admin CLI.
+- .env.example: tracked safe configuration template; .env: ignored private persistent settings.
+- config/: defaults and optional ignored private local.php.
+- public/: only PHP web document root; API index and Apache rewrite rules.
+- router.php: development PHP-server router.
+- src/shared/: HTTP, config, PDO, validation, session/CSRF, login throttling.
+- src/modules/authentication-users/: controllers and user repository.
+- src/modules/resources/ and src/modules/bookings/: resource CRUD, booking ownership and Admin review.
+- src/shared/ResourceBookingHttp.php: module validation and shared-response adapter, distinct from Http.php on every operating system.
+- tests/: real HTTP/database integration runner.
 
-No seed credentials or default application accounts exist. Initial Admin/staff provisioning, registration verification, and development account creation must be agreed and documented securely.
+Setup applies every database/migrations/NNN_name.sql file in numeric order and refuses duplicate numbers: 001 (users, auth_rate_limits), 002 (facilities, equipment, bookings), 003 (sports, clubs), 004 (memberships, club_coaches), 005 (tournaments and entries) and 006 (matches). `--seed` also loads reference sports and demo clubs. See [database design](../docs/database-erd.md) and [backend conventions](../docs/backend-conventions.md). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
 
-## Planned backend conventions
+## Implemented behavior
 
-Agree on and document the following before integrating handlers:
+- Registration creates active Students; passwords are hashed server-side.
+- Sessions regenerate on login/logout and security changes. Cookies are HttpOnly/SameSite; production requires Secure cookies and HTTPS.
+- Profile edits are scoped to the session user. Changing email requires the current password.
+- Password changes require the current password and revoke other sessions.
+- Admins can search/filter/paginate, create/read/update, deactivate/reactivate, and archive users.
+- DELETE archives accounts and revokes sessions while retaining IDs and unique identifiers for historical records.
+- PHP checks active status, archived state, role, and auth version on each protected request.
+- Admins cannot demote, deactivate, or archive themselves; transactions prevent concurrent removal of the last active Admin.
+- All writes require JSON objects and CSRF headers, including registration/login/logout and DELETE. Login is rate limited.
 
-- Public entry point and routing rules.
-- Request paths/methods, field types, validation, and list/filter behavior.
-- Consistent success/error response shapes and appropriate HTTP statuses.
-- Session behavior, authorization checks, and CSRF requirements.
-- Configuration loading, logging, and safe exception handling.
-- Database connection, prepared query, and transaction conventions.
+Account roles are student/admin. Active club coach assignments grant scoped membership and competition permissions without adding an account role. Coach interfaces and training permissions, email verification and password recovery remain separate work.
 
-No endpoints are currently implemented. Record approved module contracts in `docs/` so frontend/backend partners implement the same interface. Keep credentials and server-only configuration outside the public directory and out of Git. Configure the future web server to expose the agreed public directory rather than the whole repository.
+Facilities/equipment writes require Admin access; Students read active resources and create/edit/cancel their own pending bookings. Admins review and cancel bookings. Availability checks use transactions and resource locks. All modules reuse Session, Database, Http and SPORTSHUB_* configuration. Resource archival and booking cancellation return 204 with no body.
 
-## Security requirements
+## Ownership and deployment
 
-- Hash passwords using PHP's password APIs and verify hashes on login. Never store or return plaintext passwords.
-- Check authenticated identity, active status, role, record ownership, and applicable club scope on the server for protected operations.
-- Define session renewal, expiry, logout, cookie settings, and CSRF protection for cookie-authenticated writes.
-- Derive identity and approval authority from authenticated server state, not browser-submitted role/user fields.
-- Validate types, identifiers, lengths, dates, quantities, and permitted state changes server-side.
-- Use prepared statements for values and allowlists for dynamic query parts such as sort columns.
-- Keep credentials, password hashes, session secrets, database errors, and stack traces out of client responses.
-- Preserve historical records through agreed archive/status rules where deletion would lose participation or approval history.
-- Establish appropriate ignore rules before introducing local configuration, dependencies, logs, or generated files.
+Mukilan owns auth/users, public routing, and session/CSRF integration. Jassim coordinates schema/PDO/response review and implements memberships/competitions. Looga implements clubs/training; Mursid resources/bookings; Shahilan announcements; Nimesha notifications/reports. Other backend modules remain placeholders. Each owner reuses shared helpers and implements their module's validation, permissions, and tests.
 
-Student and Admin interfaces do not replace server authorization. Coach permissions require explicit agreement; a Coach label does not imply Admin access or access to every club.
+Keep config, logs, and sessions outside public/ and Git. Prepared PDO queries are required. Never return hashes, credentials, stack traces, or raw database errors. Use a restricted runtime database account; setup and integration tests need DDL permissions.
 
-## Business rules requiring agreement and testing
-
-| Area | Required decisions/checks |
-| --- | --- |
-| Memberships | Eligibility, duplicates/reapplication, review authority, status transitions, self-review restrictions |
-| Facilities/bookings | Personal/club ownership, approval rules, overlap boundaries, cancellations, opening hours |
-| Equipment | Quantity versus individual-item tracking, concurrent availability, stock changes, issue/return requirements |
-| Training/attendance | Eligible participants, coach scope, duplicate attendance, session/facility consistency |
-| Competitions | Individual/team/club entrants, tournament formats, fixture rules, sport-specific results, corrections and standings |
-| Announcements/notifications | Audience/recipient derivation, publication rules, read ownership, delivery expectations |
-| History/reports | Participation definition, included statuses, date filters, totals, visibility, export requirements |
-
-Foreign keys alone cannot prevent overlapping reservations or aggregate equipment overbooking. Booking services require an agreed transactional locking/checking strategy and concurrent-request tests, reviewed with Jassim. Similar multi-record operations must commit or fail consistently.
-
-## Local setup and run status
-
-The backend cannot currently be started: no PHP entry point, configuration loader, database connection, or schema import exists. Merely enabling Apache/MySQL in XAMPP does not create the application.
-
-When the foundation is implemented, document:
-
-1. Supported PHP/database versions and required extensions.
-2. Safe configuration examples, local secret exclusions, and the agreed database name/account permissions.
-3. Database creation, migration/seed import order, and verification steps.
-4. Exact XAMPP document root, local URL, rewrite/routing configuration, and frontend integration settings.
-5. Startup, syntax-check, test, and troubleshooting commands.
-6. Initial user provisioning and deployment-specific configuration.
-
-No server configuration, database, or application account is created by this README. Local/deployed configuration changes should be performed as explicit implementation/deployment tasks.
-
-## Review and testing expectations
-
-Use a scoped branch such as `feat/looga-club-backend`. Include affected contracts/tables, dependencies, setup changes, and test evidence in each PR. Coordinate schema and shared-file edits before changing them.
-
-Check, as applicable:
-
-- Valid and invalid requests, malformed identifiers, missing records, and duplicate submissions.
-- Direct unauthorized requests, cross-user access, role escalation, and CSRF rejection.
-- CRUD persistence, foreign keys/uniqueness, history preservation, and transaction rollback.
-- Adjacent/overlapping bookings, simultaneous approvals, stock limits, and cancellation.
-- Attendance eligibility/duplicates, competition calculations, report totals, and notification ownership.
-- Frontend integration and behavior after refreshing/reloading records.
-- Operation against the agreed MySQL/XAMPP engine and deployed configuration.
-
-No test suite exists yet. Add meaningful checks with the relevant implementation, and report exactly what was tested. Jassim reviews database/transaction correctness; Mukilan reviews auth/integration; Nimesha coordinates regression evidence.
-
-## Deadlines
-
-All dates are in **2026**. Detailed member targets are in the [project schedule](../README.md#delivery-schedule).
-
-- **6 November:** implementation, integration, reviews, and merges complete.
-- **7-9 November:** system testing, bug fixes, and regression.
-- **10 November:** deployment and deployed-system verification.
-- **11 November:** final acceptance, documentation, backup, and demo rehearsal; submission package ready.
-- **12 November:** assignment submission.
-
-Test each task during development. The reserved five days, 7-11 November, are for verification, fixes, and deployment rather than starting new features.
+The built-in server is for local development. Apache/XAMPP can use the included .htaccess with mod_rewrite and public/ as the document root. Production serves the React build and PHP /api under one HTTPS origin; no blanket CORS policy is configured.

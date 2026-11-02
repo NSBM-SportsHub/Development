@@ -2,17 +2,20 @@
 
 declare(strict_types=1);
 
+namespace SportsHub;
+
+use PDO;
+use PDOException;
+use Throwable;
+use InvalidArgumentException;
+use RuntimeException;
+use DateTimeImmutable;
+
 require_once __DIR__ . '/../../shared/Database.php';
 require_once __DIR__ . '/../../shared/Response.php';
 require_once __DIR__ . '/../../shared/Validator.php';
 
-/**
- * Training session controller placeholder.
- *
- * The project does not yet define a real database schema or auth layer for training sessions.
- * This controller keeps the logic isolated and compatible with future schema integration by
- * validating input and using a small set of query helpers rather than hard-coding details.
- */
+// Session and CSRF permissions are enforced by SportsTrainingRoutes.
 final class TrainingController
 {
     private static function rejectUnknownFields(array $data, array $allowed, string $kind): void
@@ -133,7 +136,7 @@ final class TrainingController
     {
         try {
             self::rejectUnknownFields($_GET, ['search', 'status', 'date', 'club_id'], 'query parameter');
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
 
             if (!self::tableExists($pdo, 'training_sessions')) {
                 Response::json(500, ['success' => false, 'message' => 'The training_sessions table is not available in the configured database.']);
@@ -192,7 +195,7 @@ final class TrainingController
     public static function details(int $sessionId): void
     {
         try {
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'training_sessions')) {
                 Response::json(500, ['success' => false, 'message' => 'The training_sessions table is not available in the configured database.']);
                 return;
@@ -220,7 +223,7 @@ final class TrainingController
         }
 
         try {
-            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            $input = Http::body();
             self::rejectUnknownFields($input, ['title', 'status', 'session_date', 'start_time', 'end_time', 'club_id', 'notes'], 'field');
 
             $title = self::normalizeText($input['title'] ?? null, 150);
@@ -231,7 +234,7 @@ final class TrainingController
             $status = array_key_exists('status', $input)
                 ? self::normalizeText($input['status'], 50)
                 : 'scheduled';
-            if ($status === null) {
+            if (!in_array($status, ['scheduled', 'completed', 'cancelled'], true)) {
                 throw new InvalidArgumentException("Field 'status' must be a non-empty string.");
             }
             $sessionDate = self::normalizeDate($input['session_date'] ?? null, 'session_date');
@@ -244,7 +247,7 @@ final class TrainingController
                 throw new InvalidArgumentException("Field 'end_time' must be later than 'start_time'.");
             }
 
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'training_sessions')) {
                 Response::json(500, ['success' => false, 'message' => 'The training_sessions table is not available in the configured database.']);
                 return;
@@ -255,7 +258,7 @@ final class TrainingController
                 return;
             }
 
-            $clubExists = $pdo->prepare('SELECT id FROM clubs WHERE id = :id LIMIT 1');
+            $clubExists = $pdo->prepare('SELECT id FROM clubs WHERE id = :id AND is_archived = 0 LIMIT 1');
             $clubExists->execute([':id' => $clubId]);
             if (!$clubExists->fetch()) {
                 Response::json(400, ['success' => false, 'message' => 'Invalid club reference.']);
@@ -294,13 +297,13 @@ final class TrainingController
         }
 
         try {
-            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            $input = Http::body();
             self::rejectUnknownFields($input, ['title', 'status', 'session_date', 'start_time', 'end_time', 'club_id', 'notes'], 'field');
             if ($input === []) {
                 throw new InvalidArgumentException('At least one field must be provided for update.');
             }
 
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'training_sessions')) {
                 Response::json(500, ['success' => false, 'message' => 'The training_sessions table is not available in the configured database.']);
                 return;
@@ -321,12 +324,12 @@ final class TrainingController
             $status = array_key_exists('status', $input)
                 ? self::normalizeText($input['status'], 50)
                 : (string) ($session['status'] ?? 'scheduled');
-            if ($status === null) {
+            if (!in_array($status, ['scheduled', 'completed', 'cancelled'], true)) {
                 throw new InvalidArgumentException("Field 'status' must be a non-empty string.");
             }
             $sessionDate = array_key_exists('session_date', $input) ? self::normalizeDate($input['session_date'] ?? null, 'session_date') : (string) ($session['session_date'] ?? '');
-            $startTime = array_key_exists('start_time', $input) ? self::normalizeTime($input['start_time'] ?? null, 'start_time') : (string) ($session['start_time'] ?? '');
-            $endTime = array_key_exists('end_time', $input) ? self::normalizeTime($input['end_time'] ?? null, 'end_time') : (string) ($session['end_time'] ?? '');
+            $startTime = array_key_exists('start_time', $input) ? self::normalizeTime($input['start_time'] ?? null, 'start_time') : substr((string) ($session['start_time'] ?? ''), 0, 5);
+            $endTime = array_key_exists('end_time', $input) ? self::normalizeTime($input['end_time'] ?? null, 'end_time') : substr((string) ($session['end_time'] ?? ''), 0, 5);
             $clubId = array_key_exists('club_id', $input) ? self::normalizePositiveInt($input['club_id'], 'club_id') : (int) ($session['club_id'] ?? 0);
             $notes = array_key_exists('notes', $input) ? (self::normalizeText($input['notes'] ?? '', 2000) ?? '') : (string) ($session['notes'] ?? '');
 
@@ -339,7 +342,7 @@ final class TrainingController
                 return;
             }
 
-            $clubExists = $pdo->prepare('SELECT id FROM clubs WHERE id = :id LIMIT 1');
+            $clubExists = $pdo->prepare('SELECT id FROM clubs WHERE id = :id AND is_archived = 0 LIMIT 1');
             $clubExists->execute([':id' => $clubId]);
             if (!$clubExists->fetch()) {
                 Response::json(400, ['success' => false, 'message' => 'Invalid club reference.']);
@@ -378,7 +381,7 @@ final class TrainingController
         }
 
         try {
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'training_sessions')) {
                 Response::json(500, ['success' => false, 'message' => 'The training_sessions table is not available in the configured database.']);
                 return;

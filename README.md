@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: folder structure and project planning only.** The repository contains three README files and empty `.gitkeep` placeholders. There is no runnable application, implemented authentication, database schema, or completed business module yet. Features described below are planned work, not claims of working functionality.
+> **Current status: authentication/users, resource/booking, membership and competition APIs with module previews.** Authentication/users have integrated React/PHP workflows. Facilities/equipment, bookings, memberships, tournaments, entries, fixtures, results and standings have PHP/MySQL APIs; their interfaces remain pending. Shahilan's club, training/attendance and announcement screens use local demo data; their PHP workflows remain pending integration. See [local setup](docs/local-development.md), the [authentication API](docs/auth-users-api.md), the [resource/booking API](docs/resource-booking-api.md), the [membership API](docs/memberships-api.md), the [competition API](docs/competitions-api.md), and the [frontend guide](frontend/README.md).
 
 ## Start here
 
@@ -17,14 +17,14 @@ The project aims to bring sports clubs, membership applications, training, compe
 
 | Area | Requirement or direction | Current state |
 | --- | --- | --- |
-| Frontend | HTML, CSS, and JavaScript; React is the intended frontend direction from the project plan | No source, build tool, or dependencies installed in this repository |
-| UI framework | Bootstrap | Not integrated |
-| Backend | PHP | No PHP source or application entry point |
-| Database | MySQL | No schema, migrations, seeds, or connection configuration |
-| Local environment | XAMPP for PHP, Apache, and the database | Setup instructions await the agreed application structure |
+| Frontend | HTML, CSS, JavaScript, React | Shared auth/API client plus clubs, training/attendance and announcement previews |
+| UI framework | Bootstrap is planned | Shared auth CSS and module preview themes; coordinate presentation with Shahadh |
+| Backend | PHP 8.2+ | Shared API router, PDO, session/CSRF, auth/users, resources/bookings, memberships and competitions |
+| Database | MySQL 8+ / compatible MariaDB | Ordered migrations 001–006; private `.env` configuration |
+| Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
-The official assignment brief must confirm React/framework permissions before frontend scaffolding. PHP and MySQL remain the backend/database requirements; Node.js, if used for React tooling, serves development/build work only. Confirm the installed XAMPP database engine and runtime versions before finalizing compatibility.
+React/Vite are used on this implementation branch. Confirm assignment framework permissions before submission. PHP and MySQL remain the backend/database requirements; Node.js serves frontend development/build work only. Confirm local XAMPP database/runtime compatibility using the setup guide.
 
 ## Users and access
 
@@ -32,9 +32,9 @@ The official assignment brief must confirm React/framework permissions before fr
 | --- | --- |
 | Student | Register/login, manage a profile, browse clubs, apply for membership, view schedules and competitions, request resources, and view personal participation |
 | Admin | Manage accounts, clubs, memberships, resources, booking approvals, schedules, competitions, results, announcements, and reports |
-| Coach | Included in the initial project scope; detailed club assignments, screens, and permissions still require agreement |
+| Coach | Club assignments grant scoped membership and competition review permissions; dedicated interfaces and training workflows remain pending |
 
-Student and Admin interfaces must be separate. All protected actions must also be checked on the PHP server. Coach permissions must be explicitly defined before that role's workflows are implemented.
+Student and Admin interfaces must be separate. All protected actions must also be checked on the PHP server. Account roles remain `student`/`admin`; coach permissions come from active `club_coaches` assignments, as described in the membership and competition contracts.
 
 ## Planned modules
 
@@ -53,7 +53,7 @@ Student and Admin interfaces must be separate. All protected actions must also b
 | `notifications` | In-app updates and recipient read state; external delivery is not agreed |
 | `reports` | Student participation history and authorized participation/performance reports |
 
-Tournament/match registration, standings, Coach workflows, and other policy-dependent features must follow the approved assignment requirements and domain rules. The repository does not yet define these rules in code or a schema.
+Membership, tournament entry, fixture, result and standings rules are implemented in the backend and described in their API contracts. Training, announcement, notification and report workflows still need their agreed implementation and acceptance criteria.
 
 ## Repository structure
 
@@ -80,7 +80,7 @@ Development/
 `-- docs/                   Future requirements, architecture, API, and QA documents
 ```
 
-Both `modules/` directories contain the same twelve folder names. Empty leaf directories have `.gitkeep` files so Git can retain the structure. These placeholders are not application code. No implementation filenames have been committed yet.
+Both module directories contain the twelve planned module folders. Authentication/users has React and PHP implementations. The frontend also contains clubs, training/attendance and announcement previews. Resource/booking PHP handlers reuse the shared login session and PDO connection. Ordered migrations cover authentication and resources/bookings; other business handlers/schemas still need integration.
 
 ## Team and working ownership
 
@@ -154,7 +154,7 @@ Then:
 5. Implement a small, reviewable change in the assigned folders.
 6. Test the change and submit a pull request with evidence.
 
-There is currently no application launch command. The repository has no frontend package manifest, PHP entry point, database connection, or SQL import files. Dependency installation, environment variables, database setup, and run commands must be documented when those foundations are implemented and reviewed. No usable accounts or default login credentials exist.
+Follow [local development](docs/local-development.md) to configure the private database connection, apply the ordered migrations, provision your first Admin, and start PHP plus React. No default credentials or committed accounts exist.
 
 ## Development dependencies and conventions
 
@@ -168,7 +168,7 @@ The initial implementation order is:
 
 Frontend/backend pairs may work in parallel after agreeing on contracts. A screen using sample data must be identified as incomplete until its real PHP/database workflow is integrated.
 
-The database and API are not defined yet. Before integration, agree on request paths/methods, fields, validation, response shapes, status values, authorization, and error behavior. Record approved decisions in `docs/` as they are made.
+The authentication/users, resource/booking, membership and competition schemas and API contracts are implemented on this branch. Frontend owners should use those contracts with the shared API client. Agree the remaining module paths, fields, validation, responses, permissions and errors with each partner. Record decisions in docs; Jassim reviews shared schema changes.
 
 ## GitHub collaboration
 

@@ -1,0 +1,860 @@
+.module-preview,
+.glass-select-menu {
+  color-scheme: light;
+  --glass-ink: #17352b;
+  --glass-muted: #60766c;
+  --glass-emerald: #087b55;
+  --glass-mint: rgb(228 248 239 / 74%);
+  --glass-blue: rgb(229 242 252 / 70%);
+  --glass-white: rgb(255 255 255 / 70%);
+  --glass-border: rgb(255 255 255 / 88%);
+  --glass-shadow: 0 18px 48px rgb(34 77 59 / 9%), 0 2px 8px rgb(34 77 59 / 5%);
+  --motion-ease: cubic-bezier(.22, 1, .36, 1);
+  --motion-fast: 160ms;
+  --motion-control: 220ms;
+  --motion-card: 250ms;
+  --motion-page: 300ms;
+}
+
+.module-preview {
+  min-width: 320px;
+  min-height: 100%;
+  background: #f3f8f6;
+  scroll-behavior: smooth;
+}
+
+.module-preview {
+  min-width: 320px;
+  min-height: 100vh;
+  margin: 0;
+  color: var(--glass-ink);
+  background:
+    radial-gradient(ellipse at 9% 5%, rgb(200 239 223 / 62%), transparent 35rem),
+    radial-gradient(ellipse at 92% 18%, rgb(207 231 248 / 55%), transparent 38rem),
+    linear-gradient(145deg, #f8fbf9, #eff6f4 58%, #f5f9fb);
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+.sports-hub {
+  --club-ink: var(--glass-ink);
+  --club-green: var(--glass-emerald);
+  --club-deep: #15583f;
+  min-height: 100vh;
+  color: var(--glass-ink);
+  background: transparent;
+  font-family: inherit;
+}
+
+.sports-header {
+  position: sticky;
+  z-index: 20;
+  top: 14px;
+  width: min(1120px, calc(100% - 40px));
+  min-height: 68px;
+  margin: 18px auto 34px;
+  padding: 11px 22px;
+  border: 1px solid var(--glass-border);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 66%);
+  box-shadow: var(--glass-shadow);
+  color: var(--glass-ink);
+  -webkit-backdrop-filter: saturate(160%) blur(22px);
+  backdrop-filter: saturate(160%) blur(22px);
+}
+
+.sports-brand,
+.sports-nav a,
+.sports-nav a:hover,
+.sports-nav a.active,
+.sports-nav .sports-signup {
+  color: var(--glass-ink);
+}
+
+.sports-brand-mark {
+  border-color: rgb(8 123 85 / 32%);
+  color: var(--glass-emerald);
+}
+
+.sports-nav a {
+  position: relative;
+  transition: color var(--motion-control) var(--motion-ease), opacity var(--motion-control) var(--motion-ease);
+}
+
+.sports-nav a::after {
+  position: absolute;
+  right: 0;
+  bottom: -7px;
+  left: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--glass-emerald);
+  content: "";
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--motion-control) var(--motion-ease);
+}
+
+.sports-nav a:hover::after,
+.sports-nav a.active::after {
+  transform: scaleX(1);
+}
+
+.sports-nav a:hover,
+.sports-nav a.active {
+  color: var(--glass-emerald);
+}
+
+.sports-main {
+  min-height: 60vh;
+}
+
+.clubs-panel,
+.training-hub .training-schedule,
+.announcements-hub .announcement-page,
+.announcements-hub .announcement-detail,
+.attendance-view {
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 70%), rgb(239 249 245 / 72%));
+  box-shadow: var(--glass-shadow);
+  -webkit-backdrop-filter: saturate(145%) blur(18px);
+  backdrop-filter: saturate(145%) blur(18px);
+}
+
+.clubs-heading h1,
+.gallery-heading h2,
+.training-heading h1,
+.announcement-heading h1,
+.attendance-view h1,
+.announcement-detail h1,
+.club-hero h1,
+.form-aside h1,
+.training-form-aside h1,
+.announcement-form-aside h1,
+.not-found h1,
+.form-title h2,
+.training-form .form-title h2,
+.announcement-form .form-title h2 {
+  font-family: inherit;
+  font-weight: 650;
+  letter-spacing: -.025em;
+  line-height: 1.04;
+}
+
+.clubs-intro,
+.sample-note,
+.gallery-caption {
+  color: var(--glass-muted);
+}
+
+.primary-button,
+.light-button,
+.secondary-button {
+  min-height: 46px;
+  border-radius: 14px;
+  transition: transform var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease);
+}
+
+.primary-button {
+  border: 1px solid rgb(255 255 255 / 50%);
+  background: linear-gradient(145deg, #108b61, #06704d);
+  box-shadow: 0 7px 17px rgb(8 123 85 / 20%), inset 0 1px 0 rgb(255 255 255 / 24%);
+}
+
+.primary-button:hover,
+.light-button:hover,
+.secondary-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 11px 24px rgb(30 82 59 / 14%);
+}
+
+.light-button {
+  border: 1px solid rgb(255 255 255 / 86%);
+  background: rgb(255 255 255 / 80%);
+  box-shadow: 0 5px 16px rgb(13 64 43 / 12%), inset 0 1px 0 #fff;
+  color: var(--glass-emerald);
+}
+
+.light-button:hover {
+  background: #fff;
+  color: var(--glass-emerald);
+}
+
+.secondary-button {
+  background: rgb(255 255 255 / 48%);
+}
+
+.club-card {
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-radius: 20px;
+  box-shadow: 0 12px 30px rgb(24 58 43 / 12%);
+  transition: transform var(--motion-card) var(--motion-ease), box-shadow var(--motion-card) var(--motion-ease);
+}
+
+.club-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 18px 38px rgb(24 58 43 / 18%);
+}
+
+.club-filters input,
+.club-filters select,
+.club-form input,
+.club-form select,
+.club-form textarea,
+.training-form input,
+.training-form select,
+.training-form textarea,
+.announcement-form input:not([type="checkbox"]),
+.announcement-form textarea {
+  border: 1px solid rgb(255 255 255 / 94%);
+  border-radius: 13px;
+  background: rgb(255 255 255 / 67%);
+  box-shadow: inset 0 1px 2px rgb(30 72 52 / 4%);
+  color: var(--glass-ink);
+  transition: border-color var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease);
+}
+
+.club-filters input:focus,
+.club-filters select:focus,
+.club-form input:focus,
+.club-form select:focus,
+.club-form textarea:focus,
+.training-form input:focus,
+.training-form select:focus,
+.training-form textarea:focus,
+.announcement-form input:focus,
+.announcement-form textarea:focus {
+  border-color: rgb(8 123 85 / 55%);
+  outline: 0;
+  background: rgb(255 255 255 / 94%);
+  box-shadow: 0 0 0 4px rgb(8 123 85 / 13%);
+}
+
+.club-state,
+.club-info-card,
+.training-card,
+.training-facts > div,
+.announcement-card,
+.attendance-table-wrap {
+  border: 1px solid var(--glass-border);
+  border-radius: 18px;
+  background: var(--glass-white);
+  box-shadow: 0 10px 28px rgb(35 77 57 / 6%);
+}
+
+.club-error {
+  border-color: rgb(225 151 126 / 34%);
+  background: rgb(255 243 239 / 88%);
+}
+
+.club-info-grid {
+  gap: 14px;
+}
+
+.club-info-card {
+  background: linear-gradient(135deg, var(--glass-mint), rgb(255 255 255 / 70%));
+}
+
+.info-icon,
+.training-date {
+  background: linear-gradient(145deg, #e1f7eb, #dceffa);
+}
+
+.club-hero {
+  border: 1px solid rgb(255 255 255 / 76%);
+  border-radius: 24px;
+  box-shadow: var(--glass-shadow);
+  background:
+    linear-gradient(90deg, rgb(4 74 51 / 91%), rgb(5 81 57 / 65%) 62%, rgb(19 91 70 / 28%)),
+    var(--club-image) center 42% / cover,
+    #07553e;
+}
+
+.club-form-page,
+.training-form-page,
+.announcement-form-page {
+  overflow: hidden;
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  background: rgb(255 255 255 / 48%);
+  box-shadow: var(--glass-shadow);
+}
+
+.form-aside,
+.training-form-aside,
+.announcement-form-aside {
+  background: linear-gradient(145deg, rgb(224 246 235 / 92%), rgb(220 238 249 / 78%));
+  color: var(--glass-ink);
+}
+
+.form-aside .eyebrow,
+.training-form-aside .eyebrow,
+.announcement-form-aside .eyebrow {
+  color: var(--glass-emerald);
+}
+
+.form-aside h1,
+.training-form-aside h1,
+.announcement-form-aside h1 {
+  color: var(--glass-ink);
+}
+
+.form-aside > p:not(.eyebrow),
+.training-form-aside > p:not(.eyebrow),
+.announcement-form-aside > p:not(.eyebrow) {
+  color: #4c675b;
+}
+
+.form-aside .back-link,
+.training-form-aside .back-link,
+.announcement-form-aside .back-link {
+  color: var(--glass-emerald);
+}
+
+.form-decoration {
+  color: rgb(8 123 85 / 13%);
+}
+
+.club-form,
+.training-form,
+.announcement-form {
+  background: rgb(255 255 255 / 64%);
+}
+
+.club-form label,
+.training-form label,
+.announcement-form > label,
+.form-title h2,
+.training-form .form-title h2,
+.announcement-form .form-title h2 {
+  color: var(--glass-ink);
+}
+
+.training-detail-banner {
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  background: linear-gradient(135deg, rgb(222 246 233 / 94%), rgb(222 239 251 / 88%));
+  box-shadow: var(--glass-shadow);
+  color: var(--glass-ink);
+}
+
+.training-detail-banner .back-link,
+.training-detail-banner .eyebrow,
+.training-detail h1,
+.training-detail-banner > p:not(.eyebrow) {
+  color: var(--glass-ink);
+}
+
+.training-edit-link {
+  color: var(--glass-emerald);
+}
+
+.training-facts {
+  gap: 14px;
+  margin-top: 14px;
+  border: 1px solid var(--glass-border);
+  border-radius: 20px;
+  background: rgb(232 246 239 / 66%);
+}
+
+.training-facts > div {
+  background: rgb(255 255 255 / 76%);
+}
+
+.training-card {
+  transition: transform var(--motion-card) var(--motion-ease), box-shadow var(--motion-card) var(--motion-ease), border-color var(--motion-card) var(--motion-ease);
+}
+
+.training-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 16px 34px rgb(35 77 57 / 12%);
+}
+
+.announcement-card {
+  transition: transform var(--motion-card) var(--motion-ease), box-shadow var(--motion-card) var(--motion-ease);
+}
+
+.announcement-card:hover {
+  transform: translateY(-4px) scale(1.01);
+  box-shadow: 0 15px 32px rgb(35 77 57 / 10%);
+}
+
+.announcement-body {
+  color: #344f43;
+}
+
+.audience-fieldset {
+  border-color: rgb(255 255 255 / 90%);
+  border-radius: 15px;
+  background: rgb(255 255 255 / 38%);
+}
+
+.attendance-table-wrap {
+  overflow: auto;
+}
+
+.attendance-table th,
+.attendance-table td {
+  border-color: rgb(31 77 54 / 9%);
+}
+
+.attendance-table th {
+  color: #4e6b5c;
+}
+
+.attendance-table td {
+  color: var(--glass-ink);
+}
+
+.glass-select {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+}
+
+.glass-select.is-open {
+  z-index: 50;
+}
+
+.glass-select-trigger {
+  width: 100%;
+  min-height: 42px;
+  padding: 9px 38px 9px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1.5px solid #94a3b8;
+  border-radius: 11px;
+  background: rgb(255 255 255 / 85%);
+  box-shadow: inset 0 1px 3px rgb(15 23 42 / 7%);
+  color: var(--glass-ink);
+  font: inherit;
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--motion-ease), box-shadow var(--motion-fast) var(--motion-ease), background-color var(--motion-fast) var(--motion-ease);
+}
+
+.glass-select-trigger:hover {
+  border-color: #64748b;
+}
+
+.glass-select-trigger:focus-visible,
+.glass-select.is-open .glass-select-trigger {
+  border: 2px solid #047857;
+  outline: 0;
+  box-shadow: 0 0 0 3px rgb(4 120 87 / 18%);
+}
+
+.glass-select-placeholder {
+  color: #64748b;
+}
+
+.glass-select-chevron {
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  width: 8px;
+  height: 8px;
+  border-right: 1.5px solid #476458;
+  border-bottom: 1.5px solid #476458;
+  transform: translateY(-70%) rotate(45deg);
+  pointer-events: none;
+}
+
+.glass-select-menu {
+  position: fixed;
+  z-index: 1000;
+  box-sizing: border-box;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 6px;
+  border: 1px solid rgb(255 255 255 / 90%);
+  border-radius: 16px;
+  background: rgb(246 253 249 / 82%);
+  box-shadow: 0 18px 42px rgb(20 55 39 / 20%), inset 0 1px 0 rgb(255 255 255 / 90%);
+  -webkit-backdrop-filter: saturate(160%) blur(20px);
+  backdrop-filter: saturate(160%) blur(20px);
+  transform-origin: top center;
+  animation: glass-select-open 180ms var(--motion-ease) both;
+}
+
+.glass-select-menu[hidden] {
+  display: none;
+}
+
+.glass-select-option {
+  min-height: 38px;
+  padding: 9px 11px;
+  border-radius: 10px;
+  color: #17352b;
+  font-size: 12px;
+  cursor: pointer;
+  transition: color var(--motion-fast) var(--motion-ease), background-color var(--motion-fast) var(--motion-ease);
+}
+
+.glass-select-option:hover,
+.glass-select-option.active {
+  background: rgb(208 241 223 / 88%);
+  color: #075b40;
+}
+
+.glass-select-option.selected {
+  background: #087b55;
+  color: #fff;
+  font-weight: 700;
+}
+
+.glass-select-empty {
+  display: block;
+  padding: 10px;
+  color: #64766d;
+  font-size: 12px;
+}
+
+.sports-hub .club-form-page,
+.sports-hub .training-form-page,
+.sports-hub .announcement-form-page {
+  overflow: visible;
+}
+
+@keyframes glass-select-open {
+  from {
+    opacity: 0;
+    transform: scale(.99);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.not-found {
+  border: 1px solid var(--glass-border);
+  border-radius: 24px;
+  background: var(--glass-white);
+  box-shadow: var(--glass-shadow);
+}
+
+.sports-footer {
+  border-color: rgb(255 255 255 / 75%);
+  color: var(--glass-emerald);
+}
+
+.sports-hub a:focus-visible,
+.sports-hub button:focus-visible,
+.sports-hub input:focus-visible,
+.sports-hub select:focus-visible,
+.sports-hub textarea:focus-visible {
+  outline: 3px solid rgb(8 123 85 / 70%);
+  outline-offset: 3px;
+}
+
+.sports-hub input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+.sports-hub select,
+.sports-hub textarea {
+  border: 1.5px solid #94a3b8;
+  border-radius: 11px;
+  background-color: rgb(255 255 255 / 85%);
+  box-shadow: inset 0 1px 3px rgb(15 23 42 / 7%);
+  color: #172d28;
+}
+
+.sports-hub input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):hover,
+.sports-hub select:hover,
+.sports-hub textarea:hover {
+  border-color: #64748b;
+}
+
+.sports-hub input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]):focus,
+.sports-hub select:focus,
+.sports-hub textarea:focus {
+  border: 2px solid #047857;
+  outline: 0;
+  background-color: #fff;
+  box-shadow: 0 0 0 3px rgb(4 120 87 / 20%), inset 0 1px 3px rgb(15 23 42 / 5%);
+}
+
+.sports-hub input::placeholder,
+.sports-hub textarea::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+.sports-hub select {
+  color-scheme: light;
+}
+
+.sports-hub select option {
+  background: #fff;
+  color: #172d28;
+}
+
+.sports-hub input:required:not(:disabled):not(:focus),
+.sports-hub select:required:not(:disabled):not(:focus),
+.sports-hub textarea:required:not(:disabled):not(:focus) {
+  box-shadow: inset 3px 0 0 rgb(4 120 87 / 32%), inset 0 1px 3px rgb(15 23 42 / 7%);
+}
+
+.sports-hub input:disabled,
+.sports-hub select:disabled,
+.sports-hub textarea:disabled {
+  border-color: #cbd5e1;
+  background-color: rgb(226 232 240 / 75%);
+  color: #64748b;
+  cursor: not-allowed;
+  opacity: .8;
+}
+
+.sports-hub input:read-only,
+.sports-hub textarea:read-only {
+  border-style: dashed;
+  background-color: rgb(241 245 249 / 88%);
+  color: #475569;
+}
+
+.sports-hub input[aria-invalid="true"],
+.sports-hub select[aria-invalid="true"],
+.sports-hub textarea[aria-invalid="true"] {
+  border-color: #b42318;
+  box-shadow: 0 0 0 2px rgb(180 35 24 / 13%);
+}
+
+@supports selector(:user-invalid) {
+  .sports-hub input:user-invalid,
+  .sports-hub select:user-invalid,
+  .sports-hub textarea:user-invalid {
+    border-color: #b42318;
+    box-shadow: 0 0 0 2px rgb(180 35 24 / 13%);
+  }
+}
+
+.sports-hub input[type="checkbox"],
+.sports-hub input[type="radio"] {
+  accent-color: #047857;
+}
+
+.sports-hub input[type="checkbox"]:focus-visible,
+.sports-hub input[type="radio"]:focus-visible {
+  outline: 2px solid #047857;
+  outline-offset: 2px;
+}
+
+/* Shared entrance and interaction motion for the routed pages and their lists. */
+.sports-main > * {
+  animation: glass-page-enter var(--motion-page) var(--motion-ease) both;
+}
+
+.club-grid > .club-card:nth-child(-n + 6),
+.training-list > .training-card:nth-child(-n + 6),
+.announcement-list > .announcement-card:nth-child(-n + 6),
+.attendance-table tbody > tr:nth-child(-n + 6) {
+  animation: glass-list-enter 280ms var(--motion-ease) both;
+}
+
+.club-grid > .club-card:nth-child(2),
+.training-list > .training-card:nth-child(2),
+.announcement-list > .announcement-card:nth-child(2),
+.attendance-table tbody > tr:nth-child(2) {
+  animation-delay: 40ms;
+}
+
+.club-grid > .club-card:nth-child(3),
+.training-list > .training-card:nth-child(3),
+.announcement-list > .announcement-card:nth-child(3),
+.attendance-table tbody > tr:nth-child(3) {
+  animation-delay: 80ms;
+}
+
+.club-grid > .club-card:nth-child(4),
+.training-list > .training-card:nth-child(4),
+.announcement-list > .announcement-card:nth-child(4),
+.attendance-table tbody > tr:nth-child(4) {
+  animation-delay: 120ms;
+}
+
+.club-grid > .club-card:nth-child(5),
+.training-list > .training-card:nth-child(5),
+.announcement-list > .announcement-card:nth-child(5),
+.attendance-table tbody > tr:nth-child(5) {
+  animation-delay: 160ms;
+}
+
+.club-grid > .club-card:nth-child(6),
+.training-list > .training-card:nth-child(6),
+.announcement-list > .announcement-card:nth-child(6),
+.attendance-table tbody > tr:nth-child(6) {
+  animation-delay: 200ms;
+}
+
+.club-filters:focus-within ~ .club-grid > .club-card {
+  animation: none;
+}
+
+.sports-hub button:not(.glass-select-trigger),
+.sports-hub .primary-button,
+.sports-hub .light-button,
+.sports-hub .secondary-button {
+  transition: transform var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease), color var(--motion-control) var(--motion-ease);
+}
+
+.sports-hub button:not(.glass-select-trigger):active:not(:disabled),
+.sports-hub .primary-button:active,
+.sports-hub .light-button:active,
+.sports-hub .secondary-button:active {
+  transform: scale(.98);
+}
+
+.sports-hub input:not([type="checkbox"]):not([type="radio"]):not([type="button"]):not([type="submit"]):not([type="reset"]),
+.sports-hub select,
+.sports-hub textarea {
+  transition: border-color var(--motion-control) var(--motion-ease), box-shadow var(--motion-control) var(--motion-ease), background-color var(--motion-control) var(--motion-ease);
+}
+
+.module-preview dialog[open],
+.module-preview [role="dialog"][aria-modal="true"] {
+  animation: glass-modal-enter 220ms var(--motion-ease) both;
+}
+
+.module-preview dialog[open]::backdrop {
+  animation: glass-backdrop-enter 220ms var(--motion-ease) both;
+}
+
+@keyframes glass-page-enter {
+  from {
+    opacity: .2;
+    translate: 0 8px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes glass-list-enter {
+  from {
+    opacity: .35;
+    translate: 0 7px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+
+@keyframes glass-modal-enter {
+  from {
+    opacity: .5;
+    transform: scale(.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes glass-backdrop-enter {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .sports-header,
+  .clubs-panel,
+  .training-hub .training-schedule,
+  .announcements-hub .announcement-page,
+  .announcements-hub .announcement-detail,
+  .attendance-view,
+  .club-form,
+  .training-form,
+  .announcement-form {
+    background-color: #f4faf7;
+  }
+}
+
+@media (max-width: 800px) {
+  .sports-header {
+    width: calc(100% - 32px);
+    flex-wrap: wrap;
+  }
+
+  .sports-nav {
+    width: 100%;
+    justify-content: flex-start;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .sports-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .sports-nav a:nth-child(2),
+  .sports-nav a:nth-child(4) {
+    display: inline;
+  }
+}
+
+@media (max-width: 560px) {
+  .sports-header {
+    top: 8px;
+    width: calc(100% - 24px);
+    margin-top: 12px;
+    border-radius: 18px;
+    gap: 9px;
+  }
+
+  .sports-nav {
+    gap: 18px;
+  }
+
+  .sports-nav a:nth-child(2),
+  .sports-nav a:nth-child(4) {
+    display: inline;
+  }
+
+  .club-form-page,
+  .training-form-page,
+  .announcement-form-page {
+    border-radius: 20px;
+  }
+
+  .glass-select-menu {
+    max-height: 38vh;
+  }
+}
+
+@media (hover: none) {
+  .club-card:hover,
+  .training-card:hover,
+  .announcement-card:hover,
+  .primary-button:hover,
+  .light-button:hover,
+  .secondary-button:hover {
+    transform: none;
+  }
+
+  .sports-hub button:not(.glass-select-trigger):active:not(:disabled),
+  .sports-hub .primary-button:active,
+  .sports-hub .light-button:active,
+  .sports-hub .secondary-button:active {
+    transform: scale(.98);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .module-preview *,
+  .module-preview *::before,
+  .module-preview *::after,
+  .glass-select-menu,
+  .glass-select-menu *,
+  .glass-select-menu *::before,
+  .glass-select-menu *::after {
+    scroll-behavior: auto !important;
+    animation-duration: .01ms !important;
+    animation-delay: 0ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: .01ms !important;
+  }
+}

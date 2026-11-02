@@ -2,17 +2,19 @@
 
 declare(strict_types=1);
 
+namespace SportsHub;
+
+use PDO;
+use PDOException;
+use Throwable;
+use InvalidArgumentException;
+use RuntimeException;
+use DateTimeImmutable;
+
 require_once __DIR__ . '/../../shared/Database.php';
 require_once __DIR__ . '/../../shared/Response.php';
 
-/**
- * Sport API controller.
- *
- * This module is intentionally designed around a small set of database query helpers so the
- * project can swap to the real schema later without rewriting the public controller logic.
- * Authentication and authorization are not implemented here because the project does not yet
- * expose a working auth layer or role policy for reads/writes.
- */
+// Session and CSRF permissions are enforced by SportsTrainingRoutes.
 final class SportController
 {
     private const MAX_LIMIT = 500;
@@ -136,7 +138,7 @@ final class SportController
     {
         try {
             self::rejectUnknownFilters($_GET);
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
 
             if (!self::tableExists($pdo, 'sports')) {
                 Response::json(500, ['success' => false, 'message' => 'The sports table is not available in the configured database.']);
@@ -144,7 +146,8 @@ final class SportController
             }
 
             $search = self::normalizeText($_GET['search'] ?? null, 100);
-            $isActive = self::normalizeActiveFilter($_GET['is_active'] ?? null);
+            $isActive = self::normalizeActiveFilter($_GET['is_active'] ?? '1');
+            if (Session::requireUser()['role'] !== 'admin') $isActive = 1;
             $limit = self::normalizeLimit($_GET['limit'] ?? null);
 
             [$sql, $params] = self::buildListQuery([
@@ -177,7 +180,7 @@ final class SportController
     public static function details(int $sportId): void
     {
         try {
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'sports')) {
                 Response::json(500, ['success' => false, 'message' => 'The sports table is not available in the configured database.']);
                 return;
@@ -190,6 +193,9 @@ final class SportController
                 return;
             }
 
+            if (Session::requireUser()['role'] !== 'admin' && !(bool) $sport['is_active']) {
+                Response::json(404, ['message' => 'Sport not found.']);
+            }
             Response::json(200, ['success' => true, 'data' => $sport]);
         } catch (Throwable $exception) {
             self::logFailure($exception);

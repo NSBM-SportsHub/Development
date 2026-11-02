@@ -1,0 +1,18 @@
+# Dependencies and generated frontend output
+node_modules/
+frontend/dist/
+*.tsbuildinfo
+
+# Local PHP/database configuration, sessions, and logs
+backend/config/local.php
+backend/.env
+backend/var/
+*.log
+
+# Portable verification tools and browser artifacts
+.tools/
+.artifacts/
+.env
+.env.local
+.DS_Store
+Thumbs.db

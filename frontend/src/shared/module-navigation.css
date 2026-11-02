@@ -1,0 +1,145 @@
+/* Route-level links connect the account application and standalone previews. */
+.auth-route {
+  position: relative;
+}
+
+.auth-module-nav {
+  position: absolute;
+  z-index: 5;
+  top: 18px;
+  right: 30px;
+  display: flex;
+  align-items: center;
+  gap: 18px;
+  font-size: 11px;
+}
+
+.auth-module-nav a {
+  color: #496957;
+  line-height: 1.7;
+}
+
+.module-account-bar {
+  width: min(1120px, calc(100% - 40px));
+  min-height: 54px;
+  margin: 0 auto;
+  padding: 12px 6px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  color: #5b7467;
+  font-size: 11px;
+}
+
+.module-account-bar p {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  line-height: 1.7;
+}
+
+.module-account-bar strong {
+  padding: 2px 8px;
+  border: 1px solid #cbded2;
+  border-radius: 5px;
+  background: #edf7ef;
+  color: #32654a;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.module-account-bar nav {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-shrink: 0;
+}
+
+.module-account-bar a {
+  color: #1d6048;
+  font-weight: 600;
+  line-height: 1.8;
+}
+
+/* Restore the source module label under the shared account baseline. */
+.module-preview .eyebrow {
+  display: block;
+  margin: 0 0 9px;
+  color: var(--club-green);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+}
+
+.module-preview .club-hero .eyebrow {
+  color: #b8e6ce;
+}
+
+.module-preview .form-aside .eyebrow,
+.module-preview .training-form-aside .eyebrow,
+.module-preview .announcement-form-aside .eyebrow,
+.module-preview .training-detail-banner .eyebrow {
+  color: var(--glass-emerald);
+}
+
+@media (max-width: 800px) {
+  .module-account-bar {
+    width: calc(100% - 32px);
+  }
+
+  .module-account-bar p {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 650px) {
+  .module-preview .announcement-heading h1 {
+    font-size: clamp(28px, 8.5vw, 40px);
+    overflow-wrap: anywhere;
+  }
+
+  .auth-module-nav {
+    position: static;
+    min-height: 44px;
+    justify-content: center;
+    gap: 20px;
+    padding: 10px 18px;
+    border-bottom: 1px solid #e1e7e2;
+    background: #fff;
+    font-size: 10px;
+  }
+
+  .auth-route .auth-main {
+    min-height: calc(100dvh - 44px);
+  }
+
+  .sidebar .side-nav {
+    overflow-x: auto;
+  }
+
+  .sidebar .side-nav a {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
+  .module-account-bar {
+    width: calc(100% - 24px);
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 10px;
+  }
+
+  .module-account-bar p {
+    flex-direction: column;
+    gap: 5px;
+    max-width: 230px;
+  }
+
+  .module-account-bar nav {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 4px;
+  }
+}

@@ -2,17 +2,20 @@
 
 declare(strict_types=1);
 
+namespace SportsHub;
+
+use PDO;
+use PDOException;
+use Throwable;
+use InvalidArgumentException;
+use RuntimeException;
+use DateTimeImmutable;
+
 require_once __DIR__ . '/../../shared/Database.php';
 require_once __DIR__ . '/../../shared/Response.php';
 require_once __DIR__ . '/../../shared/Validator.php';
 
-/**
- * Attendance controller.
- *
- * The project does not yet expose a confirmed attendance schema or auth layer. This controller
- * keeps its queries isolated and validation explicit so the real schema can be dropped in later
- * without rewriting the module's public behavior.
- */
+// Session and CSRF permissions are enforced by SportsTrainingRoutes.
 final class AttendanceController
 {
     private static function rejectUnknownFields(array $data, array $allowed, string $kind): void
@@ -95,7 +98,7 @@ final class AttendanceController
     {
         try {
             self::rejectUnknownFields($_GET, ['session_id', 'participant_id', 'status'], 'query parameter');
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
 
             if (!self::tableExists($pdo, 'training_attendance')) {
                 Response::json(500, ['success' => false, 'message' => 'The training_attendance table is not available in the configured database.']);
@@ -108,6 +111,12 @@ final class AttendanceController
 
             $sql = 'SELECT * FROM training_attendance WHERE 1 = 1';
             $params = [];
+            $actor = Session::requireUser();
+            if ($actor['role'] !== 'admin') {
+                $sql .= ' AND (participant_id = :actor OR session_id IN (SELECT t.id FROM training_sessions t JOIN club_coaches cc ON cc.club_id = t.club_id WHERE cc.user_id = :coach AND cc.ended_at IS NULL))';
+                $params[':actor'] = $actor['id'];
+                $params[':coach'] = $actor['id'];
+            }
 
             if ($sessionId !== null) {
                 $sql .= ' AND session_id = :session_id';
@@ -151,7 +160,7 @@ final class AttendanceController
         }
 
         try {
-            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            $input = Http::body();
             self::rejectUnknownFields($input, ['session_id', 'participant_id', 'status', 'notes'], 'field');
 
             $sessionId = self::normalizePositiveInt($input['session_id'] ?? '', 'session_id');
@@ -159,12 +168,12 @@ final class AttendanceController
             $status = array_key_exists('status', $input)
                 ? self::normalizeText($input['status'], 50)
                 : 'present';
-            if ($status === null) {
+            if (!in_array($status, ['present', 'absent', 'late', 'excused'], true)) {
                 throw new InvalidArgumentException("Field 'status' must be a non-empty string.");
             }
             $notes = self::normalizeText($input['notes'] ?? '', 2000) ?? '';
 
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
 
             if (!self::tableExists($pdo, 'training_attendance')) {
                 Response::json(500, ['success' => false, 'message' => 'The training_attendance table is not available in the configured database.']);
@@ -176,7 +185,7 @@ final class AttendanceController
                 return;
             }
 
-            $sessionExists = $pdo->prepare('SELECT id FROM training_sessions WHERE id = :id LIMIT 1');
+            $sessionExists = $pdo->prepare("SELECT id FROM training_sessions WHERE id = :id AND status <> 'cancelled' LIMIT 1");
             $sessionExists->execute([':id' => $sessionId]);
             if (!$sessionExists->fetch()) {
                 Response::json(400, ['success' => false, 'message' => 'Invalid training session reference.']);
@@ -214,7 +223,7 @@ final class AttendanceController
     public static function details(int $id): void
     {
         try {
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'training_attendance')) {
                 Response::json(500, ['success' => false, 'message' => 'The training_attendance table is not available in the configured database.']);
                 return;

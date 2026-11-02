@@ -2,6 +2,15 @@
 
 declare(strict_types=1);
 
+namespace SportsHub;
+
+use PDO;
+use PDOException;
+use Throwable;
+use InvalidArgumentException;
+use RuntimeException;
+use DateTimeImmutable;
+
 require_once __DIR__ . '/../../shared/Database.php';
 require_once __DIR__ . '/../../shared/Response.php';
 require_once __DIR__ . '/../../shared/Validator.php';
@@ -80,7 +89,7 @@ final class ClubController
     public static function list(): void
     {
         try {
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'clubs')) {
                 Response::json(500, ['success' => false, 'message' => 'The clubs table is not available in the configured database.']);
                 return;
@@ -100,7 +109,7 @@ final class ClubController
     public static function details(int $clubId): void
     {
         try {
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'clubs')) {
                 Response::json(500, ['success' => false, 'message' => 'The clubs table is not available in the configured database.']);
                 return;
@@ -108,7 +117,7 @@ final class ClubController
 
             $club = self::getClub($pdo, $clubId);
 
-            if ($club === null) {
+            if ($club === null || (int) $club['is_archived'] === 1) {
                 Response::json(404, ['success' => false, 'message' => 'Club not found.']);
                 return;
             }
@@ -128,7 +137,7 @@ final class ClubController
         }
 
         try {
-            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            $input = Http::body();
             self::rejectUnknownFields($input, ['name', 'description', 'sport_id', 'status']);
 
             $name = Validator::requireString($input, 'name', 2, 120);
@@ -136,7 +145,7 @@ final class ClubController
             $sportId = self::requireSportId($input);
             $status = self::requireStatus($input, 'status', 'active');
 
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'clubs')) {
                 Response::json(500, ['success' => false, 'message' => 'The clubs table is not available in the configured database.']);
                 return;
@@ -147,7 +156,7 @@ final class ClubController
                 return;
             }
 
-            $sportExists = $pdo->prepare('SELECT id FROM sports WHERE id = :id LIMIT 1');
+            $sportExists = $pdo->prepare('SELECT id FROM sports WHERE id = :id AND is_active = 1 LIMIT 1');
             $sportExists->execute([':id' => $sportId]);
             if (!$sportExists->fetch()) {
                 Response::json(400, ['success' => false, 'message' => 'Invalid sport reference.']);
@@ -189,13 +198,13 @@ final class ClubController
         }
 
         try {
-            $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            $input = Http::body();
             self::rejectUnknownFields($input, ['name', 'description', 'sport_id', 'status']);
             if ($input === []) {
                 throw new InvalidArgumentException('At least one field must be provided for update.');
             }
 
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'clubs')) {
                 Response::json(500, ['success' => false, 'message' => 'The clubs table is not available in the configured database.']);
                 return;
@@ -261,7 +270,7 @@ final class ClubController
         }
 
         try {
-            $pdo = Database::getConnection();
+            $pdo = Database::get();
             if (!self::tableExists($pdo, 'clubs')) {
                 Response::json(500, ['success' => false, 'message' => 'The clubs table is not available in the configured database.']);
                 return;

@@ -1,25 +1,58 @@
 <?php
-
 declare(strict_types=1);
+
+namespace SportsHub;
+
+use PDO;
 
 final class Database
 {
-    public static function getConnection(): PDO
-    {
-        $dsn = getenv('DB_DSN') ?: 'mysql:host=127.0.0.1;dbname=sports_hub;charset=utf8mb4';
-        $user = getenv('DB_USER') ?: 'root';
-        $pass = getenv('DB_PASS') ?: '';
+    private static ?PDO $connection = null;
 
-        $options = [
+    public static function connect(bool $selectDatabase = true): PDO
+    {
+        $settings = Config::all()['database'];
+        $dsn = 'mysql:host=' . $settings['host'] . ';port=' . $settings['port'] . ';charset=utf8mb4';
+        if ($selectDatabase) {
+            $dsn .= ';dbname=' . $settings['name'];
+        }
+        $connection = new PDO($dsn, $settings['user'], $settings['password'], [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
-        ];
+            PDO::ATTR_STRINGIFY_FETCHES => false,
+            PDO::ATTR_TIMEOUT => 5,
+            PDO::MYSQL_ATTR_MULTI_STATEMENTS => false,
+        ]);
+        $connection->exec("SET time_zone = '+00:00'");
+        return $connection;
+    }
 
+    public static function get(): PDO
+    {
+        return self::$connection ??= self::connect();
+    }
+
+    // Runs $callback(PDO) in one transaction; any exception (including ApiException) rolls it back.
+    public static function transaction(callable $callback): mixed
+    {
+        $connection = self::get();
+        $connection->beginTransaction();
         try {
-            return new PDO($dsn, $user, $pass, $options);
-        } catch (PDOException $exception) {
-            throw new RuntimeException('Database connection failed. Configure DB_DSN, DB_USER, and DB_PASS first.', 0, $exception);
+            $result = $callback($connection);
+            $connection->commit();
+            return $result;
+        } catch (\Throwable $exception) {
+            if ($connection->inTransaction()) {
+                $connection->rollBack();
+            }
+            throw $exception;
         }
     }
+
+    public static function isDuplicateKey(\PDOException $exception): bool
+    {
+        return ($exception->errorInfo[1] ?? null) === 1062;
+    }
 }
+

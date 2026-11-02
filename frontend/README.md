@@ -1,142 +1,66 @@
-# NSBM SportsHub - Frontend
+# NSBM SportsHub frontend
 
-This directory is reserved for the user interfaces of NSBM SportsHub, the university Sports Club Management System. Start with the [project guide](../README.md) for the full scope, team, deadlines, and contribution rules. See the [backend guide](../backend/README.md) for PHP integration responsibilities.
+This branch combines PHP-backed authentication/users screens and tournament, match and result management with Shahilan's club, training/attendance and announcement previews. Resource/booking and membership APIs share the login session; their screens remain pending. See [local setup](../docs/local-development.md), the [authentication API](../docs/auth-users-api.md), the [resource/booking API](../docs/resource-booking-api.md), the [membership API](../docs/memberships-api.md), the [competition API](../docs/competitions-api.md), and [team allocation](../README.md).
 
-> **Current status: folders only.** There are no pages, components, styles, package manifests, installed dependencies, or runnable frontend. `.gitkeep` files preserve empty directories in Git. Features and filenames discussed during planning are future work.
+## Start locally
 
-## Technology direction
+Node.js 22.12+ and npm are required. From frontend/:
 
-- HTML, CSS, and JavaScript are the required browser technologies.
-- React is the intended frontend direction from the project plan; confirm assignment permission and agree on tooling with Mukilan before scaffolding.
-- Bootstrap is the planned UI framework.
-- PHP handles server-side functionality and MySQL stores application data. Browser code communicates with PHP, never directly with MySQL.
-- Node.js, if introduced for React, is frontend development/build tooling and does not replace PHP.
-
-No build tool, dependency versions, package scripts, development port, or API base URL has been agreed or configured in this repository. Do not assume a prior generated preview or IDE tab represents a current application.
-
-## Directory guide
-
-```text
-frontend/
-|-- README.md
-|-- public/             Public static assets
-`-- src/
-    |-- assets/         Source images, icons, and other visual assets
-    |-- shared/         Shared layouts, controls, styling, and API helpers
-    `-- modules/
-        |-- authentication-users/
-        |-- sports-clubs/
-        |-- memberships/
-        |-- facilities/
-        |-- equipment/
-        |-- bookings/
-        |-- training-attendance/
-        |-- tournaments/
-        |-- matches-results/
-        |-- announcements/
-        |-- notifications/
-        `-- reports/
+```powershell
+npm.cmd ci
+npm.cmd run dev
 ```
 
-Create implementation files within the assigned module after the shared setup and relevant contract are agreed. Specific component filenames are not fixed yet. Do not create a second implementation of an existing shared control or module.
+Open http://localhost:5173. Module previews can be explored with their browser demo data. To register, sign in, use a profile or manage users, initialize the database and start PHP following the setup guide.
 
-## Module ownership and deliverables
+Vite forwards browser /api requests to http://127.0.0.1:8000. Stay on the React origin for session cookies and CSRF. Production needs a real same-origin /api route to PHP.
 
-| Module | Frontend owner | Planned screens/behavior | Backend partner |
-| --- | --- | --- | --- |
-| Authentication/users | Mukilan | Registration, login/logout, profile, authorized user management | Mukilan |
-| Sports/clubs | Shahilan | Club listing/details/search and administrative forms | Looga |
-| Memberships | Sanudi | Application, personal status, Admin review/member records | Jassim |
-| Facilities | Sanudi | Listings/details and administrative forms | Mursid |
-| Equipment | Sanudi | Inventory listings and administrative forms | Mursid |
-| Bookings: Student | Sanudi | Request forms, personal status, permitted cancellation | Mursid |
-| Bookings: Admin | Mursid | Review queue, booking records, approval/rejection feedback | Mursid |
-| Training/attendance | Shahilan | Schedules, session forms, attendance viewing/recording | Looga |
-| Tournaments | Shahadh | Tournament management, entries, and fixtures as required | Jassim |
-| Matches/results | Shahadh | Fixtures, match management, results, and approved standings | Jassim |
-| Announcements | Shahilan | Announcement display and authorized publication forms | Shahilan |
-| Notifications | Nimesha | Recipient notification list and read state | Nimesha |
-| Reports | Nimesha | Personal participation history and scoped Admin reports | Nimesha |
+```powershell
+npm.cmd run build
+npm.cmd test
+```
 
-### Shared frontend ownership
+The build writes the ignored dist/ directory. The tests check club create/update/delete persistence and missing-record mutations, plus shared API requests for result writes, CSRF renewal, cancellation, validation and expired sessions. API-client tests mock the HTTP boundary; the separate backend integration runner exercises real PHP/database operations.
 
-- **Shahadh:** layouts, navigation, reusable controls, global presentation, and responsive consistency.
-- **Mukilan:** frontend entry/routing integration, authenticated state conventions, and the shared API client.
-- **Module owners:** their module components, forms, and integration behavior.
-- **Sanudi and Mursid:** keep Student and Admin booking screen ownership separate and agree on shared booking controls before editing them.
+## Routes and current data behavior
 
-Coordinate shared changes with the responsible owner. Each member should create their own reviewed code contributions.
+| Route | Current behavior |
+| --- | --- |
+| /login | PHP email/password sign-in |
+| /register | PHP registration of an active Student |
+| /profile | Protected PHP-backed profile editing and password change |
+| /admin/users | Admin-only PHP user directory and create/edit/activate/deactivate/archive |
+| /tournaments | Signed-in Student/Admin tournament listing; Admins create/edit and manage tournament status |
+| /tournaments/:tournamentId | Tournament details, entry registration/withdrawal, and authorized coach/Admin entry review |
+| /tournaments/:tournamentId/matches | Fixtures, match scheduling and updates, score/result entry, league standings and knockout bracket |
+| /sports-clubs/* | Public preview: list/search/details and local create/edit/delete |
+| /training-attendance/* | Public preview: schedules, session create/edit, attendance recording/listing |
+| /announcements/* | Public preview: announcement drafts, editing and publication controls |
 
-## Interfaces and permissions
+Clubs, training sessions and attendance use sample records and localStorage in the current browser origin. Existing storage keys/data are preserved by this integration. These records are not saved through PHP/MySQL and are not shared across devices or origins.
 
-Student and Admin interfaces are required. Coach belongs to the initial scope, but its screens and club-level permissions require agreement.
+Tournament, entry, match, result and standings screens use the PHP/MySQL competition API and shared authenticated session. Tournament sports and active facilities load from the authenticated `/api/sports` and `/api/facilities` endpoints.
 
-The planned Student experience covers clubs, membership status, schedules, fixtures/results, bookings, personal history, and profile information. The planned Admin experience covers management, approvals, results, and reports.
+Announcements are held in React memory. Refreshing or leaving the mounted module resets them to sample records. Training/attendance and announcement previews do not currently implement a complete delete workflow.
 
-Frontend navigation and hidden controls improve usability; they do not authorize actions. PHP must check identity, role, record ownership, and any club scope on every protected operation. Never trust role values, approval fields, or user IDs simply because the browser supplied them.
+Public preview controls do not establish business-role permissions or announcement-audience enforcement. Those workflows need their agreed PHP endpoints and server-side authorization before acceptance as integrated features. The preview/account navigation identifies their demo-data status.
 
-## Integration checklist
+Authentication uses the shared server session. No auth tokens or passwords are stored in localStorage. The first Admin is provisioned by backend/bin/create-admin.php; no default credentials exist. Account roles remain Student/Admin. Club coach assignments grant scoped membership/competition permissions in PHP; coach interfaces and training permissions remain pending.
 
-Before building a database-dependent screen, agree with the backend partner on:
+## Integration conventions
 
-1. Request path/method and authentication/session behavior.
-2. Request fields, required values, validation rules, and date/time conventions.
-3. Response fields, list/filter behavior, status values, and errors.
-4. Role and record-ownership restrictions, including permitted actions for each status.
-5. CSRF handling for cookie-authenticated mutations.
-6. Loading, empty, retry, success, and failure behavior.
+- src/main.jsx owns the single BrowserRouter and AuthProvider.
+- src/App.jsx combines protected account routes with separate module preview layouts.
+- src/shared/api.js handles PHP JSON requests, cookies, CSRF, safe errors and GET/POST/PATCH/PUT/DELETE calls.
+- src/shared/StudentLayout.jsx and src/shared/AdminLayout.jsx provide role-aware workspace navigation using a consistent shared shell.
+- src/shared/FormField.jsx, src/shared/Feedback.jsx and src/shared/DataTable.jsx provide common accessible field, feedback and table patterns for competition screens.
+- Use `api.get`, `api.post`, `api.put`, `api.patch` and `api.delete` with paths relative to `/api`. For example, `api.put("/matches/7/result", { home_score: 2, away_score: 1 })` records a result using the current session and CSRF token.
+- The shared API client also accepts successful 204 archive/cancellation responses without trying to parse an empty JSON body.
+- src/shared/AuthContext.jsx maintains the authoritative server session.
+- src/shared/styles.css styles the authentication/user workspace.
+- src/glass.css provides module preview presentation; coordinate shared styling with Shahadh.
+- Each module retains its own components and local data services until its agreed API integration.
 
-No endpoints or response contracts currently exist. Record approved contracts in `docs/` before independent frontend/backend implementations diverge. Keep transport conventions in the agreed shared client rather than duplicating them across modules.
+Preserve authentication routes, the API proxy and shared helpers when adding business APIs. Replace preview storage through the agreed client and backend contract, including loading/empty/error states, validation, permissions and reload persistence. Module owners remain responsible for their assigned workflows.
 
-Development fixtures may support early UI work, but identify them clearly. A screen is not complete until it uses the real PHP workflow and reflects persisted records after refresh. Keep database credentials, passwords, and session secrets out of frontend files and browser-visible configuration.
-
-## UI and accessibility expectations
-
-- Reuse shared layouts, spacing, typography, colors, and controls agreed with Shahadh.
-- Support mobile and desktop layouts without unusable forms or tables.
-- Use semantic headings, visible form labels, keyboard-accessible controls, and meaningful focus states.
-- Display actionable server validation errors and clear success feedback.
-- Provide loading/empty/error states and guard against repeated submissions while saving.
-- Show only actions applicable to the current record state, with server enforcement behind them.
-- Agree on date/time presentation and status wording across modules.
-
-## Local setup and run status
-
-The current repository cannot be launched. There is no `package.json`, lockfile, application entry point, or configured development server. Frontend scaffolding is a separate implementation task owned by Mukilan in coordination with Shahadh.
-
-Once that foundation is merged, update this guide with:
-
-- Supported Node/npm versions if applicable.
-- Exact dependency installation, development, build, and preview commands.
-- Local application URL and API proxy/base URL settings.
-- Safe frontend environment examples and backend startup prerequisites.
-- Build output/dependency ignore rules and deployment instructions.
-
-Do not infer installation or launch commands from the presence of `src/` or `public/` alone.
-
-## Workflow and acceptance
-
-Use a task branch such as `feat/sanudi-membership-interface`. Keep PRs scoped, coordinate shared-file edits, and include screenshots plus the checks performed.
-
-A frontend task is ready for review when:
-
-- The agreed workflow works through PHP and the database.
-- Correct persisted data appears after reload.
-- Validation, permission failures, empty records, and network errors are handled.
-- Relevant Student/Admin views and mobile/keyboard use have been checked.
-- The backend partner has verified the integration.
-- Shared UI conventions are followed and no secrets are included.
-
-Module owners test their screens. Shahadh reviews UI consistency, Mukilan reviews routing/auth integration, and Nimesha coordinates regression evidence.
-
-## Deadlines
-
-All dates are in **2026**. Detailed member targets are in the [project schedule](../README.md#delivery-schedule).
-
-- **6 November:** all implementation, integration, reviews, and merges complete.
-- **7-9 November:** full workflow testing, defect fixes, and regression.
-- **10 November:** deployment and deployed-system checks.
-- **11 November:** final acceptance, documentation, and demo rehearsal; submission package ready.
-- **12 November:** assignment submission.
-
-Test during development. The reserved 7-11 November period is for system verification, fixes, and deployment rather than starting unfinished features.
+Public demo data and private application records have different persistence. Test previews in a fresh browser profile/context so QA does not overwrite another person's saved local clubs.
