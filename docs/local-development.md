@@ -1,6 +1,6 @@
 # Local development: PHP APIs and React frontend
 
-This integration combines authentication/users, resource/booking, membership and competition APIs, and Shahilan's frontend module previews. All PHP modules use the same private configuration, PDO connection, session and CSRF helpers. Membership, competition and resource/booking interfaces remain pending.
+This integration combines authentication/users, resources/bookings, memberships, competitions, announcements and sports/club/training APIs. All PHP modules use the same private configuration, PDO connection, session and CSRF helpers. Account, membership, resource/Student booking, competition and announcement interfaces use those APIs. Club and training screens remain browser previews; Admin booking review, notifications and reports remain pending.
 
 ## Requirements
 
@@ -51,7 +51,7 @@ Replace the example email with yours. Skip Admin provisioning if the first Admin
 
 The setup command creates the configured database and applies every `database/migrations/NNN_name.sql` file in numeric order, without dropping data or altering existing tables. Add `--seed` (`php backend/bin/setup.php --seed`) to also load the reference sports and the demo clubs used by the membership and competition APIs. See [database design](database-erd.md) for the schema and migration order. The setup account needs permission to create that database/tables. Use a restricted application database account for normal runtime after initialization. The Admin command only provisions the first Admin and refuses repeated bootstrap or existing-email promotion. Later Admins are created by an authorized Admin through the UI/API.
 
-The first migration creates users/rate limits; the second creates facilities, equipment and bookings; `003`–`006` create sports, clubs, memberships, club coaches, tournaments, entries and matches. Setup refuses two migrations that share a number. Setup checks existing schema compatibility and preserves records on repeat runs. Mursid's original resource-only migration was renamed from 001_resources_and_bookings.sql to 002_resources_and_bookings.sql; existing compatible tables can be retained. Review schema changes with Jassim; future schema changes need new ordered migrations.
+The first migration creates users/rate limits; the second creates facilities, equipment and bookings; `003`–`006` create sports, clubs, memberships, club coaches, tournaments, entries and matches. `007` creates training sessions/attendance and `008` creates announcements using canonical club IDs. Setup refuses two migrations that share a number. Setup checks existing schema compatibility and preserves records on repeat runs. Mursid's original resource-only migration was renamed from 001_resources_and_bookings.sql to 002_resources_and_bookings.sql; existing compatible tables can be retained. Review schema changes with Jassim; future schema changes need new ordered migrations.
 
 ## 3. Start PHP and React
 
@@ -87,7 +87,7 @@ npm.cmd run build
 npm.cmd test
 ```
 
-The frontend tests cover preview club persistence and the shared API contract: authenticated result writes with `PUT`, CSRF renewal, empty cancellation responses, validation errors and expired sessions.
+The frontend unit tests cover preview club persistence and the shared API contract: authenticated result writes with `PUT`, CSRF renewal, empty cancellation responses, validation errors and expired sessions.
 
 Run configuration checks and the integration suite from the repository root with PHP and a running MySQL-compatible server configured as above:
 
@@ -106,6 +106,6 @@ $env:SPORTSHUB_PHP = (Resolve-Path .tools/php/php.exe).Path
 node backend/tests/integration.mjs
 ```
 
-Membership checks cover applications, duplicate/concurrent applications, coach assignments, scoped reads, reviews and lifecycle transitions. Competition checks cover eligibility, entries, league/knockout fixtures, result corrections and standings. These exercise the backend APIs; their user interfaces remain pending. See the [membership contract](memberships-api.md) and [competition contract](competitions-api.md).
+Membership checks cover applications, duplicate/concurrent applications, coach assignments, scoped reads, reviews and lifecycle transitions. Competition checks cover eligibility, entries, league/knockout fixtures, result corrections and standings. The integrated membership and competition screens use these APIs. Sports/training checks cover club CRUD/archival, coach permissions, attendance membership/uniqueness and scoped reads. Announcement checks cover authenticated reads, Admin CRUD, CSRF, pinning and persistence. See the [membership contract](memberships-api.md) and [competition contract](competitions-api.md).
 
 The suite checks registration, login/logout, CSRF, field validation, private-field protection, Student/Admin access, profile persistence, user create/read/update/archive, pagination/search/filtering, password changes, session revocation, and Admin lockout protection. It also checks authenticated resource CRUD, booking ownership, Admin review, facility overlap, equipment stock limits, cancellation, archival, repeatable setup and revoked-account access. These HTTP tests exercise sequential conflicts; simultaneous multi-request booking concurrency needs separate verification. Browser verification should additionally cover forms, confirmations, mobile layouts, and backend-unavailable feedback.

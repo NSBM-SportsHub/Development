@@ -3,11 +3,12 @@ import { Avatar, Brand, Icon } from "./ui.jsx";
 
 export default function WorkspaceLayout({ user, role, busy, error, onSignOut, children }) {
   const location = useLocation();
-  const sectionName = location.pathname.startsWith("/admin")
+  const sectionNames = { "/memberships/apply": "Apply for membership", "/memberships/mine": "My memberships", "/admin/memberships": "Membership review", "/facilities": "Facilities", "/equipment": "Equipment", "/bookings/new": "Request a booking", "/bookings/mine": "My bookings", "/announcements": "Announcements" };
+  const sectionName = sectionNames[location.pathname] || (location.pathname.startsWith("/admin")
     ? "User management"
     : location.pathname.startsWith("/tournaments")
       ? "Tournaments"
-      : "My profile";
+      : "My profile");
 
   return (
     <div className={`app-shell ${role}-workspace`}>
@@ -18,6 +19,15 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
         <nav className="side-nav" aria-label="Workspace">
           <NavLink to="/profile"><Icon name="user" />My profile</NavLink>
           {role === "admin" && <NavLink to="/admin/users"><Icon name="users" />User management</NavLink>}
+          <NavLink to="/memberships/apply">Apply for membership</NavLink>
+          <NavLink to="/memberships/mine">My memberships</NavLink>
+          {role === "admin" && <NavLink to="/admin/memberships">Membership review</NavLink>}
+          <NavLink to="/facilities">Facilities</NavLink>
+          <NavLink to="/equipment">Equipment</NavLink>
+          {role === "student" && <>
+            <NavLink to="/bookings/new">Request a booking</NavLink>
+            <NavLink to="/bookings/mine">My bookings</NavLink>
+          </>}
           <NavLink to="/tournaments">Tournaments</NavLink>
           <NavLink to="/sports-clubs">Clubs preview</NavLink>
           <NavLink to="/training-attendance">Training preview</NavLink>

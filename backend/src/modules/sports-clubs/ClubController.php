@@ -212,7 +212,7 @@ final class ClubController
 
             $club = self::getClub($pdo, $clubId);
 
-            if ($club === null) {
+            if ($club === null || (int) $club['is_archived'] === 1) {
                 Response::json(404, ['success' => false, 'message' => 'Club not found.']);
                 return;
             }
@@ -277,7 +277,7 @@ final class ClubController
             }
 
             $club = self::getClub($pdo, $clubId);
-            if ($club === null) {
+            if ($club === null || (int) $club['is_archived'] === 1) {
                 Response::json(404, ['success' => false, 'message' => 'Club not found.']);
                 return;
             }

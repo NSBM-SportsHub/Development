@@ -1,3 +1,9 @@
+# Integration update — 2 November 2026
+
+The original phase notes below describe the standalone implementation. The integrated module now uses the shared private configuration, PDO connection, server session, CSRF checks and `{ data, error }` response envelope. Reads require sign-in. Club writes require an Admin; training and attendance writes require an Admin or a coach assigned to that club. Attendance reads are scoped to the participant, assigned club coaches and Admins. Recording attendance requires an approved club membership, and duplicates return 409. Clubs retain history through archival. The ordered `007_training_and_attendance.sql` migration supplies the training tables with canonical club/user references. Club and training frontend screens remain browser previews.
+
+---
+
 # Sports/Clubs and Training/Attendance — Phase 1 Alignment
 
 **Status:** Pending stakeholder confirmation  
@@ -185,7 +191,3 @@ These changes do not resolve shared integration or policy decisions:
 - PHP 8.2.12 is available through the local XAMPP CLI and the four changed controllers pass
   `php -l`. No configured database or automated PHP test suite is available, so database-backed
   integration tests remain pending the agreed schema.
-# Integration update — 2 November 2026
-
-The original phase notes below describe the standalone implementation. The integrated module now uses the shared private configuration, PDO connection, server session, CSRF checks and `{ data, error }` response envelope. Reads require sign-in. Club writes require an Admin; training and attendance writes require an Admin or a coach assigned to that club. Attendance reads are scoped to the participant, assigned club coaches and Admins. Recording attendance requires an approved club membership, and duplicates return 409. Clubs retain history through archival. The ordered `007_training_and_attendance.sql` migration supplies the training tables with canonical club/user references. Club and training frontend screens remain browser previews.
-

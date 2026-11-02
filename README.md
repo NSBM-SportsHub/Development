@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: authentication/users, resource/booking, membership and competition APIs with module previews.** Authentication/users have integrated React/PHP workflows. Facilities/equipment, bookings, memberships, tournaments, entries, fixtures, results and standings have PHP/MySQL APIs; their interfaces remain pending. Shahilan's club, training/attendance and announcement screens use local demo data; their PHP workflows remain pending integration. See [local setup](docs/local-development.md), the [authentication API](docs/auth-users-api.md), the [resource/booking API](docs/resource-booking-api.md), the [membership API](docs/memberships-api.md), the [competition API](docs/competitions-api.md), and the [frontend guide](frontend/README.md).
+> **Current status: integrated account, membership, resource/booking, competition and announcement workflows.** React screens use the shared PHP/MySQL session and API client. Sports/clubs, training sessions and attendance now have authenticated backend endpoints; club and training screens still use browser demo data. Notifications, reports and the Admin booking-review screen remain pending. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), and the [branch integration review](docs/all-branches-integration-review.md).
 
 ## Start here
 
@@ -17,10 +17,10 @@ The project aims to bring sports clubs, membership applications, training, compe
 
 | Area | Requirement or direction | Current state |
 | --- | --- | --- |
-| Frontend | HTML, CSS, JavaScript, React | Shared auth/API client plus clubs, training/attendance and announcement previews |
+| Frontend | HTML, CSS, JavaScript, React | Shared layouts/API client; account, membership, booking, competition and announcement screens |
 | UI framework | Bootstrap is planned | Shared auth CSS and module preview themes; coordinate presentation with Shahadh |
-| Backend | PHP 8.2+ | Shared API router, PDO, session/CSRF, auth/users, resources/bookings, memberships and competitions |
-| Database | MySQL 8+ / compatible MariaDB | Ordered migrations 001–006; private `.env` configuration |
+| Backend | PHP 8.2+ | Shared API router, PDO, session/CSRF, auth/users, resources/bookings, memberships, competitions, announcements and sports/training |
+| Database | MySQL 8+ / compatible MariaDB | Ordered migrations 001–008; private `.env` configuration |
 | Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
@@ -32,7 +32,7 @@ React/Vite are used on this implementation branch. Confirm assignment framework 
 | --- | --- |
 | Student | Register/login, manage a profile, browse clubs, apply for membership, view schedules and competitions, request resources, and view personal participation |
 | Admin | Manage accounts, clubs, memberships, resources, booking approvals, schedules, competitions, results, announcements, and reports |
-| Coach | Club assignments grant scoped membership and competition review permissions; dedicated interfaces and training workflows remain pending |
+| Coach | Club assignments grant scoped membership/competition review and training/attendance API permissions; dedicated training screens remain pending |
 
 Student and Admin interfaces must be separate. All protected actions must also be checked on the PHP server. Account roles remain `student`/`admin`; coach permissions come from active `club_coaches` assignments, as described in the membership and competition contracts.
 
@@ -53,7 +53,7 @@ Student and Admin interfaces must be separate. All protected actions must also b
 | `notifications` | In-app updates and recipient read state; external delivery is not agreed |
 | `reports` | Student participation history and authorized participation/performance reports |
 
-Membership, tournament entry, fixture, result and standings rules are implemented in the backend and described in their API contracts. Training, announcement, notification and report workflows still need their agreed implementation and acceptance criteria.
+Membership, tournament entry, fixture, result and standings rules are implemented in the backend and described in their API contracts. Training screens, notifications and reports still need their remaining implementation and acceptance checks.
 
 ## Repository structure
 
