@@ -201,6 +201,7 @@ export default function TournamentDetails() {
                 key: "actions",
                 label: "Actions",
                 render: (entry) => {
+                  const own = entry.members.some((member) => member.user_id === user.id);
                   if (entry.captain_user_id === user.id && ["pending", "approved"].includes(entry.status) && ["registration_open", "registration_closed"].includes(tournament.status)) {
                     return <Button className="button-secondary button-small" disabled={busy} onClick={() => changeEntry(entry, "withdrawn")}>Withdraw</Button>;
                   }

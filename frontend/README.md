@@ -1,6 +1,6 @@
 # NSBM SportsHub frontend
 
-This branch combines PHP-backed authentication/users screens and tournament, match and result management with Shahilan's club, training/attendance and announcement previews. Mursid's resource/booking APIs share the login session; their screens remain pending. See [local setup](../docs/local-development.md), the [authentication API](../docs/auth-users-api.md), the [competition API](../docs/competitions-api.md), the [resource/booking API](../docs/resource-booking-api.md), and [team allocation](../README.md).
+This branch combines PHP-backed authentication/users screens and tournament, match and result management with Shahilan's club, training/attendance and announcement previews. Resource/booking and membership APIs share the login session; their screens remain pending. See [local setup](../docs/local-development.md), the [authentication API](../docs/auth-users-api.md), the [resource/booking API](../docs/resource-booking-api.md), the [membership API](../docs/memberships-api.md), the [competition API](../docs/competitions-api.md), and [team allocation](../README.md).
 
 ## Start locally
 
@@ -17,10 +17,10 @@ Vite forwards browser /api requests to http://127.0.0.1:8000. Stay on the React 
 
 ```powershell
 npm.cmd run build
-node --test src/modules/sports-clubs/clubsService.test.js
+npm.cmd test
 ```
 
-The build writes the ignored dist/ directory. The club-service tests check create/update persistence, delete persistence including an empty list, and missing-record mutation errors. There is no npm test script.
+The build writes the ignored dist/ directory. The tests check club create/update/delete persistence and missing-record mutations, plus shared API requests for result writes, CSRF renewal, cancellation, validation and expired sessions. API-client tests mock the HTTP boundary; the separate backend integration runner exercises real PHP/database operations.
 
 ## Routes and current data behavior
 
@@ -45,7 +45,7 @@ Announcements are held in React memory. Refreshing or leaving the mounted module
 
 Public preview controls do not establish business-role permissions or announcement-audience enforcement. Those workflows need their agreed PHP endpoints and server-side authorization before acceptance as integrated features. The preview/account navigation identifies their demo-data status.
 
-Authentication uses the shared server session. No auth tokens or passwords are stored in localStorage. The first Admin is provisioned by backend/bin/create-admin.php; no default credentials exist. Coach permissions remain pending team agreement.
+Authentication uses the shared server session. No auth tokens or passwords are stored in localStorage. The first Admin is provisioned by backend/bin/create-admin.php; no default credentials exist. Account roles remain Student/Admin. Club coach assignments grant scoped membership/competition permissions in PHP; coach interfaces and training permissions remain pending.
 
 ## Integration conventions
 
@@ -54,6 +54,7 @@ Authentication uses the shared server session. No auth tokens or passwords are s
 - src/shared/api.js handles PHP JSON requests, cookies, CSRF, safe errors and GET/POST/PATCH/PUT/DELETE calls.
 - src/shared/StudentLayout.jsx and src/shared/AdminLayout.jsx provide role-aware workspace navigation using a consistent shared shell.
 - src/shared/FormField.jsx, src/shared/Feedback.jsx and src/shared/DataTable.jsx provide common accessible field, feedback and table patterns for competition screens.
+- Use `api.get`, `api.post`, `api.put`, `api.patch` and `api.delete` with paths relative to `/api`. For example, `api.put("/matches/7/result", { home_score: 2, away_score: 1 })` records a result using the current session and CSRF token.
 - The shared API client also accepts successful 204 archive/cancellation responses without trying to parse an empty JSON body.
 - src/shared/AuthContext.jsx maintains the authoritative server session.
 - src/shared/styles.css styles the authentication/user workspace.
