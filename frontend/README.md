@@ -1,6 +1,6 @@
 # NSBM SportsHub frontend
 
-This branch combines PHP-backed authentication/users with membership, resource, and Student booking interfaces, plus Shahilan's club, training/attendance, and announcement previews. See [local setup](../docs/local-development.md), the [authentication API](../docs/auth-users-api.md), the [membership API](../docs/memberships-api.md), the [resource/booking API](../docs/resource-booking-api.md), and [team allocation](../README.md).
+This frontend combines PHP-backed authentication/users, memberships, facilities, equipment, Student bookings, tournaments, fixtures/results and announcements. Club and training screens remain browser previews. See [local setup](../docs/local-development.md), [membership APIs](../docs/memberships-api.md), [competition APIs](../docs/competitions-api.md), and [resource/booking APIs](../docs/resource-booking-api.md).
 
 ## Start locally
 
@@ -17,10 +17,10 @@ Vite forwards browser /api requests to http://127.0.0.1:8000. Stay on the React 
 
 ```powershell
 npm.cmd run build
-node --test src/modules/sports-clubs/clubsService.test.js
+npm.cmd test
 ```
 
-The build writes the ignored dist/ directory. The club-service tests check create/update persistence, delete persistence including an empty list, and missing-record mutation errors. There is no npm test script.
+The build writes the ignored dist/ directory. The tests check club create/update/delete persistence and missing-record mutations, plus shared API requests for result writes, CSRF renewal, cancellation, validation and expired sessions. API-client tests mock the HTTP boundary; the separate backend integration runner exercises real PHP/database operations.
 
 ## Routes and current data behavior
 
@@ -37,25 +37,33 @@ The build writes the ignored dist/ directory. The club-service tests check creat
 | /equipment | PHP-backed equipment list; Admins can create, edit, and archive |
 | /bookings/new | Student-only PHP-backed facility/equipment booking request |
 | /bookings/mine | Student-only booking status and pending-request cancellation |
+| /tournaments | Signed-in Student/Admin tournament listing; Admins create/edit and manage tournament status |
+| /tournaments/:tournamentId | Tournament details, entry registration/withdrawal, and authorized coach/Admin entry review |
+| /tournaments/:tournamentId/matches | Fixtures, match scheduling and updates, score/result entry, league standings and knockout bracket |
 | /sports-clubs/* | Public preview: list/search/details and local create/edit/delete |
 | /training-attendance/* | Public preview: schedules, session create/edit, attendance recording/listing |
-| /announcements/* | Public preview: announcement drafts, editing and publication controls |
+| /announcements/* | Signed-in announcement listing; Admin create/edit/pin/delete through PHP/MySQL |
 
 Clubs, training sessions and attendance use sample records and localStorage in the current browser origin. Existing storage keys/data are preserved by this integration. These records are not saved through PHP/MySQL and are not shared across devices or origins.
 
-Announcements are held in React memory. Refreshing or leaving the mounted module resets them to sample records. Training/attendance and announcement previews do not currently implement a complete delete workflow.
+Tournament, entry, match, result and standings screens use the PHP/MySQL competition API and shared authenticated session. Tournament sports and active facilities load from the authenticated `/api/sports` and `/api/facilities` endpoints.
 
-Club selection in the membership application currently accepts the database club ID because the PHP API does not yet expose a club-list endpoint; do not use the IDs from the local club preview as those records are not database-backed. Once the clubs API is available, replace this field with its active/recruiting club choices without changing the memberships API submission contract.
+Announcements persist through PHP/MySQL and share the authenticated account session. Club and training preview records remain local to the browser.
 
-Membership, facility, equipment, and booking mutations use the shared authenticated session and CSRF-aware API client. Student/Admin access is enforced by both route guards and the PHP API. Public preview controls do not establish business-role permissions or announcement-audience enforcement. Those workflows need their agreed PHP endpoints and server-side authorization before acceptance as integrated features. The preview/account navigation identifies their demo-data status.
+Membership applications load available clubs from the authenticated `/api/clubs` endpoint and submit canonical database IDs. The public club preview uses separate local demo records.
 
-Authentication uses the shared server session. No auth tokens or passwords are stored in localStorage. The first Admin is provisioned by backend/bin/create-admin.php; no default credentials exist. Coach permissions remain pending team agreement.
+Membership, facility, equipment, and booking mutations use the shared authenticated session and CSRF-aware API client. Student/Admin access is enforced by both route guards and the PHP API. Club/training preview controls do not establish server-side business permissions. Connect those preview screens to the authenticated club/training APIs before acceptance as integrated workflows. The preview/account navigation identifies their demo-data status.
+
+Authentication uses the shared server session. No auth tokens or passwords are stored in localStorage. The first Admin is provisioned by backend/bin/create-admin.php; no default credentials exist. Account roles remain Student/Admin. Club coach assignments grant scoped membership/competition permissions in PHP; training and attendance writes are scoped to Admins and assigned club coaches; the training screens remain previews.
 
 ## Integration conventions
 
 - src/main.jsx owns the single BrowserRouter and AuthProvider.
 - src/App.jsx combines protected account routes with separate module preview layouts.
-- src/shared/api.js handles PHP JSON requests, cookies, CSRF and safe errors.
+- src/shared/api.js handles PHP JSON requests, cookies, CSRF, safe errors and GET/POST/PATCH/PUT/DELETE calls.
+- src/shared/StudentLayout.jsx and src/shared/AdminLayout.jsx provide role-aware workspace navigation using a consistent shared shell.
+- src/shared/FormField.jsx, src/shared/Feedback.jsx and src/shared/DataTable.jsx provide common accessible field, feedback and table patterns for competition screens.
+- Use `api.get`, `api.post`, `api.put`, `api.patch` and `api.delete` with paths relative to `/api`. For example, `api.put("/matches/7/result", { home_score: 2, away_score: 1 })` records a result using the current session and CSRF token.
 - The shared API client also accepts successful 204 archive/cancellation responses without trying to parse an empty JSON body.
 - src/shared/AuthContext.jsx maintains the authoritative server session.
 - src/shared/styles.css styles the authentication/user workspace.

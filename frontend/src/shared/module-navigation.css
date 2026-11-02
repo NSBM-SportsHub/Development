@@ -95,6 +95,16 @@
 }
 
 @media (max-width: 650px) {
+  .sidebar {
+    grid-template-columns: minmax(0, 1fr) auto;
+  }
+
+  .announcements-hub .announcement-heading h1,
+  .announcements-hub .announcement-detail h1 {
+    font-size: clamp(28px, 8.5vw, 40px);
+    overflow-wrap: anywhere;
+  }
+
   .module-preview .announcement-heading h1 {
     font-size: clamp(28px, 8.5vw, 40px);
     overflow-wrap: anywhere;

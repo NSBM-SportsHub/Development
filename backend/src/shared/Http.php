@@ -58,13 +58,12 @@ final class Http
         exit;
     }
 
-    public static function body(): array
+    public static function body(int $maximum = 16384): array
     {
         $type = strtolower(trim(explode(';', $_SERVER['CONTENT_TYPE'] ?? '')[0]));
         if ($type !== 'application/json') {
             throw new ApiException(415, 'unsupported_media_type', 'Send an application/json request body.');
         }
-        $maximum = 16384;
         if ((int) ($_SERVER['CONTENT_LENGTH'] ?? 0) > $maximum) {
             throw new ApiException(413, 'request_too_large', 'The request body is too large.');
         }

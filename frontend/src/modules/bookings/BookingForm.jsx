@@ -38,12 +38,15 @@ export default function BookingForm() {
     return () => controller.abort();
   }, [resourceReload]);
 
-  const choices = resources[values.resource_type];
+  const choices = resources[values.resource_type === "facility" ? "facilities" : "equipment"];
   function change(event) {
     const { name, value } = event.target;
     setValues((current) => {
       const next = { ...current, [name]: value };
-      if (name === "resource_type") next.resource_id = resources[value][0] ? String(resources[value][0].id) : "";
+      if (name === "resource_type") {
+        const available = resources[value === "facility" ? "facilities" : "equipment"];
+        next.resource_id = available[0] ? String(available[0].id) : "";
+      }
       return next;
     });
     setFieldErrors((current) => ({ ...current, [name]: "" }));
