@@ -1,0 +1,277 @@
+.matches-page {
+  max-width: 1160px;
+  margin: 0 auto;
+}
+
+.matches-back-link {
+  display: inline-flex;
+  margin-bottom: 20px;
+  color: #536f5d;
+  font-size: 12px;
+  font-weight: 600;
+}
+
+.matches-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 24px;
+  padding: 25px 28px;
+  border: 1px solid #dce8d7;
+  border-radius: 12px;
+  background: linear-gradient(112deg, #edf4e8 0%, #f7f9f3 72%, #f1f5ea 100%);
+}
+
+.matches-heading h1 {
+  margin: 0 0 7px;
+  overflow-wrap: anywhere;
+}
+
+.matches-heading > div:first-child > p:last-child {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.matches-heading-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 9px;
+}
+
+.matches-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 22px 0 14px;
+  padding: 14px 16px;
+  border: 1px solid #e0e8da;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 4px 14px #27452b08;
+}
+
+.matches-toolbar p {
+  padding-bottom: 10px;
+  color: var(--muted);
+  font-size: 12px;
+}
+
+.matches-toolbar p strong {
+  color: #31483a;
+}
+
+.matches-toolbar .field {
+  width: min(230px, 55%);
+  gap: 5px;
+}
+
+.matches-toolbar .field span {
+  color: #53655a;
+  font-size: 10px;
+  font-weight: 600;
+}
+
+.matches-toolbar select {
+  min-height: 36px;
+  font-size: 11px;
+}
+
+.matches-list {
+  display: grid;
+  gap: 12px;
+}
+
+.match-card {
+  min-width: 0;
+  padding: 20px 22px;
+  border: 1px solid #dfe8dc;
+  border-radius: 11px;
+  background: #fff;
+  box-shadow: 0 4px 14px #27452b07;
+  transition: border-color .15s, box-shadow .15s;
+}
+
+.match-card:hover {
+  border-color: #cadbc7;
+  box-shadow: 0 7px 20px #1838290d;
+}
+
+.match-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  color: #68786d;
+  font-size: 10px;
+  font-weight: 650;
+}
+
+.match-status {
+  padding: 5px 10px;
+  border-radius: 999px;
+  background: #edf2ee;
+  color: #55675c;
+  font-size: 10px;
+}
+
+.match-status-postponed {
+  background: #fff5e7;
+  color: #926b28;
+}
+
+.match-status-completed {
+  background: #eaf5ee;
+  color: #287044;
+}
+
+.match-status-cancelled {
+  background: #fff0ed;
+  color: #963f36;
+}
+
+.match-scoreline {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 16px;
+  padding: 21px 0 14px;
+  color: #2b4034;
+  text-align: center;
+}
+
+.match-scoreline strong {
+  overflow-wrap: anywhere;
+}
+
+.match-score {
+  min-width: 64px;
+  color: var(--green);
+  font-size: 18px;
+  font-weight: 750;
+  white-space: nowrap;
+}
+
+.match-card-details {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 7px 20px;
+  color: var(--muted);
+  font-size: 11px;
+}
+
+.match-winner,
+.match-notes {
+  margin-top: 11px;
+  color: #66776c;
+  font-size: 11px;
+  line-height: 1.65;
+  text-align: center;
+}
+
+.match-winner strong {
+  color: #287044;
+}
+
+.match-actions {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 15px;
+  padding-top: 14px;
+  border-top: 1px solid #edf0ed;
+}
+
+.matches-empty {
+  display: grid;
+  min-height: 220px;
+  justify-items: center;
+  align-content: center;
+  gap: 10px;
+  padding: 30px;
+  border: 1px dashed #cbd9c9;
+  border-radius: 12px;
+  background: #f7faf5;
+  text-align: center;
+}
+
+.matches-empty h2 {
+  color: #33493c;
+}
+
+.matches-empty p {
+  max-width: 460px;
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.7;
+}
+
+.match-form-grid textarea {
+  resize: vertical;
+}
+
+.match-notes-field {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .matches-heading {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
+@media (max-width: 560px) {
+  .matches-heading {
+    padding: 20px;
+  }
+
+  .matches-heading-actions {
+    width: 100%;
+  }
+
+  .matches-heading-actions .button {
+    flex: 1;
+    white-space: normal;
+  }
+
+  .matches-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .matches-toolbar p {
+    padding-bottom: 0;
+  }
+
+  .matches-toolbar .field {
+    width: 100%;
+  }
+
+  .match-card {
+    padding: 16px 13px;
+  }
+
+  .match-scoreline {
+    gap: 7px;
+    font-size: 12px;
+  }
+
+  .match-score {
+    min-width: 50px;
+    font-size: 14px;
+  }
+
+  .match-form-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .match-notes-field {
+    grid-column: auto;
+  }
+}

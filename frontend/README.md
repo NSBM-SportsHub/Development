@@ -1,6 +1,6 @@
 # NSBM SportsHub frontend
 
-This branch combines Mukilan's PHP-backed authentication/users screens with Shahilan's club, training/attendance and announcement previews. Mursid's resource/booking APIs share the login session; their screens remain pending. See [local setup](../docs/local-development.md), the [authentication API](../docs/auth-users-api.md), the [resource/booking API](../docs/resource-booking-api.md), and [team allocation](../README.md).
+This branch combines PHP-backed authentication/users screens and tournament, match and result management with Shahilan's club, training/attendance and announcement previews. Mursid's resource/booking APIs share the login session; their screens remain pending. See [local setup](../docs/local-development.md), the [authentication API](../docs/auth-users-api.md), the [competition API](../docs/competitions-api.md), the [resource/booking API](../docs/resource-booking-api.md), and [team allocation](../README.md).
 
 ## Start locally
 
@@ -30,11 +30,16 @@ The build writes the ignored dist/ directory. The club-service tests check creat
 | /register | PHP registration of an active Student |
 | /profile | Protected PHP-backed profile editing and password change |
 | /admin/users | Admin-only PHP user directory and create/edit/activate/deactivate/archive |
+| /tournaments | Signed-in Student/Admin tournament listing; Admins create/edit and manage tournament status |
+| /tournaments/:tournamentId | Tournament details, entry registration/withdrawal, and authorized coach/Admin entry review |
+| /tournaments/:tournamentId/matches | Fixtures, match scheduling and updates, score/result entry, league standings and knockout bracket |
 | /sports-clubs/* | Public preview: list/search/details and local create/edit/delete |
 | /training-attendance/* | Public preview: schedules, session create/edit, attendance recording/listing |
 | /announcements/* | Public preview: announcement drafts, editing and publication controls |
 
 Clubs, training sessions and attendance use sample records and localStorage in the current browser origin. Existing storage keys/data are preserved by this integration. These records are not saved through PHP/MySQL and are not shared across devices or origins.
+
+Tournament, entry, match, result and standings screens use the PHP/MySQL competition API and shared authenticated session. Tournament sports and active facilities load from the authenticated `/api/sports` and `/api/facilities` endpoints.
 
 Announcements are held in React memory. Refreshing or leaving the mounted module resets them to sample records. Training/attendance and announcement previews do not currently implement a complete delete workflow.
 
@@ -46,7 +51,9 @@ Authentication uses the shared server session. No auth tokens or passwords are s
 
 - src/main.jsx owns the single BrowserRouter and AuthProvider.
 - src/App.jsx combines protected account routes with separate module preview layouts.
-- src/shared/api.js handles PHP JSON requests, cookies, CSRF and safe errors.
+- src/shared/api.js handles PHP JSON requests, cookies, CSRF, safe errors and GET/POST/PATCH/PUT/DELETE calls.
+- src/shared/StudentLayout.jsx and src/shared/AdminLayout.jsx provide role-aware workspace navigation using a consistent shared shell.
+- src/shared/FormField.jsx, src/shared/Feedback.jsx and src/shared/DataTable.jsx provide common accessible field, feedback and table patterns for competition screens.
 - The shared API client also accepts successful 204 archive/cancellation responses without trying to parse an empty JSON body.
 - src/shared/AuthContext.jsx maintains the authoritative server session.
 - src/shared/styles.css styles the authentication/user workspace.
