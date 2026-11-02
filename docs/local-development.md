@@ -1,6 +1,6 @@
-# Local development: Mukilan's authentication/users CRUD
+# Local development: PHP APIs and React frontend
 
-Branch: `feat/mukilan-auth-users-crud`. This branch starts from `main`; Shahilan's feature branch is separate and has not been merged into it.
+This integration combines authentication/users, resource/booking, membership and competition APIs, and Shahilan's frontend module previews. All PHP modules use the same private configuration, PDO connection, session and CSRF helpers. Membership, competition and resource/booking interfaces remain pending.
 
 ## Requirements
 
@@ -19,7 +19,7 @@ $localDbIni = (Resolve-Path .tools/db-data/my.ini).Path
 & ./.tools/mariadb/mariadb-11.4.13-winx64/bin/mariadbd.exe "--defaults-file=$localDbIni" --bind-address=127.0.0.1 --port=3307 --skip-log-bin --innodb-buffer-pool-size=64M --console
 ```
 
-For this isolated loopback development instance, configure host `127.0.0.1`, port `3307`, database `nsbm_sportshub`, user `root`, and an empty database password in your private local.php. Set your own random application key. Replace each `php` command below with `& ./.tools/php/php.exe`. The application Admin still requires your own email and password through the provisioning command. Other teammates should use their own installed PHP/database or separately prepare portable tools.
+For this isolated loopback development instance, configure host `127.0.0.1`, port `3307`, database `nsbm_sportshub`, user `root`, and an empty database password in your private `backend/.env`. Set your own random application key. Replace each `php` command below with `& ./.tools/php/php.exe`. The application Admin still requires your own email and password through the provisioning command. Other teammates should use their own installed PHP/database or separately prepare portable tools. If the database is already running on that port, reuse it.
 
 To stop this local database cleanly:
 
@@ -29,16 +29,16 @@ To stop this local database cleanly:
 
 ## 1. Private database configuration
 
-Start your local MySQL/MariaDB server. Copy the configuration example in PowerShell from the repository root:
+Start your local MySQL/MariaDB server. On a new clone, create private configuration in PowerShell from the repository root. Keep an existing `backend/.env`; the command below copies only when it is missing:
 
 ```powershell
-Copy-Item backend/config/config.example.php backend/config/local.php
+if (!(Test-Path backend/.env)) { Copy-Item backend/.env.example backend/.env }
 php -r "echo bin2hex(random_bytes(32)), PHP_EOL;"
 ```
 
-Edit the ignored `backend/config/local.php` with the generated `app_key`, local database host/port, database name, username, and password. Use `nsbm_sportshub` as a local database name unless your team agrees another. Do not put secrets in the frontend, Git, screenshots, or shared messages. Leave `session.secure` false only for local HTTP development.
+For a new configuration, paste the generated key into `SPORTSHUB_APP_KEY` in the ignored `backend/.env` and edit `SPORTSHUB_DB_HOST`, `SPORTSHUB_DB_PORT`, `SPORTSHUB_DB_NAME`, `SPORTSHUB_DB_USER`, and `SPORTSHUB_DB_PASSWORD`. Preserve an existing key. Use `nsbm_sportshub` as a local database name unless your team agrees another. The example uses portable MariaDB port `3307`; change it to `3306` if that is your XAMPP port. Do not put secrets in the frontend, Git, screenshots, or shared messages. Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP development.
 
-Alternatively use `SPORTSHUB_APP_KEY`, `SPORTSHUB_DB_HOST`, `SPORTSHUB_DB_PORT`, `SPORTSHUB_DB_NAME`, `SPORTSHUB_DB_USER`, and `SPORTSHUB_DB_PASSWORD` environment variables. Environment variables override private config. `SPORTSHUB_ENV=production` requires `SPORTSHUB_SESSION_SECURE=1` and HTTPS. An optional private session directory can be set through `SPORTSHUB_SESSION_PATH`.
+Configuration precedence is defaults < optional private `backend/config/local.php` < `backend/.env` < process environment. Existing `local.php` configurations remain supported. PHP and CLI commands find `.env` independently of the terminal folder. Restart PHP after configuration changes; inherited process variables override the file, including empty values. `SPORTSHUB_ENV=production` requires `SPORTSHUB_SESSION_SECURE=1` and HTTPS. An optional private session directory can be set through `SPORTSHUB_SESSION_PATH`.
 
 ## 2. Initialize the schema and first Admin
 
@@ -47,11 +47,11 @@ php backend/bin/setup.php
 php backend/bin/create-admin.php --name="Mukilan" --email="your-real-email@example.com"
 ```
 
-Replace the example email with yours. The Admin command prompts for a password without showing it on an interactive terminal. There is no default password. For automation, `SPORTSHUB_ADMIN_PASSWORD` can be supplied through the process environment; keep it out of scripts and shell arguments.
+Replace the example email with yours. Skip Admin provisioning if the first Admin already exists. The Admin command prompts for a password without showing it on an interactive terminal. There is no default password. For automation, `SPORTSHUB_ADMIN_PASSWORD` can be supplied through the process environment; keep it out of scripts and shell arguments.
 
-The setup command creates the configured database and applies `database/migrations/001_authentication_users.sql` without dropping data or altering existing tables. The setup account needs permission to create that database/tables. Use a restricted application database account for normal runtime after initialization. The Admin command only provisions the first Admin and refuses repeated bootstrap or existing-email promotion. Later Admins are created by an authorized Admin through the UI/API.
+The setup command creates the configured database and applies every `database/migrations/NNN_name.sql` file in numeric order, without dropping data or altering existing tables. Add `--seed` (`php backend/bin/setup.php --seed`) to also load the reference sports and the demo clubs used by the membership and competition APIs. See [database design](database-erd.md) for the schema and migration order. The setup account needs permission to create that database/tables. Use a restricted application database account for normal runtime after initialization. The Admin command only provisions the first Admin and refuses repeated bootstrap or existing-email promotion. Later Admins are created by an authorized Admin through the UI/API.
 
-This is the initial users/rate-limit migration for Mukilan's module. Review it with Jassim before merging or adding related foreign keys. Future schema changes need new ordered migrations.
+The first migration creates users/rate limits; the second creates facilities, equipment and bookings; `003`–`006` create sports, clubs, memberships, club coaches, tournaments, entries and matches. Setup refuses two migrations that share a number. Setup checks existing schema compatibility and preserves records on repeat runs. Mursid's original resource-only migration was renamed from 001_resources_and_bookings.sql to 002_resources_and_bookings.sql; existing compatible tables can be retained. Review schema changes with Jassim; future schema changes need new ordered migrations.
 
 ## 3. Start PHP and React
 
@@ -84,14 +84,28 @@ Build the frontend:
 ```powershell
 cd frontend
 npm.cmd run build
+npm.cmd test
 ```
 
-Run the integration suite from the repository root with PHP and a running MySQL-compatible server configured as above:
+The frontend tests cover preview club persistence and the shared API contract: authenticated result writes with `PUT`, CSRF renewal, empty cancellation responses, validation errors and expired sessions.
+
+Run configuration checks and the integration suite from the repository root with PHP and a running MySQL-compatible server configured as above:
 
 ```powershell
+php backend/tests/configuration.php
 node backend/tests/integration.mjs
 ```
 
 Set `SPORTSHUB_PHP` to a PHP executable path if necessary. The test process creates a random `sportshub_test_<16 hex characters>` database, provisions a temporary Admin with a random password, launches its own PHP server on a free loopback port, exercises real HTTP/database operations, then drops only that test database. The configured database account needs CREATE/DROP DATABASE permissions for this suite. The application's configured database is not used for test records. Session artifacts under `.artifacts/` are ignored by Git.
 
-The suite checks registration, login/logout, CSRF, field validation, private-field protection, Student/Admin access, profile persistence, user create/read/update/archive, pagination/search/filtering, password changes, session revocation, and Admin lockout protection. Browser verification should additionally cover forms, confirmations, mobile layouts, and backend-unavailable feedback.
+With this workstation's portable PHP, run from the repository root:
+
+```powershell
+& ./.tools/php/php.exe backend/tests/configuration.php
+$env:SPORTSHUB_PHP = (Resolve-Path .tools/php/php.exe).Path
+node backend/tests/integration.mjs
+```
+
+Membership checks cover applications, duplicate/concurrent applications, coach assignments, scoped reads, reviews and lifecycle transitions. Competition checks cover eligibility, entries, league/knockout fixtures, result corrections and standings. These exercise the backend APIs; their user interfaces remain pending. See the [membership contract](memberships-api.md) and [competition contract](competitions-api.md).
+
+The suite checks registration, login/logout, CSRF, field validation, private-field protection, Student/Admin access, profile persistence, user create/read/update/archive, pagination/search/filtering, password changes, session revocation, and Admin lockout protection. It also checks authenticated resource CRUD, booking ownership, Admin review, facility overlap, equipment stock limits, cancellation, archival, repeatable setup and revoked-account access. These HTTP tests exercise sequential conflicts; simultaneous multi-request booking concurrency needs separate verification. Browser verification should additionally cover forms, confirmations, mobile layouts, and backend-unavailable feedback.

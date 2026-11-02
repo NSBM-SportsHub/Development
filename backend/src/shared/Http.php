@@ -5,19 +5,12 @@ namespace SportsHub;
 
 final class ApiException extends \RuntimeException
 {
-    public int $status;
-    public string $errorCode;
-    public array $fields;
-
     public function __construct(
-        int $status,
-        string $errorCode,
+        public readonly int $status,
+        public readonly string $errorCode,
         string $message,
-        array $fields = [],
+        public readonly array $fields = [],
     ) {
-        $this->status = $status;
-        $this->errorCode = $errorCode;
-        $this->fields = $fields;
         parent::__construct($message);
     }
 }
@@ -32,14 +25,26 @@ final class Http
         header('Referrer-Policy: no-referrer');
     }
 
-    public static function json(mixed $data, int $status = 200): void
+    public static function json(mixed $data, int $status = 200): never
     {
         http_response_code($status);
         echo json_encode(['data' => $data, 'error' => null], JSON_THROW_ON_ERROR | JSON_UNESCAPED_SLASHES);
         exit;
     }
 
-    public static function error(ApiException $exception): void
+    public static function noContent(): never
+    {
+        http_response_code(204);
+        exit;
+    }
+
+    // Stored UTC DATETIME values are returned as ISO-8601 strings, e.g. 2026-10-30T09:00:00Z.
+    public static function timestamp(?string $value): ?string
+    {
+        return $value === null ? null : str_replace(' ', 'T', $value) . 'Z';
+    }
+
+    public static function error(ApiException $exception): never
     {
         http_response_code($exception->status);
         echo json_encode([
@@ -89,3 +94,4 @@ final class Http
         }
     }
 }
+

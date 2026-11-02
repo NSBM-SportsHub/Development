@@ -1,12 +1,6 @@
--- clubs.id is the referenced key for club-specific announcements.
-CREATE TABLE IF NOT EXISTS clubs (
-    id INT NOT NULL AUTO_INCREMENT,
-    PRIMARY KEY (id)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
-
 CREATE TABLE IF NOT EXISTS announcements (
     announcement_id CHAR(36) CHARACTER SET ascii COLLATE ascii_bin NOT NULL,
-    club_id INT NULL,
+    club_id BIGINT UNSIGNED NULL,
     title VARCHAR(255) NOT NULL,
     body TEXT NOT NULL,
     is_pinned TINYINT(1) NOT NULL DEFAULT 0,

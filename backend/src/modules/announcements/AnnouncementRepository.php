@@ -76,7 +76,7 @@ final class AnnouncementRepository
 
     public static function clubExists(int $clubId): bool
     {
-        $statement = Database::get()->prepare('SELECT 1 FROM clubs WHERE id = ?');
+        $statement = Database::get()->prepare('SELECT 1 FROM clubs WHERE id = ? AND is_archived = 0');
         $statement->execute([$clubId]);
         return $statement->fetchColumn() !== false;
     }

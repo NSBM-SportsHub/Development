@@ -11,8 +11,39 @@ if (PHP_SAPI !== 'cli') {
     exit;
 }
 if (in_array('--help', $argv, true)) {
-    fwrite(STDOUT, "Usage: php backend/bin/setup.php\nConfigure SPORTSHUB_DB_* first. Creates the database and missing tables; never alters or replaces existing tables.\n");
+    fwrite(STDOUT, "Usage: php backend/bin/setup.php [--seed]\nConfigure SPORTSHUB_DB_* first. Creates the database and applies every database/migrations/NNN_name.sql file in order; never alters or replaces existing tables.\n--seed also applies the idempotent database/seeds/NNN_name.sql files (reference sports and demo clubs).\n");
     exit(0);
+}
+
+// Applies each statement of an idempotent SQL file. Statements end with a semicolon at a line end.
+function applySqlFile(PDO $connection, string $path): void
+{
+    $sql = file_get_contents($path);
+    if ($sql === false) {
+        throw new RuntimeException('The SQL file ' . basename($path) . ' could not be read.');
+    }
+    foreach (preg_split('/;\s*(?:\r?\n|$)/', $sql) as $statement) {
+        if (trim($statement) !== '') {
+            $connection->exec($statement);
+        }
+    }
+}
+
+// Ordered NNN_name.sql files. Two files sharing a number would make the order ambiguous, so refuse them.
+function orderedSqlFiles(string $directory): array
+{
+    $files = [];
+    foreach (glob($directory . '/*.sql') ?: [] as $path) {
+        if (!preg_match('/\A([0-9]{3})_[a-z0-9_]+\.sql\z/', basename($path), $match)) {
+            throw new RuntimeException('The SQL file ' . basename($path) . ' must be named NNN_lowercase_name.sql.');
+        }
+        if (isset($files[$match[1]])) {
+            throw new RuntimeException('The SQL files ' . basename($files[$match[1]]) . ' and ' . basename($path) . ' share number ' . $match[1] . '. Renumber one of them.');
+        }
+        $files[$match[1]] = $path;
+    }
+    ksort($files, SORT_STRING);
+    return array_values($files);
 }
 
 try {
@@ -29,11 +60,66 @@ try {
             'student_id' => 'varchar(50)', 'auth_version' => 'int unsigned',
             'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime',
         ],
-        'auth_rate_limits' => ['key_hash' => 'char(64)', 'attempts' => 'int unsigned', 'expires_at' => 'datetime'],
-        'clubs' => ['id' => 'int'],
         'announcements' => [
-            'announcement_id' => 'char(36)', 'club_id' => 'int', 'title' => 'varchar(255)',
+            'announcement_id' => 'char(36)', 'club_id' => 'bigint unsigned', 'title' => 'varchar(255)',
             'body' => 'text', 'is_pinned' => 'tinyint(1)', 'is_deleted' => 'tinyint(1)',
+        ],
+        'training_sessions' => ['id' => 'bigint unsigned', 'club_id' => 'bigint unsigned', 'title' => 'varchar(150)', 'session_date' => 'date', 'start_time' => 'time', 'end_time' => 'time'],
+        'training_attendance' => ['id' => 'bigint unsigned', 'session_id' => 'bigint unsigned', 'participant_id' => 'bigint unsigned'],
+        'auth_rate_limits' => ['key_hash' => 'char(64)', 'attempts' => 'int unsigned', 'expires_at' => 'datetime'],
+        'facilities' => [
+            'id' => 'bigint unsigned', 'name' => 'varchar(120)', 'description' => 'text',
+            'location' => 'varchar(160)', 'capacity' => 'int unsigned', 'is_active' => 'tinyint(1)',
+            'created_at' => 'timestamp', 'updated_at' => 'timestamp',
+        ],
+        'equipment' => [
+            'id' => 'bigint unsigned', 'name' => 'varchar(120)', 'description' => 'text',
+            'total_quantity' => 'int unsigned', 'is_active' => 'tinyint(1)',
+            'created_at' => 'timestamp', 'updated_at' => 'timestamp',
+        ],
+        'bookings' => [
+            'id' => 'bigint unsigned', 'facility_id' => 'bigint unsigned', 'equipment_id' => 'bigint unsigned',
+            'requested_by' => 'bigint unsigned', 'reviewed_by' => 'bigint unsigned',
+            'starts_at' => 'datetime', 'ends_at' => 'datetime', 'quantity' => 'int unsigned',
+            'notes' => 'varchar(1000)', 'status' => 'varchar(16)',
+            'created_at' => 'timestamp', 'updated_at' => 'timestamp',
+        ],
+        'sports' => [
+            'id' => 'bigint unsigned', 'name' => 'varchar(80)', 'is_active' => 'tinyint(1)',
+            'created_at' => 'datetime', 'updated_at' => 'datetime',
+        ],
+        'clubs' => [
+            'id' => 'bigint unsigned', 'sport_id' => 'bigint unsigned', 'name' => 'varchar(120)',
+            'status' => "enum('active','recruiting','full','inactive')", 'is_archived' => 'tinyint(1)',
+            'created_at' => 'datetime', 'updated_at' => 'datetime',
+        ],
+        'club_coaches' => [
+            'id' => 'bigint unsigned', 'club_id' => 'bigint unsigned', 'user_id' => 'bigint unsigned',
+            'ended_at' => 'datetime', 'active_flag' => 'tinyint unsigned',
+        ],
+        'memberships' => [
+            'id' => 'bigint unsigned', 'club_id' => 'bigint unsigned', 'user_id' => 'bigint unsigned',
+            'status' => "enum('pending','approved','rejected','withdrawn','ended')",
+            'reviewed_by' => 'bigint unsigned', 'active_flag' => 'tinyint unsigned',
+        ],
+        'tournaments' => [
+            'id' => 'bigint unsigned', 'sport_id' => 'bigint unsigned', 'name' => 'varchar(150)',
+            'format' => "enum('league','knockout')",
+            'status' => "enum('draft','registration_open','registration_closed','in_progress','completed','cancelled')",
+            'starts_on' => 'date', 'ends_on' => 'date',
+        ],
+        'tournament_entries' => [
+            'id' => 'bigint unsigned', 'tournament_id' => 'bigint unsigned', 'name' => 'varchar(120)',
+            'status' => "enum('pending','approved','rejected','withdrawn')", 'active_flag' => 'tinyint unsigned',
+        ],
+        'tournament_entry_members' => [
+            'id' => 'bigint unsigned', 'tournament_id' => 'bigint unsigned', 'entry_id' => 'bigint unsigned',
+            'user_id' => 'bigint unsigned', 'active_flag' => 'tinyint unsigned',
+        ],
+        'matches' => [
+            'id' => 'bigint unsigned', 'tournament_id' => 'bigint unsigned', 'home_entry_id' => 'bigint unsigned',
+            'away_entry_id' => 'bigint unsigned', 'winner_entry_id' => 'bigint unsigned',
+            'status' => "enum('scheduled','postponed','completed','cancelled')",
         ],
     ];
     foreach ($expected as $table => $columns) {
@@ -53,7 +139,8 @@ try {
         foreach ($columns as $field => $type) {
             $actualType = $actual[$field] ?? null;
             if ($actualType !== null) {
-                $actualType = preg_replace('/\b(bigint|int)\([0-9]+\)/', '$1', $actualType);
+                // MariaDB reports display widths (bigint(20)); MySQL 8 omits them. tinyint(1) stays as the boolean marker.
+                $actualType = preg_replace('/\b(bigint|int|smallint|tinyint)\((?!1\))[0-9]+\)/', '$1', $actualType);
             }
             if ($actualType !== $type) {
                 throw new RuntimeException('Existing table ' . $table . ' has an incompatible ' . $field . ' column. Review it manually; no changes were applied to it.');
@@ -66,34 +153,27 @@ try {
                 $uniqueColumns[$index['Key_name']][] = $index['Column_name'];
             }
         }
-        $uniqueFields = match ($table) {
+        $requiredUnique = match ($table) {
             'users' => ['id', 'email', 'student_id'],
             'auth_rate_limits' => ['key_hash'],
-            'clubs' => ['id'],
             'announcements' => ['announcement_id'],
+            default => ['id'],
         };
-        foreach ($uniqueFields as $field) {
+        foreach ($requiredUnique as $field) {
             if (!in_array([$field], $uniqueColumns, true)) {
                 throw new RuntimeException('Existing table ' . $table . ' requires a unique ' . $field . ' index. Review it manually; no changes were applied to it.');
             }
         }
     }
 
-    $migrations = glob(dirname(__DIR__, 2) . '/database/migrations/[0-9][0-9][0-9]_*.sql');
-    if ($migrations === false || $migrations === []) {
-        throw new RuntimeException('No database migrations could be found.');
+    foreach (orderedSqlFiles(dirname(__DIR__, 2) . '/database/migrations') as $migration) {
+        applySqlFile($connection, $migration);
     }
-    sort($migrations, SORT_STRING);
-    foreach ($migrations as $migration) {
-        $sql = file_get_contents($migration);
-        if ($sql === false) {
-            throw new RuntimeException('A database migration could not be read: ' . basename($migration));
+    if (in_array('--seed', $argv, true)) {
+        foreach (orderedSqlFiles(dirname(__DIR__, 2) . '/database/seeds') as $seed) {
+            applySqlFile($connection, $seed);
         }
-        foreach (preg_split('/;\s*(?:\r?\n|$)/', $sql) as $statement) {
-            if (trim($statement) !== '') {
-                $connection->exec($statement);
-            }
-        }
+        fwrite(STDOUT, "Reference and demo seed data were applied.\n");
     }
     fwrite(STDOUT, 'Database ' . $database . " is ready. Existing records were preserved.\n");
     fwrite(STDOUT, "Provision the first administrator with php backend/bin/create-admin.php.\n");
@@ -101,3 +181,4 @@ try {
     fwrite(STDERR, 'Setup failed: ' . $exception->getMessage() . PHP_EOL);
     exit(1);
 }
+

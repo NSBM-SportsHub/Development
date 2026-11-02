@@ -32,5 +32,27 @@ final class Database
     {
         return self::$connection ??= self::connect();
     }
+
+    // Runs $callback(PDO) in one transaction; any exception (including ApiException) rolls it back.
+    public static function transaction(callable $callback): mixed
+    {
+        $connection = self::get();
+        $connection->beginTransaction();
+        try {
+            $result = $callback($connection);
+            $connection->commit();
+            return $result;
+        } catch (\Throwable $exception) {
+            if ($connection->inTransaction()) {
+                $connection->rollBack();
+            }
+            throw $exception;
+        }
+    }
+
+    public static function isDuplicateKey(\PDOException $exception): bool
+    {
+        return ($exception->errorInfo[1] ?? null) === 1062;
+    }
 }
 

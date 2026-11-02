@@ -2,12 +2,17 @@
 declare(strict_types=1);
 
 use SportsHub\ApiException;
+use SportsHub\AnnouncementController;
 use SportsHub\AuthController;
+use SportsHub\BookingController;
 use SportsHub\Config;
 use SportsHub\Database;
 use SportsHub\Http;
+use SportsHub\MatchController;
+use SportsHub\MembershipController;
+use SportsHub\ResourceController;
+use SportsHub\TournamentController;
 use SportsHub\Session;
-use SportsHub\AnnouncementController;
 use SportsHub\UserController;
 
 require dirname(__DIR__) . '/src/shared/bootstrap.php';
@@ -30,17 +35,61 @@ try {
         '/api/users' => ['GET', 'POST'],
         '/api/announcements' => ['GET', 'POST'],
     ];
-    $userId = null;
+    $sportsRoute = \SportsHub\SportsTrainingRoutes::match($path);
+    if ($sportsRoute !== null) {
+        $routes[$path] = $sportsRoute['methods'];
+    }
     $announcementId = null;
+    if (preg_match('~\A/api/announcements/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\z~i', $path, $match)) {
+        $announcementId = strtolower($match[1]);
+        $routes[$path] = ['GET', 'PATCH', 'DELETE'];
+    }
+    $userId = null;
+    $moduleRoute = null;
+    $moduleId = null;
+    if (preg_match('~\A/api/(facilities|equipment|bookings)(?:/([1-9][0-9]{0,18}))?\z~', $path, $match)) {
+        $moduleRoute = $match[1];
+        if (isset($match[2])) {
+            $moduleId = filter_var($match[2], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($moduleId === false) {
+                throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+            }
+        }
+        $routes[$path] = $moduleId === null ? ['GET', 'POST'] : ['GET', 'PUT', 'PATCH', 'DELETE'];
+    }
+    // Membership and competition routes: /api/{collection}[/{id}[/{action}]].
+    $competitionRoute = null;
+    $competitionId = null;
+    if (preg_match('~\A/api/(memberships|club-coaches|tournaments|tournament-entries|matches)(?:/([1-9][0-9]{0,18})(?:/(entries|eligible-members|matches|fixtures|standings|result))?)?\z~', $path, $match)) {
+        if (isset($match[2])) {
+            $competitionId = filter_var($match[2], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
+            if ($competitionId === false) {
+                throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+            }
+        }
+        $competitionRoute = $match[1] . (isset($match[2]) ? '/{id}' : '') . (isset($match[3]) ? '/' . $match[3] : '');
+        $routes[$path] = [
+            'memberships' => ['GET', 'POST'],
+            'memberships/{id}' => ['GET', 'PATCH'],
+            'club-coaches' => ['GET', 'POST'],
+            'club-coaches/{id}' => ['DELETE'],
+            'tournaments' => ['GET', 'POST'],
+            'tournaments/{id}' => ['GET', 'PATCH', 'DELETE'],
+            'tournaments/{id}/entries' => ['GET', 'POST'],
+            'tournaments/{id}/eligible-members' => ['GET'],
+            'tournaments/{id}/matches' => ['GET', 'POST'],
+            'tournaments/{id}/fixtures' => ['POST'],
+            'tournaments/{id}/standings' => ['GET'],
+            'tournament-entries/{id}' => ['GET', 'PATCH'],
+            'matches/{id}' => ['GET', 'PATCH', 'DELETE'],
+            'matches/{id}/result' => ['PUT'],
+        ][$competitionRoute] ?? throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+    }
     if (!isset($routes[$path]) && preg_match('~\A/api/users/([1-9][0-9]{0,18})\z~', $path, $match)) {
         $userId = filter_var($match[1], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]);
         if ($userId === false) {
             throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
         }
-        $routes[$path] = ['GET', 'PATCH', 'DELETE'];
-    }
-    if (!isset($routes[$path]) && preg_match('~\A/api/announcements/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\z~i', $path, $match)) {
-        $announcementId = strtolower($match[1]);
         $routes[$path] = ['GET', 'PATCH', 'DELETE'];
     }
     if (!isset($routes[$path])) {
@@ -54,6 +103,37 @@ try {
     }
     Session::start();
     Session::currentUser(); // Refresh the account status and session version on every request.
+    if ($sportsRoute !== null) {
+        \SportsHub\SportsTrainingRoutes::dispatch($sportsRoute, $method);
+    }
+    if ($moduleRoute !== null) {
+        $actor = Session::requireUser();
+        if ($method !== 'GET') {
+            Session::verifyCsrf();
+        }
+        if ($moduleRoute === 'bookings') {
+            (new BookingController(Database::get()))->dispatch($method, $moduleId, $actor);
+        }
+        $type = $moduleRoute === 'facilities' ? 'facility' : 'equipment';
+        (new ResourceController(Database::get(), $type, $moduleRoute))->dispatch($method, $moduleId, $actor);
+    }
+    if ($competitionRoute !== null) {
+        $actor = Session::requireUser();
+        $body = in_array($method, ['POST', 'PATCH', 'PUT'], true) ? Http::body() : [];
+        if ($method !== 'GET') {
+            Session::verifyCsrf();
+        }
+        $controller = match (true) {
+            in_array(strtok($competitionRoute, '/'), ['memberships', 'club-coaches'], true) => MembershipController::class,
+            str_starts_with($competitionRoute, 'matches') || preg_match('~/(matches|fixtures|standings)\z~', $competitionRoute) === 1 => MatchController::class,
+            default => TournamentController::class,
+        };
+        $data = $controller::handle($competitionRoute, $method, $competitionId, $body, $_GET, $actor);
+        if ($method === 'DELETE') {
+            Http::noContent();
+        }
+        Http::json($data, $method === 'POST' ? 201 : 200);
+    }
     $body = [];
     if (in_array($method, ['POST', 'PATCH', 'DELETE'], true)) {
         $body = Http::body(str_starts_with($path, '/api/announcements') ? 70000 : 16384);

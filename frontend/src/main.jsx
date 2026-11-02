@@ -8,6 +8,7 @@ import { AuthProvider } from "./shared/AuthContext.jsx";
 import "./shared/styles.css";
 import "./glass.css";
 import "./shared/module-navigation.css";
+import "./shared/competition-ui.css";
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>

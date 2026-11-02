@@ -35,6 +35,8 @@ async function request(path, { method = "GET", body, signal, skipCsrf = false } 
     throw new ApiError("Cannot reach SportsHub. Start the PHP API at http://127.0.0.1:8000 and try again.", { code: "NETWORK_ERROR" });
   }
 
+  if (response.status === 204) return null;
+
   let payload;
   try {
     payload = await response.json();
@@ -75,6 +77,7 @@ export async function refreshSession() {
 export const api = {
   get: (path, options = {}) => request(path, options),
   post: (path, body) => request(path, { method: "POST", body }),
+  put: (path, body) => request(path, { method: "PUT", body }),
   patch: (path, body) => request(path, { method: "PATCH", body }),
   delete: (path) => request(path, { method: "DELETE" }),
 };
