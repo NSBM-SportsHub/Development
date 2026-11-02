@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { testCompetitions } from './competitions.mjs';
 import { testMemberships } from './memberships.mjs';
+import { testSportsTraining } from './sports-training.mjs';
 import { testResourcesAndBookings } from './resources-bookings.mjs';
 
 // Real PHP + MySQL/MariaDB HTTP tests. Creates and drops ONLY a random test DB.
@@ -216,6 +217,7 @@ try {
   await testResourcesAndBookings({ check, Client, admin, student, cli });
   const membershipContext = await testMemberships({ check, Client, admin, cli, suffix, password });
   await testCompetitions({ check, Client, admin, ...membershipContext });
+  await testSportsTraining({ check, Client, admin, ...membershipContext });
 
   await check('Admin can create/read a user and duplicate email is rejected', async () => {
     targetEmail = `managed-${suffix}@example.test`;

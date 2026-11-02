@@ -32,8 +32,11 @@ try {
         '/api/users/me' => ['GET', 'PATCH'],
         '/api/users/me/password' => ['PATCH'],
         '/api/users' => ['GET', 'POST'],
-        '/api/sports' => ['GET'],
     ];
+    $sportsRoute = \SportsHub\SportsTrainingRoutes::match($path);
+    if ($sportsRoute !== null) {
+        $routes[$path] = $sportsRoute['methods'];
+    }
     $userId = null;
     $moduleRoute = null;
     $moduleId = null;
@@ -93,13 +96,8 @@ try {
     }
     Session::start();
     Session::currentUser(); // Refresh the account status and session version on every request.
-    if ($path === '/api/sports') {
-        Session::requireUser();
-        $sports = Database::get()->query('SELECT id, name FROM sports WHERE is_active = 1 ORDER BY name, id')->fetchAll();
-        Http::json(array_map(static fn (array $sport): array => [
-            'id' => (int) $sport['id'],
-            'name' => $sport['name'],
-        ], $sports));
+    if ($sportsRoute !== null) {
+        \SportsHub\SportsTrainingRoutes::dispatch($sportsRoute, $method);
     }
     if ($moduleRoute !== null) {
         $actor = Session::requireUser();
