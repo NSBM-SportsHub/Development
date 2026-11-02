@@ -15,6 +15,19 @@ require_once __DIR__ . '/../../shared/Validator.php';
  */
 final class TrainingController
 {
+    private static function rejectUnknownFields(array $data, array $allowed, string $kind): void
+    {
+        $unknown = array_diff(array_keys($data), $allowed);
+        if ($unknown !== []) {
+            throw new InvalidArgumentException('Unsupported ' . $kind . ': ' . reset($unknown) . '.');
+        }
+    }
+
+    private static function logFailure(Throwable $exception): void
+    {
+        error_log($exception::class . ': ' . $exception->getMessage());
+    }
+
     private static function tableExists(PDO $pdo, string $tableName): bool
     {
         $stmt = $pdo->prepare(
@@ -53,7 +66,12 @@ final class TrainingController
             throw new InvalidArgumentException("Field '{$fieldName}' is required.");
         }
 
-        $date = DateTimeImmutable::createFromFormat('Y-m-d', trim($value));
+        $value = trim($value);
+        if (str_contains($value, "\0")) {
+            throw new InvalidArgumentException("Field '{$fieldName}' must be a valid date in YYYY-MM-DD format.");
+        }
+
+        $date = DateTimeImmutable::createFromFormat('!Y-m-d', $value);
         if ($date === false || $date->format('Y-m-d') !== trim($value)) {
             throw new InvalidArgumentException("Field '{$fieldName}' must be a valid date in YYYY-MM-DD format.");
         }
@@ -67,15 +85,20 @@ final class TrainingController
             throw new InvalidArgumentException("Field '{$fieldName}' is required.");
         }
 
-        $time = DateTimeImmutable::createFromFormat('H:i', trim($value));
-        if ($time === false || $time->format('H:i') !== trim($value)) {
+        $value = trim($value);
+        if (str_contains($value, "\0")) {
+            throw new InvalidArgumentException("Field '{$fieldName}' must be a valid time in HH:MM format.");
+        }
+
+        $time = DateTimeImmutable::createFromFormat('!H:i', $value);
+        if ($time === false || $time->format('H:i') !== $value) {
             throw new InvalidArgumentException("Field '{$fieldName}' must be a valid time in HH:MM format.");
         }
 
         return $time->format('H:i');
     }
 
-    private static function normalizePositiveInt(mixed $value, string $fieldName, int $maxValue = 2147483647): int
+    private static function normalizePositiveInt(mixed $value, string $fieldName, int $maxValue = PHP_INT_MAX): int
     {
         if ($value === null || $value === '') {
             throw new InvalidArgumentException("Field '{$fieldName}' is required.");
@@ -89,8 +112,8 @@ final class TrainingController
             throw new InvalidArgumentException("Field '{$fieldName}' must be a positive integer.");
         }
 
-        $number = (int) $value;
-        if ($number <= 0 || $number > $maxValue) {
+        $number = filter_var((string) $value, FILTER_VALIDATE_INT);
+        if ($number === false || $number <= 0 || $number > $maxValue) {
             throw new InvalidArgumentException("Field '{$fieldName}' is out of range.");
         }
 
@@ -99,10 +122,6 @@ final class TrainingController
 
     private static function fetchSession(PDO $pdo, int $sessionId): ?array
     {
-        if (!self::tableExists($pdo, 'training_sessions')) {
-            return null;
-        }
-
         $stmt = $pdo->prepare('SELECT * FROM training_sessions WHERE id = :id LIMIT 1');
         $stmt->execute([':id' => $sessionId]);
         $session = $stmt->fetch();
@@ -113,6 +132,7 @@ final class TrainingController
     public static function list(): void
     {
         try {
+            self::rejectUnknownFields($_GET, ['search', 'status', 'date', 'club_id'], 'query parameter');
             $pdo = Database::getConnection();
 
             if (!self::tableExists($pdo, 'training_sessions')) {
@@ -123,7 +143,7 @@ final class TrainingController
             $search = self::normalizeText($_GET['search'] ?? null, 100);
             $status = self::normalizeText($_GET['status'] ?? null, 50);
             $date = self::normalizeText($_GET['date'] ?? null, 10);
-            $clubId = isset($_GET['club_id']) ? self::normalizePositiveInt($_GET['club_id'], 'club_id', 2147483647) : null;
+            $clubId = isset($_GET['club_id']) ? self::normalizePositiveInt($_GET['club_id'], 'club_id') : null;
 
             $sql = 'SELECT * FROM training_sessions WHERE 1 = 1';
             $params = [];
@@ -164,6 +184,7 @@ final class TrainingController
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to load training sessions.']);
         }
     }
@@ -172,15 +193,21 @@ final class TrainingController
     {
         try {
             $pdo = Database::getConnection();
+            if (!self::tableExists($pdo, 'training_sessions')) {
+                Response::json(500, ['success' => false, 'message' => 'The training_sessions table is not available in the configured database.']);
+                return;
+            }
+
             $session = self::fetchSession($pdo, $sessionId);
 
             if ($session === null) {
-                Response::json(404, ['success' => false, 'message' => 'Training session not found or the training_sessions table is unavailable.']);
+                Response::json(404, ['success' => false, 'message' => 'Training session not found.']);
                 return;
             }
 
             Response::json(200, ['success' => true, 'data' => $session]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to load training session details.']);
         }
     }
@@ -194,13 +221,19 @@ final class TrainingController
 
         try {
             $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            self::rejectUnknownFields($input, ['title', 'status', 'session_date', 'start_time', 'end_time', 'club_id', 'notes'], 'field');
 
             $title = self::normalizeText($input['title'] ?? null, 150);
             if ($title === null) {
                 throw new InvalidArgumentException("Field 'title' is required.");
             }
 
-            $status = self::normalizeText($input['status'] ?? 'scheduled', 50) ?? 'scheduled';
+            $status = array_key_exists('status', $input)
+                ? self::normalizeText($input['status'], 50)
+                : 'scheduled';
+            if ($status === null) {
+                throw new InvalidArgumentException("Field 'status' must be a non-empty string.");
+            }
             $sessionDate = self::normalizeDate($input['session_date'] ?? null, 'session_date');
             $startTime = self::normalizeTime($input['start_time'] ?? null, 'start_time');
             $endTime = self::normalizeTime($input['end_time'] ?? null, 'end_time');
@@ -248,6 +281,7 @@ final class TrainingController
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to create training session.']);
         }
     }
@@ -261,16 +295,35 @@ final class TrainingController
 
         try {
             $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            self::rejectUnknownFields($input, ['title', 'status', 'session_date', 'start_time', 'end_time', 'club_id', 'notes'], 'field');
+            if ($input === []) {
+                throw new InvalidArgumentException('At least one field must be provided for update.');
+            }
 
             $pdo = Database::getConnection();
-            $session = self::fetchSession($pdo, $sessionId);
-            if ($session === null) {
-                Response::json(404, ['success' => false, 'message' => 'Training session not found or the training_sessions table is unavailable.']);
+            if (!self::tableExists($pdo, 'training_sessions')) {
+                Response::json(500, ['success' => false, 'message' => 'The training_sessions table is not available in the configured database.']);
                 return;
             }
 
-            $title = array_key_exists('title', $input) ? (self::normalizeText($input['title'] ?? null, 150) ?? $session['title']) : (string) ($session['title'] ?? '');
-            $status = array_key_exists('status', $input) ? (self::normalizeText($input['status'] ?? null, 50) ?? 'scheduled') : (string) ($session['status'] ?? 'scheduled');
+            $session = self::fetchSession($pdo, $sessionId);
+            if ($session === null) {
+                Response::json(404, ['success' => false, 'message' => 'Training session not found.']);
+                return;
+            }
+
+            $title = array_key_exists('title', $input)
+                ? self::normalizeText($input['title'], 150)
+                : (string) ($session['title'] ?? '');
+            if ($title === null) {
+                throw new InvalidArgumentException("Field 'title' must be a non-empty string.");
+            }
+            $status = array_key_exists('status', $input)
+                ? self::normalizeText($input['status'], 50)
+                : (string) ($session['status'] ?? 'scheduled');
+            if ($status === null) {
+                throw new InvalidArgumentException("Field 'status' must be a non-empty string.");
+            }
             $sessionDate = array_key_exists('session_date', $input) ? self::normalizeDate($input['session_date'] ?? null, 'session_date') : (string) ($session['session_date'] ?? '');
             $startTime = array_key_exists('start_time', $input) ? self::normalizeTime($input['start_time'] ?? null, 'start_time') : (string) ($session['start_time'] ?? '');
             $endTime = array_key_exists('end_time', $input) ? self::normalizeTime($input['end_time'] ?? null, 'end_time') : (string) ($session['end_time'] ?? '');
@@ -312,6 +365,7 @@ final class TrainingController
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to update training session.']);
         }
     }
@@ -325,9 +379,14 @@ final class TrainingController
 
         try {
             $pdo = Database::getConnection();
+            if (!self::tableExists($pdo, 'training_sessions')) {
+                Response::json(500, ['success' => false, 'message' => 'The training_sessions table is not available in the configured database.']);
+                return;
+            }
+
             $session = self::fetchSession($pdo, $sessionId);
             if ($session === null) {
-                Response::json(404, ['success' => false, 'message' => 'Training session not found or the training_sessions table is unavailable.']);
+                Response::json(404, ['success' => false, 'message' => 'Training session not found.']);
                 return;
             }
 
@@ -336,6 +395,7 @@ final class TrainingController
 
             Response::json(200, ['success' => true, 'message' => 'Training session cancelled successfully.']);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to cancel training session.']);
         }
     }

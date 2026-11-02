@@ -81,40 +81,39 @@ Do not begin training/attendance implementation as part of this phase. After Pha
 
 ## Schema integration status
 
-The current repository contains PHP controllers and routes, but no authoritative SQL schema,
-migration, database dump, or ERD image. The ERD screenshots are not present in the repository
-workspace. The controller details below are implementation assumptions only; they are not
-confirmation of the database contract. Do not change ID handling or queries based only on these
-assumptions.
+The current PR branch does not contain the schema added to `main` by PR #7. The current
+`main` branch now has the authoritative [ERD](database-erd.md) and migrations `001` through
+`006`, including `003_sports_and_clubs.sql`. Use those committed definitions for sports and
+clubs; do not treat the training and attendance controller assumptions as a confirmed contract.
+The controller details below distinguish the verified sports/clubs schema from unresolved
+training/attendance assumptions.
 
 | Entity | Current controller assumption | PK/FK type comparison still required |
 |---|---|---|
-| `SPORTS` (`sports`) | PK column `id`, treated as an integer in detail lookup and club sport validation. List also assumes `name`, `description`, and `status`. | Confirm actual PK name/type and compare it with `CLUBS.sport_id`. |
-| `CLUBS` (`clubs`) | PK column `id`, treated as an integer in routes, CRUD, and `lastInsertId()`. `sport_id` is treated as an integer FK to `sports.id`. Assumes `name`, `description`, `status`, `is_archived`, `created_at`, and `updated_at`. | Confirm actual PK name/type and whether `sport_id` exists, its type/nullability, and its referenced `SPORTS` key/type. |
+| `SPORTS` (`sports`) | Migration 003 defines `id BIGINT UNSIGNED`, `name`, `description`, and `is_active`. The list now filters on `is_active`; `id` is still handled as a PHP integer. | The schema confirms `clubs.sport_id` references `sports.id`, both `BIGINT UNSIGNED`. PHP/router handling is still limited to signed `PHP_INT` values. |
+| `CLUBS` (`clubs`) | Migration 003 defines `id BIGINT UNSIGNED`, `sport_id BIGINT UNSIGNED`, `name VARCHAR(120)`, `description TEXT`, status enum `active`/`recruiting`/`full`/`inactive`, and `is_archived`. The controller validates these status/name constraints and archives without changing status. | The DB columns and FK are confirmed. Route/controller handling remains signed-PHP-integer based, so values above `PHP_INT_MAX` need coordinated handling before claiming full unsigned-BIGINT support. |
 | `TRAINING_SESSIONS` (`training_sessions`) | PK column `id`, treated as an integer in routes and controller methods. `club_id` is treated as an integer FK to `clubs.id`. Assumes `title`, `status`, `session_date`, `start_time`, `end_time`, `notes`, `created_at`, and `updated_at`. | Confirm actual PK name/type and compare `club_id` with the actual `CLUBS` PK name/type. |
 | `SESSION_ATTENDANCE` | Controller currently queries a table named `training_attendance` with integer `id`, `session_id`, and `participant_id`; it assumes `session_id` references `training_sessions.id`. It also assumes `status`, `notes`, and `recorded_at`. | Confirm whether the table is actually `SESSION_ATTENDANCE` or `training_attendance`; confirm its PK, the `session_id` target/name/type, and the participant FK target/name/type. The participant entity is not established by this module. |
 
-**No exact ERD-versus-controller type mismatch can be asserted from repository evidence.** The
-exact unresolved comparisons are `CLUBS.sport_id` ↔ `SPORTS` PK,
-`TRAINING_SESSIONS.club_id` ↔ `CLUBS` PK, `SESSION_ATTENDANCE.session_id` ↔
-`TRAINING_SESSIONS` PK, and `SESSION_ATTENDANCE.participant_id` ↔ its participant-table PK.
-For each comparison, both the referenced column names and database types remain unverified.
-The code currently assumes integer IDs for all of them, including numeric-only route parsing;
-this is not evidence that the actual schema uses integers. The `SESSION_ATTENDANCE` table-name
-difference is known from the controller versus the requested ERD entity name, but the canonical
-table name is unconfirmed.
+The `CLUBS.sport_id` ↔ `SPORTS.id` names and types are confirmed by migration 003. The
+unresolved comparisons are `TRAINING_SESSIONS.club_id` ↔ `CLUBS.id`,
+`SESSION_ATTENDANCE.session_id` ↔ `TRAINING_SESSIONS.id`, and
+`SESSION_ATTENDANCE.participant_id` ↔ its participant-table PK. For each, the canonical
+column names and types remain unverified. The `SESSION_ATTENDANCE` versus `training_attendance`
+table-name difference is also unresolved.
 
 ### Safe integration steps after Jassim confirms the schema
 
-1. Request the authoritative `CREATE TABLE` definitions or exported schema for all four entities,
-   including exact column names/types, PKs, FKs, nullability, unique constraints, indexes, and
-   `ON DELETE`/`ON UPDATE` actions. Confirm the schema/database version and canonical table names.
+1. Use migration 003 and the ERD on `main` for sports/clubs. Request authoritative `CREATE TABLE`
+   definitions for training sessions and attendance, including exact column names/types, PKs, FKs,
+   nullability, unique constraints, indexes, and `ON DELETE`/`ON UPDATE` actions. Confirm the
+   schema/database version and canonical table names with Jassim.
 2. Compare each controller query and request field against that schema. Align route parameter
    parsing, PHP parameter types, FK validation, and generated-ID handling with the confirmed ID
    representation; do not cast UUIDs to integers.
-3. Confirm whether club deletion is allowed and how related membership/training/attendance history
-   must be retained. Hard-delete is currently disabled and returns a conflict response. The archive
-   endpoint still assumes `is_archived` and a status value of `archived`.
+3. Keep club hard-delete disabled until the team confirms retention and access policy. Migration 003
+   establishes `is_archived`; the archive handler now changes only that column and does not write
+   an invalid status. Confirm whether archived-club detail reads should be visible.
 4. Confirm attendance participant identity, duplicate-record rules, editable/correctable
    attendance policy, and whether attendance is append-only/history-bearing before changing its
    insert behavior.
@@ -153,3 +152,36 @@ The following remain integration blockers rather than safe local fixes:
   separate authorization system.
 - No automated tests are configured. After schema and access rules are confirmed, add tests for
   database behavior, historical records, access enforcement, and invalid request types.
+
+## Independent controller work — 2 November 2026
+
+The current branch now applies the following controller-only changes:
+
+- Club names are limited to the authoritative `clubs.name` length of 120, club status is checked
+  against the schema enum, and archiving changes `is_archived` without writing an unsupported
+  status value. Duplicate club-name constraints return 409 rather than an internal-server error.
+- Sports listing filters on the schema's `is_active` column; unsupported query parameters and
+  unsupported write fields are rejected.
+- Training and attendance handlers reject unknown request fields, reject empty updates and
+  malformed IDs/date/time values, and log unexpected server-side failures without returning
+  exception details to the client.
+- The existing attendance duplicate pre-check is unchanged. It is not a concurrency guarantee
+  and must not be treated as one until the schema and duplicate/history policy are confirmed.
+
+These changes do not resolve shared integration or policy decisions:
+
+- **Jassim:** provide the canonical training and attendance tables/columns, ID and FK types,
+  allowed status values, and migration number/order. Confirm participant identity, duplicate
+  enforcement, attendance corrections/history, and whether training edits after attendance are
+  permitted. Until then, training and attendance SQL, status transitions, and persistence tests
+  remain unverified.
+- **Mukilan and the team leader:** coordinate the shared router/database conflicts, identify the
+  permissions for each read and write operation, and wire the agreed session and CSRF checks.
+  These controllers add no authentication or authorization and must not be exposed as protected
+  production endpoints until those checks are integrated.
+- **Shahilan:** confirm the frontend API contract, including the sports `is_active` filter and
+  request/response/error formats. This branch retains its existing response envelope pending
+  shared-router integration.
+- PHP 8.2.12 is available through the local XAMPP CLI and the four changed controllers pass
+  `php -l`. No configured database or automated PHP test suite is available, so database-backed
+  integration tests remain pending the agreed schema.

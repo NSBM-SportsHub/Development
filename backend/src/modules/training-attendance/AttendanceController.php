@@ -15,6 +15,19 @@ require_once __DIR__ . '/../../shared/Validator.php';
  */
 final class AttendanceController
 {
+    private static function rejectUnknownFields(array $data, array $allowed, string $kind): void
+    {
+        $unknown = array_diff(array_keys($data), $allowed);
+        if ($unknown !== []) {
+            throw new InvalidArgumentException('Unsupported ' . $kind . ': ' . reset($unknown) . '.');
+        }
+    }
+
+    private static function logFailure(Throwable $exception): void
+    {
+        error_log($exception::class . ': ' . $exception->getMessage());
+    }
+
     private static function tableExists(PDO $pdo, string $tableName): bool
     {
         $stmt = $pdo->prepare(
@@ -47,7 +60,7 @@ final class AttendanceController
         return $trimmed;
     }
 
-    private static function normalizePositiveInt(mixed $value, string $fieldName, int $maxValue = 2147483647): int
+    private static function normalizePositiveInt(mixed $value, string $fieldName, int $maxValue = PHP_INT_MAX): int
     {
         if ($value === null || $value === '') {
             throw new InvalidArgumentException("Field '{$fieldName}' is required.");
@@ -61,8 +74,8 @@ final class AttendanceController
             throw new InvalidArgumentException("Field '{$fieldName}' must be a positive integer.");
         }
 
-        $number = (int) $value;
-        if ($number <= 0 || $number > $maxValue) {
+        $number = filter_var((string) $value, FILTER_VALIDATE_INT);
+        if ($number === false || $number <= 0 || $number > $maxValue) {
             throw new InvalidArgumentException("Field '{$fieldName}' is out of range.");
         }
 
@@ -71,10 +84,6 @@ final class AttendanceController
 
     private static function fetchAttendance(PDO $pdo, int $id): ?array
     {
-        if (!self::tableExists($pdo, 'training_attendance')) {
-            return null;
-        }
-
         $stmt = $pdo->prepare('SELECT * FROM training_attendance WHERE id = :id LIMIT 1');
         $stmt->execute([':id' => $id]);
         $row = $stmt->fetch();
@@ -85,6 +94,7 @@ final class AttendanceController
     public static function list(): void
     {
         try {
+            self::rejectUnknownFields($_GET, ['session_id', 'participant_id', 'status'], 'query parameter');
             $pdo = Database::getConnection();
 
             if (!self::tableExists($pdo, 'training_attendance')) {
@@ -128,6 +138,7 @@ final class AttendanceController
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to load attendance records.']);
         }
     }
@@ -141,10 +152,16 @@ final class AttendanceController
 
         try {
             $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            self::rejectUnknownFields($input, ['session_id', 'participant_id', 'status', 'notes'], 'field');
 
             $sessionId = self::normalizePositiveInt($input['session_id'] ?? '', 'session_id');
             $participantId = self::normalizePositiveInt($input['participant_id'] ?? '', 'participant_id');
-            $status = self::normalizeText($input['status'] ?? 'present', 50) ?? 'present';
+            $status = array_key_exists('status', $input)
+                ? self::normalizeText($input['status'], 50)
+                : 'present';
+            if ($status === null) {
+                throw new InvalidArgumentException("Field 'status' must be a non-empty string.");
+            }
             $notes = self::normalizeText($input['notes'] ?? '', 2000) ?? '';
 
             $pdo = Database::getConnection();
@@ -166,9 +183,9 @@ final class AttendanceController
                 return;
             }
 
-            $duplicate = $pdo->prepare('SELECT id FROM training_attendance WHERE session_id = :session_id AND participant_id = :participant_id LIMIT 1');
+            $duplicate = $pdo->prepare('SELECT 1 FROM training_attendance WHERE session_id = :session_id AND participant_id = :participant_id LIMIT 1');
             $duplicate->execute([':session_id' => $sessionId, ':participant_id' => $participantId]);
-            if ($duplicate->fetch()) {
+            if ($duplicate->fetchColumn() !== false) {
                 Response::json(409, ['success' => false, 'message' => 'Attendance for this participant and session already exists.']);
                 return;
             }
@@ -189,6 +206,7 @@ final class AttendanceController
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to record attendance.']);
         }
     }
@@ -197,15 +215,21 @@ final class AttendanceController
     {
         try {
             $pdo = Database::getConnection();
+            if (!self::tableExists($pdo, 'training_attendance')) {
+                Response::json(500, ['success' => false, 'message' => 'The training_attendance table is not available in the configured database.']);
+                return;
+            }
+
             $attendance = self::fetchAttendance($pdo, $id);
 
             if ($attendance === null) {
-                Response::json(404, ['success' => false, 'message' => 'Attendance record not found or the training_attendance table is unavailable.']);
+                Response::json(404, ['success' => false, 'message' => 'Attendance record not found.']);
                 return;
             }
 
             Response::json(200, ['success' => true, 'data' => $attendance]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to load attendance record.']);
         }
     }

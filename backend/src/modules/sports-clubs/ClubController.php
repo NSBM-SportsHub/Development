@@ -8,6 +8,8 @@ require_once __DIR__ . '/../../shared/Validator.php';
 
 final class ClubController
 {
+    private const STATUSES = ['active', 'recruiting', 'full', 'inactive'];
+
     private static function tableExists(PDO $pdo, string $tableName): bool
     {
         $query = $pdo->prepare(
@@ -18,12 +20,56 @@ final class ClubController
         return $query->fetchColumn() !== false;
     }
 
-    private static function getClub(PDO $pdo, int $clubId): ?array
+    private static function rejectUnknownFields(array $data, array $allowed): void
     {
-        if (!self::tableExists($pdo, 'clubs')) {
-            return null;
+        $unknown = array_diff(array_keys($data), $allowed);
+        if ($unknown !== []) {
+            throw new InvalidArgumentException('Unsupported field: ' . reset($unknown) . '.');
+        }
+    }
+
+    private static function requireSportId(array $data): int
+    {
+        $sportId = Validator::requireInt($data, 'sport_id');
+        if ($sportId <= 0) {
+            throw new InvalidArgumentException("Field 'sport_id' must be a positive integer.");
         }
 
+        return $sportId;
+    }
+
+    private static function requireStatus(array $data, string $key, string $default): string
+    {
+        $status = array_key_exists($key, $data)
+            ? Validator::requireString($data, $key, 1, 50)
+            : $default;
+
+        if (!in_array($status, self::STATUSES, true)) {
+            throw new InvalidArgumentException("Field '{$key}' must be one of: " . implode(', ', self::STATUSES) . '.');
+        }
+
+        return $status;
+    }
+
+    private static function logFailure(Throwable $exception): void
+    {
+        error_log($exception::class . ': ' . $exception->getMessage());
+    }
+
+    private static function respondWriteFailure(PDOException $exception, string $message): void
+    {
+        self::logFailure($exception);
+
+        if ((int) ($exception->errorInfo[1] ?? 0) === 1062) {
+            Response::json(409, ['success' => false, 'message' => 'A club with this name already exists.']);
+            return;
+        }
+
+        Response::json(500, ['success' => false, 'message' => $message]);
+    }
+
+    private static function getClub(PDO $pdo, int $clubId): ?array
+    {
         $stmt = $pdo->prepare('SELECT * FROM clubs WHERE id = :id LIMIT 1');
         $stmt->execute([':id' => $clubId]);
         $club = $stmt->fetch();
@@ -46,6 +92,7 @@ final class ClubController
 
             Response::json(200, ['success' => true, 'data' => $clubs]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to load clubs.']);
         }
     }
@@ -54,15 +101,21 @@ final class ClubController
     {
         try {
             $pdo = Database::getConnection();
+            if (!self::tableExists($pdo, 'clubs')) {
+                Response::json(500, ['success' => false, 'message' => 'The clubs table is not available in the configured database.']);
+                return;
+            }
+
             $club = self::getClub($pdo, $clubId);
 
             if ($club === null) {
-                Response::json(404, ['success' => false, 'message' => 'Club not found or the clubs table is unavailable.']);
+                Response::json(404, ['success' => false, 'message' => 'Club not found.']);
                 return;
             }
 
             Response::json(200, ['success' => true, 'data' => $club]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to load club details.']);
         }
     }
@@ -76,11 +129,12 @@ final class ClubController
 
         try {
             $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            self::rejectUnknownFields($input, ['name', 'description', 'sport_id', 'status']);
 
-            $name = Validator::requireString($input, 'name', 2, 255);
+            $name = Validator::requireString($input, 'name', 2, 120);
             $description = Validator::optionalString($input, 'description', 2000) ?? '';
-            $sportId = Validator::requireInt($input, 'sport_id');
-            $status = Validator::optionalString($input, 'status', 50) ?? 'active';
+            $sportId = self::requireSportId($input);
+            $status = self::requireStatus($input, 'status', 'active');
 
             $pdo = Database::getConnection();
             if (!self::tableExists($pdo, 'clubs')) {
@@ -111,11 +165,18 @@ final class ClubController
             $clubId = (int) $pdo->lastInsertId();
             $created = $pdo->prepare('SELECT * FROM clubs WHERE id = :id LIMIT 1');
             $created->execute([':id' => $clubId]);
+            $createdClub = $created->fetch();
+            if (!is_array($createdClub)) {
+                throw new RuntimeException('The created club could not be loaded.');
+            }
 
-            Response::json(201, ['success' => true, 'message' => 'Club created successfully.', 'data' => $created->fetch()]);
+            Response::json(201, ['success' => true, 'message' => 'Club created successfully.', 'data' => $createdClub]);
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
+        } catch (PDOException $exception) {
+            self::respondWriteFailure($exception, 'Failed to create club.');
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to create club.']);
         }
     }
@@ -129,12 +190,21 @@ final class ClubController
 
         try {
             $input = Validator::decodeJsonObject((string) file_get_contents('php://input'));
+            self::rejectUnknownFields($input, ['name', 'description', 'sport_id', 'status']);
+            if ($input === []) {
+                throw new InvalidArgumentException('At least one field must be provided for update.');
+            }
 
             $pdo = Database::getConnection();
+            if (!self::tableExists($pdo, 'clubs')) {
+                Response::json(500, ['success' => false, 'message' => 'The clubs table is not available in the configured database.']);
+                return;
+            }
+
             $club = self::getClub($pdo, $clubId);
 
             if ($club === null) {
-                Response::json(404, ['success' => false, 'message' => 'Club not found or the clubs table is unavailable.']);
+                Response::json(404, ['success' => false, 'message' => 'Club not found.']);
                 return;
             }
 
@@ -143,10 +213,10 @@ final class ClubController
                 return;
             }
 
-            $name = array_key_exists('name', $input) ? Validator::requireString($input, 'name', 2, 255) : (string) $club['name'];
+            $name = array_key_exists('name', $input) ? Validator::requireString($input, 'name', 2, 120) : (string) $club['name'];
             $description = array_key_exists('description', $input) ? (Validator::optionalString($input, 'description', 2000) ?? '') : (string) ($club['description'] ?? '');
-            $sportId = array_key_exists('sport_id', $input) ? Validator::requireInt($input, 'sport_id') : (int) $club['sport_id'];
-            $status = array_key_exists('status', $input) ? Validator::optionalString($input, 'status', 50) ?? 'active' : (string) ($club['status'] ?? 'active');
+            $sportId = array_key_exists('sport_id', $input) ? self::requireSportId($input) : (int) $club['sport_id'];
+            $status = self::requireStatus($input, 'status', (string) ($club['status'] ?? 'active'));
 
             $sportExists = $pdo->prepare('SELECT id FROM sports WHERE id = :id LIMIT 1');
             $sportExists->execute([':id' => $sportId]);
@@ -166,11 +236,19 @@ final class ClubController
 
             $updated = $pdo->prepare('SELECT * FROM clubs WHERE id = :id LIMIT 1');
             $updated->execute([':id' => $clubId]);
+            $updatedClub = $updated->fetch();
+            if (!is_array($updatedClub)) {
+                Response::json(404, ['success' => false, 'message' => 'Club not found.']);
+                return;
+            }
 
-            Response::json(200, ['success' => true, 'message' => 'Club updated successfully.', 'data' => $updated->fetch()]);
+            Response::json(200, ['success' => true, 'message' => 'Club updated successfully.', 'data' => $updatedClub]);
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
+        } catch (PDOException $exception) {
+            self::respondWriteFailure($exception, 'Failed to update club.');
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to update club.']);
         }
     }
@@ -184,17 +262,23 @@ final class ClubController
 
         try {
             $pdo = Database::getConnection();
-            $club = self::getClub($pdo, $clubId);
-            if ($club === null) {
-                Response::json(404, ['success' => false, 'message' => 'Club not found or the clubs table is unavailable.']);
+            if (!self::tableExists($pdo, 'clubs')) {
+                Response::json(500, ['success' => false, 'message' => 'The clubs table is not available in the configured database.']);
                 return;
             }
 
-            $archive = $pdo->prepare('UPDATE clubs SET is_archived = 1, status = :status, updated_at = NOW() WHERE id = :id');
-            $archive->execute([':status' => 'archived', ':id' => $clubId]);
+            $club = self::getClub($pdo, $clubId);
+            if ($club === null) {
+                Response::json(404, ['success' => false, 'message' => 'Club not found.']);
+                return;
+            }
+
+            $archive = $pdo->prepare('UPDATE clubs SET is_archived = 1, updated_at = NOW() WHERE id = :id');
+            $archive->execute([':id' => $clubId]);
 
             Response::json(200, ['success' => true, 'message' => 'Club archived successfully.']);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to archive club.']);
         }
     }

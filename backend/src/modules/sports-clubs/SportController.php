@@ -15,6 +15,8 @@ require_once __DIR__ . '/../../shared/Response.php';
  */
 final class SportController
 {
+    private const MAX_LIMIT = 500;
+
     private static function tableExists(PDO $pdo, string $tableName): bool
     {
         $stmt = $pdo->prepare(
@@ -23,6 +25,50 @@ final class SportController
         $stmt->execute([':table_name' => $tableName]);
 
         return $stmt->fetchColumn() !== false;
+    }
+
+    private static function rejectUnknownFilters(array $filters): void
+    {
+        $unknown = array_diff(array_keys($filters), ['search', 'is_active', 'limit']);
+        if ($unknown !== []) {
+            throw new InvalidArgumentException('Unsupported query parameter: ' . reset($unknown) . '.');
+        }
+    }
+
+    private static function normalizeActiveFilter(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        if (!is_string($value) || ($value !== '0' && $value !== '1')) {
+            throw new InvalidArgumentException("Field 'is_active' must be 0 or 1.");
+        }
+
+        return (int) $value;
+    }
+
+    private static function normalizeLimit(mixed $value): ?int
+    {
+        if ($value === null) {
+            return null;
+        }
+
+        if ((!is_string($value) && !is_int($value)) || !ctype_digit((string) $value)) {
+            throw new InvalidArgumentException("Field 'limit' must be a positive integer.");
+        }
+
+        $limit = filter_var((string) $value, FILTER_VALIDATE_INT);
+        if ($limit === false || $limit < 1 || $limit > self::MAX_LIMIT) {
+            throw new InvalidArgumentException("Field 'limit' must be between 1 and " . self::MAX_LIMIT . '.');
+        }
+
+        return $limit;
+    }
+
+    private static function logFailure(Throwable $exception): void
+    {
+        error_log($exception::class . ': ' . $exception->getMessage());
     }
 
     private static function normalizeText(mixed $value, int $maxLength = 255): ?string
@@ -47,28 +93,6 @@ final class SportController
         return $trimmed;
     }
 
-    private static function normalizePositiveInt(mixed $value, string $fieldName, int $maxValue = 1000): int
-    {
-        if ($value === null || $value === '') {
-            return 0;
-        }
-
-        if (!is_string($value) && !is_int($value)) {
-            throw new InvalidArgumentException("Field '{$fieldName}' must be an integer.");
-        }
-
-        if (!ctype_digit((string) $value)) {
-            throw new InvalidArgumentException("Field '{$fieldName}' must be a non-negative integer.");
-        }
-
-        $number = (int) $value;
-        if ($number > $maxValue) {
-            throw new InvalidArgumentException("Field '{$fieldName}' is too large.");
-        }
-
-        return $number;
-    }
-
     private static function buildListQuery(array $filters): array
     {
         $sql = 'SELECT * FROM sports WHERE 1 = 1';
@@ -81,14 +105,14 @@ final class SportController
             $params[':description_search'] = $search;
         }
 
-        if (isset($filters['status']) && $filters['status'] !== null) {
-            $sql .= ' AND status = :status';
-            $params[':status'] = $filters['status'];
+        if (isset($filters['is_active']) && $filters['is_active'] !== null) {
+            $sql .= ' AND is_active = :is_active';
+            $params[':is_active'] = $filters['is_active'];
         }
 
         $sql .= ' ORDER BY name ASC';
 
-        if (isset($filters['limit']) && $filters['limit'] > 0) {
+        if (isset($filters['limit']) && $filters['limit'] !== null) {
             $sql .= ' LIMIT :limit';
         }
 
@@ -111,6 +135,7 @@ final class SportController
     public static function list(): void
     {
         try {
+            self::rejectUnknownFilters($_GET);
             $pdo = Database::getConnection();
 
             if (!self::tableExists($pdo, 'sports')) {
@@ -119,12 +144,12 @@ final class SportController
             }
 
             $search = self::normalizeText($_GET['search'] ?? null, 100);
-            $status = self::normalizeText($_GET['status'] ?? null, 50);
-            $limit = self::normalizePositiveInt($_GET['limit'] ?? null, 'limit', 500);
+            $isActive = self::normalizeActiveFilter($_GET['is_active'] ?? null);
+            $limit = self::normalizeLimit($_GET['limit'] ?? null);
 
             [$sql, $params] = self::buildListQuery([
                 'search' => $search,
-                'status' => $status,
+                'is_active' => $isActive,
                 'limit' => $limit,
             ]);
 
@@ -133,7 +158,7 @@ final class SportController
                 $stmt->bindValue($key, $value);
             }
 
-            if ($limit > 0) {
+            if ($limit !== null) {
                 $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
             }
 
@@ -144,6 +169,7 @@ final class SportController
         } catch (InvalidArgumentException $exception) {
             Response::json(400, ['success' => false, 'message' => $exception->getMessage()]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to load sports.']);
         }
     }
@@ -152,15 +178,21 @@ final class SportController
     {
         try {
             $pdo = Database::getConnection();
+            if (!self::tableExists($pdo, 'sports')) {
+                Response::json(500, ['success' => false, 'message' => 'The sports table is not available in the configured database.']);
+                return;
+            }
+
             $sport = self::getSport($pdo, $sportId);
 
             if ($sport === null) {
-                Response::json(404, ['success' => false, 'message' => 'Sport not found or the sports table is unavailable.']);
+                Response::json(404, ['success' => false, 'message' => 'Sport not found.']);
                 return;
             }
 
             Response::json(200, ['success' => true, 'data' => $sport]);
         } catch (Throwable $exception) {
+            self::logFailure($exception);
             Response::json(500, ['success' => false, 'message' => 'Failed to load sport details.']);
         }
     }
