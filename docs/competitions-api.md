@@ -45,6 +45,7 @@ Fixtures (generated or manual) can be arranged in `registration_closed` and `in_
 | Method and path | Body or query | Result |
 | --- | --- | --- |
 | `GET /api/tournaments` | Query: `status`, `format`, `sport_id` | Tournament list |
+| `GET /api/sports` | | Active sports as `[{id, name}]` for tournament selection |
 | `POST /api/tournaments` | Required: `sport_id`, `name` (≤ 150), `format`, `starts_on`, `ends_on`. Optional: `description`, `registration_closes_at` (ISO-8601), `max_entries` (≥ 2), `min_team_size`/`max_team_size` (default 1), `points_win`/`points_draw`/`points_loss` (default 3/1/0) | 201, tournament (`draft`) |
 | `GET /api/tournaments/{id}` | | Tournament with `sport_name`, `approved_entries` |
 | `PATCH /api/tournaments/{id}` | Any create field plus `status`. `sport_id`, `format` and team sizes can only change while `draft`. | Tournament |

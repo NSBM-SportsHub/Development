@@ -44,7 +44,7 @@ Membership object:
 }
 ```
 
-Coach assignment: `{"id", "club_id", "club_name", "user_id", "user_name", "assigned_at"}`.
+Coach assignment: `{"id", "club_id", "club_name", "sport_id", "user_id", "user_name", "assigned_at"}`.
 
 ## UI notes
 
