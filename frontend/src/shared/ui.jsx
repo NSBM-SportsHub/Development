@@ -13,6 +13,8 @@ const paths = {
   archive: <><path d="M4 7h16v14H4V7ZM3 3h18v4H3V3Zm6 8h6" /></>,
   check: <path d="m5 12 4 4L19 6" />,
   lock: <><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2" /></>,
+    trophy: <><path d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3" /></>,
+  calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></>,
 };
 
 export function Icon({ name, size = 20, ...props }) {
@@ -45,6 +47,14 @@ export function Button({ children, busy = false, className = "button-primary", .
 
 export function Loading({ message = "Loading your workspace…" }) {
   return <div className="loading-state" role="status"><span className="spinner" /><p>{message}</p></div>;
+}
+
+export function EmptyState({ icon = "search", title, children, action }) {
+  return <div className="empty-state"><span className="section-icon"><Icon name={icon} size={26} /></span><h2>{title}</h2>{children && <p>{children}</p>}{action}</div>;
+}
+
+export function ErrorState({ message, onRetry }) {
+  return <div className="directory-state"><Notice>{message}</Notice>{onRetry && <Button className="button-secondary" onClick={onRetry}>Try again</Button>}</div>;
 }
 
 export function Modal({ title, subtitle, children, onClose, busy = false, compact = false }) {

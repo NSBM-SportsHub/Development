@@ -1,0 +1,247 @@
+.business-page {
+  width: min(100%, 980px);
+  margin: 0 auto;
+  color: #17352b;
+}
+
+.business-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 20px;
+  margin: 0 0 24px;
+}
+
+.business-heading h1 {
+  margin: 4px 0 8px;
+  font-size: clamp(1.8rem, 4vw, 2.5rem);
+  letter-spacing: -.035em;
+}
+
+.business-heading p:not(.business-eyebrow) {
+  margin: 0;
+  color: #60766c;
+}
+
+.business-eyebrow {
+  margin: 0 0 6px;
+  color: #087b55;
+  font-size: .73rem;
+  font-weight: 750;
+  letter-spacing: .12em;
+}
+
+.business-card {
+  padding: clamp(18px, 3vw, 28px);
+  border: 1px solid rgb(255 255 255 / 90%);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 74%);
+  box-shadow: 0 12px 34px rgb(34 77 59 / 8%);
+}
+
+.business-form {
+  display: grid;
+  gap: 18px;
+  max-width: 720px;
+}
+
+.business-field {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.business-field label {
+  color: #334a3c;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.5;
+}
+
+.business-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
+
+.business-form textarea[aria-invalid="true"] {
+  border-color: #bf6358;
+}
+
+.business-form select:disabled,
+.business-form textarea:disabled {
+  background: #f6f8f5;
+  color: #839086;
+}
+
+.business-hint {
+  color: #687a71;
+  font-size: .82rem;
+  line-height: 1.5;
+}
+
+.business-create {
+  flex: 0 0 auto;
+  align-self: center;
+  text-decoration: none;
+}
+
+.business-create:hover {
+  text-decoration: none;
+}
+
+.business-resource-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 290px), 1fr));
+  gap: 14px;
+}
+
+.business-resource-detail {
+  margin-top: 12px;
+  color: #536b60;
+  font-size: .9rem;
+  font-weight: 650;
+}
+
+.business-pager {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 8px 14px;
+  margin-top: 18px;
+  color: #536b60;
+  font-size: .85rem;
+}
+
+.business-pager button:not(.business-text-button) {
+  min-height: 38px;
+  padding: 7px 12px;
+  border: 1px solid #d5e0d9;
+  border-radius: 8px;
+  background: white;
+  color: #17352b;
+}
+
+.business-pager button:disabled {
+  opacity: .5;
+  cursor: not-allowed;
+}
+
+.business-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.business-actions .button {
+  min-height: 42px;
+}
+
+.business-empty {
+  text-align: center;
+}
+
+.business-empty h2 {
+  margin-top: 0;
+}
+
+.business-empty p,
+.business-note {
+  color: #536b60;
+  line-height: 1.6;
+}
+
+.business-link,
+.business-text-button {
+  color: #087b55;
+  font: inherit;
+  font-weight: 650;
+}
+
+.business-text-button {
+  margin-top: 16px;
+  padding: 8px 0;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.business-record-list {
+  display: grid;
+  gap: 14px;
+}
+
+.business-record h2 {
+  margin: 0 0 4px;
+  font-size: 1.25rem;
+}
+
+.business-record-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 16px;
+}
+
+.business-status {
+  display: inline-flex;
+  flex: 0 0 auto;
+  padding: 6px 11px;
+  border-radius: 999px;
+  background: #e8eee9;
+  color: #42584c;
+  font-size: .78rem;
+  font-weight: 700;
+}
+
+.status-pending { background: #fff3d4; color: #79550a; }
+.status-approved { background: #dcf4e7; color: #086344; }
+.status-rejected { background: #ffebe8; color: #a3382a; }
+.status-ended, .status-withdrawn, .status-cancelled { background: #e9edf0; color: #51616c; }
+
+.business-details {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px 34px;
+  margin: 20px 0 0;
+}
+
+.business-details div { min-width: 130px; }
+.business-details dt { color: #687a71; font-size: .78rem; }
+.business-details dd { margin: 3px 0 0; font-weight: 650; }
+.business-note { margin: 16px 0 0; }
+
+.business-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+}
+
+.business-tabs button {
+  min-height: 40px;
+  padding: 8px 15px;
+  border: 1px solid rgb(255 255 255 / 90%);
+  border-radius: 999px;
+  background: rgb(255 255 255 / 62%);
+  color: #42584c;
+  font: inherit;
+  cursor: pointer;
+}
+
+.business-tabs button.active {
+  border-color: #087b55;
+  background: #087b55;
+  color: white;
+}
+
+@media (max-width: 600px) {
+  .business-heading { flex-direction: column; }
+  .business-record-head { flex-direction: column; }
+  .business-status { align-self: flex-start; }
+  .business-actions { flex-direction: column; align-items: stretch; }
+  .business-actions .button { width: 100%; }
+  .business-create { align-self: stretch; }
+}

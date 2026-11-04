@@ -21,6 +21,14 @@ export async function testCompetitions({ check, Client, admin, clubs, sports, ne
   const entries = {};
   let leagueMatches;
 
+  await check('Signed-in users can list active sports for tournament forms', async () => {
+    assert.equal((await new Client().request('/sports')).status, 401);
+    const result = await alice.request('/sports');
+    assert.equal(result.status, 200);
+    assert.ok(result.data.some((sport) => sport.id === sports.Badminton && sport.name === 'Badminton'));
+    assert.ok(result.data.every((sport) => Number.isInteger(sport.id) && typeof sport.name === 'string'));
+  });
+
   async function setStatus(id, status) {
     return admin.request(`/tournaments/${id}`, { method: 'PATCH', body: { status } });
   }
@@ -94,6 +102,8 @@ export async function testCompetitions({ check, Client, admin, clubs, sports, ne
     assert.equal((await review(shuttleStars, 'approved', frank)).status, 404);
     assert.equal((await review(shuttleStars, 'approved', erin)).status, 403);
     const coach = await admin.request('/club-coaches', { method: 'POST', body: { club_id: badminton, user_id: erin.id } });
+    const coachAssignments = await erin.request(`/club-coaches?user_id=${erin.id}`);
+    assert.ok(coachAssignments.data.some((assignment) => assignment.club_id === badminton && assignment.sport_id === sports.Badminton));
     const self = await review(shuttleStars, 'approved', erin);
     assert.equal(self.status, 403);
     assert.equal(self.error.code, 'self_review');

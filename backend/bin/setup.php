@@ -60,6 +60,12 @@ try {
             'student_id' => 'varchar(50)', 'auth_version' => 'int unsigned',
             'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime',
         ],
+        'announcements' => [
+            'announcement_id' => 'char(36)', 'club_id' => 'bigint unsigned', 'title' => 'varchar(255)',
+            'body' => 'text', 'is_pinned' => 'tinyint(1)', 'is_deleted' => 'tinyint(1)',
+        ],
+        'training_sessions' => ['id' => 'bigint unsigned', 'club_id' => 'bigint unsigned', 'title' => 'varchar(150)', 'session_date' => 'date', 'start_time' => 'time', 'end_time' => 'time'],
+        'training_attendance' => ['id' => 'bigint unsigned', 'session_id' => 'bigint unsigned', 'participant_id' => 'bigint unsigned'],
         'auth_rate_limits' => ['key_hash' => 'char(64)', 'attempts' => 'int unsigned', 'expires_at' => 'datetime'],
         'facilities' => [
             'id' => 'bigint unsigned', 'name' => 'varchar(120)', 'description' => 'text',
@@ -150,6 +156,7 @@ try {
         $requiredUnique = match ($table) {
             'users' => ['id', 'email', 'student_id'],
             'auth_rate_limits' => ['key_hash'],
+            'announcements' => ['announcement_id'],
             default => ['id'],
         };
         foreach ($requiredUnique as $field) {

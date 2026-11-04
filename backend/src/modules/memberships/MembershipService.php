@@ -181,7 +181,7 @@ final class MembershipService
             }
         }
         $statement = Database::get()->prepare(
-            'SELECT cc.id, cc.club_id, c.name AS club_name, cc.user_id, u.name AS user_name, cc.created_at
+            'SELECT cc.id, cc.club_id, c.name AS club_name, c.sport_id, cc.user_id, u.name AS user_name, cc.created_at
              FROM club_coaches cc JOIN clubs c ON c.id = cc.club_id JOIN users u ON u.id = cc.user_id
              WHERE ' . implode(' AND ', $clauses) . ' ORDER BY c.name, u.name'
         );
@@ -190,6 +190,7 @@ final class MembershipService
             'id' => (int) $row['id'],
             'club_id' => (int) $row['club_id'],
             'club_name' => $row['club_name'],
+            'sport_id' => (int) $row['sport_id'],
             'user_id' => (int) $row['user_id'],
             'user_name' => $row['user_name'],
             'assigned_at' => Http::timestamp($row['created_at']),

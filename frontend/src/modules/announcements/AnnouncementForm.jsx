@@ -1,14 +1,16 @@
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
-const AUDIENCE_LABELS = ["Campus community", "Students", "Coaches", "Administrators"];
-
-export default function AnnouncementForm({ announcements = [], onSave }) {
+export default function AnnouncementForm({ announcements = [], loading = false, error: loadError = "", onSave }) {
   const { announcementId } = useParams();
   const navigate = useNavigate();
-  const announcement = announcements.find((item) => item.id === announcementId);
+  const announcement = announcements.find((item) => item.announcement_id === announcementId);
   const editing = Boolean(announcementId);
   const [error, setError] = useState("");
+  const [saving, setSaving] = useState(false);
+
+  if (loading) return <div className="club-state" role="status">Loading announcement…</div>;
+  if (loadError) return <div className="club-state" role="alert">{loadError}</div>;
 
   if (editing && !announcement) {
     return (
@@ -20,39 +22,47 @@ export default function AnnouncementForm({ announcements = [], onSave }) {
     );
   }
 
-  function handleSubmit(event) {
+  async function handleSubmit(event) {
     event.preventDefault();
     const form = event.currentTarget;
     if (!form.reportValidity()) return;
     const values = new FormData(form);
     const title = values.get("title").trim();
     const body = values.get("body").trim();
+    const rawClubId = values.get("club_id").trim();
+    const clubId = rawClubId === "" ? null : Number(rawClubId);
     if (title.length < 3 || body.length < 10) {
       setError("Enter a title of at least 3 characters and message of at least 10 characters.");
       return;
     }
-
-    const status = event.nativeEvent.submitter?.value === "publish" ? "Published" : "Draft";
+    if (clubId !== null && (!Number.isSafeInteger(clubId) || clubId < 1 || clubId > 2147483647)) {
+      setError("Enter a valid existing club ID or leave it empty.");
+      return;
+    }
+    setSaving(true);
+    setError("");
     try {
-      const id = onSave({
-        id: announcement?.id,
-        title,
-        body,
-        audience: values.getAll("audience"),
-        status,
-        author: announcement?.author ?? "Sports Hub",
-        date: new Date().toISOString().slice(0, 10),
+      const id = await onSave({
+        id: announcement?.announcement_id,
+        fields: {
+          title,
+          body,
+          club_id: clubId,
+          is_pinned: values.get("is_pinned") === "on",
+        },
       });
       navigate(`/announcements/${id}`);
     } catch (saveError) {
       setError(saveError instanceof Error ? saveError.message : "Unable to save the announcement.");
+    } finally {
+      setSaving(false);
     }
   }
 
   return (
     <section className="announcement-form-page">
       <div className="announcement-form-aside">
-        <Link className="back-link" to={announcement ? `/announcements/${announcement.id}` : "/announcements"}>← Back to announcements</Link>
+        <Link className="back-link" to={announcement ? `/announcements/${announcement.announcement_id}` : "/announcements"}>← Back to announcements</Link>
         <p className="eyebrow">{editing ? "Update announcement" : "Share an update"}</p>
         <h1>{editing ? "Keep everyone in the loop." : "Your news matters."}</h1>
         <p>Prepare an update for the NSBM sports community.</p>
@@ -63,26 +73,22 @@ export default function AnnouncementForm({ announcements = [], onSave }) {
           <p className="eyebrow">{editing ? "Announcement details" : "New announcement"}</p>
           <h2>{editing ? "Edit announcement" : "Create announcement"}</h2>
         </div>
-        <label>Title<input name="title" defaultValue={announcement?.title ?? ""} minLength="3" maxLength="120" required /></label>
-        <label>Message<textarea name="body" rows="7" defaultValue={announcement?.body ?? ""} minLength="10" maxLength="3000" required /></label>
-        <fieldset className="audience-fieldset">
-          <legend>Audience labels <span className="optional-label">(optional)</span></legend>
-          <p>Labels only for preview; permissions and delivery are not configured.</p>
-          <div className="audience-options">
-            {AUDIENCE_LABELS.map((label) => (
-              <label key={label}>
-                <input type="checkbox" name="audience" value={label} defaultChecked={announcement?.audience.includes(label) ?? false} />
-                {label}
-              </label>
-            ))}
-          </div>
-        </fieldset>
+        <label>Title<input name="title" defaultValue={announcement?.title ?? ""} minLength="3" maxLength="255" required /></label>
+        <label>Message<textarea name="body" rows="7" defaultValue={announcement?.body ?? ""} minLength="10" maxLength="65535" required /></label>
+        <label>Club ID <span className="optional-label">(optional for campus-wide announcements)</span>
+          <input name="club_id" type="number" min="1" max="2147483647" step="1" defaultValue={announcement?.club_id ?? ""} />
+        </label>
+        <label className="announcement-pin-option">
+          <input type="checkbox" name="is_pinned" defaultChecked={announcement?.is_pinned ?? false} />
+          Pin this announcement
+        </label>
         {error && <p className="form-error" role="alert">{error}</p>}
         <div className="announcement-form-actions">
-          <button className="secondary-button" type="submit" name="action" value="draft">Save draft</button>
-          <button className="primary-button" type="submit" name="action" value="publish">Publish <span aria-hidden="true">→</span></button>
+          <button className="primary-button" type="submit" disabled={saving}>
+            {saving ? "Saving…" : "Save announcement"} <span aria-hidden="true">→</span>
+          </button>
         </div>
-        <p className="form-note">Preview only — announcement data is not sent to a server.</p>
+        <p className="form-note">Changes are saved to the SportsHub database.</p>
       </form>
     </section>
   );

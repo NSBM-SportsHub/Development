@@ -1,8 +1,8 @@
 # NSBM SportsHub backend
 
-PHP 8.2+ with PDO MySQL and mbstring implements Mukilan's authentication/users module and Mursid's resources/bookings module. MySQL 8+ or MariaDB 10.6+ stores their data. No Composer dependencies are required.
+PHP 8.2+ with PDO MySQL and mbstring implements Mukilan's authentication/users module, Mursid's resources/bookings module and Jassim's membership/competition modules. MySQL 8+ or MariaDB 10.6+ stores their data. No Composer dependencies are required.
 
-See [local development](../docs/local-development.md) for configuration, migrations, first-Admin provisioning, startup, and tests. The [authentication API](../docs/auth-users-api.md) and [resource/booking API](../docs/resource-booking-api.md) describe implemented endpoints and request/response shapes.
+See [local development](../docs/local-development.md) for configuration, migrations, first-Admin provisioning, startup, and tests. The [authentication API](../docs/auth-users-api.md), [resource/booking API](../docs/resource-booking-api.md), [membership API](../docs/memberships-api.md) and [competition API](../docs/competitions-api.md) describe implemented endpoints and request/response shapes.
 
 Run `php tests/configuration.php` from `backend/` for isolated configuration checks. The HTTP/database integration runner remains `node backend/tests/integration.mjs` from the repository root.
 
@@ -57,7 +57,7 @@ Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP.
 - src/shared/ResourceBookingHttp.php: module validation and shared-response adapter, distinct from Http.php on every operating system.
 - tests/: real HTTP/database integration runner.
 
-Setup applies every database/migrations/NNN_name.sql file in numeric order and refuses duplicate numbers: 001 (users, auth_rate_limits), 002 (facilities, equipment, bookings), 003 (sports, clubs), 004 (memberships, club_coaches), 005 (tournaments and entries) and 006 (matches). `--seed` also loads reference sports and demo clubs. See [database design](../docs/database-erd.md) and [backend conventions](../docs/backend-conventions.md). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
+Setup applies every database/migrations/NNN_name.sql file in numeric order and refuses duplicate numbers: 001 (users, auth_rate_limits), 002 (facilities, equipment, bookings), 003 (sports, clubs), 004 (memberships, club_coaches), 005 (tournaments and entries), 006 (matches), 007 (training sessions/attendance) and 008 (announcements). `--seed` also loads reference sports and demo clubs. See [database design](../docs/database-erd.md) and [backend conventions](../docs/backend-conventions.md). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
 
 ## Implemented behavior
 
@@ -71,7 +71,7 @@ Setup applies every database/migrations/NNN_name.sql file in numeric order and r
 - Admins cannot demote, deactivate, or archive themselves; transactions prevent concurrent removal of the last active Admin.
 - All writes require JSON objects and CSRF headers, including registration/login/logout and DELETE. Login is rate limited.
 
-Roles are student/admin. Coach policies, email verification, and password recovery remain separate work.
+Account roles are student/admin. Active club coach assignments grant scoped membership and competition permissions without adding an account role. Coach interfaces and training permissions, email verification and password recovery remain separate work.
 
 Facilities/equipment writes require Admin access; Students read active resources and create/edit/cancel their own pending bookings. Admins review and cancel bookings. Availability checks use transactions and resource locks. All modules reuse Session, Database, Http and SPORTSHUB_* configuration. Resource archival and booking cancellation return 204 with no body.
 
@@ -82,3 +82,5 @@ Mukilan owns auth/users, public routing, and session/CSRF integration. Jassim co
 Keep config, logs, and sessions outside public/ and Git. Prepared PDO queries are required. Never return hashes, credentials, stack traces, or raw database errors. Use a restricted runtime database account; setup and integration tests need DDL permissions.
 
 The built-in server is for local development. Apache/XAMPP can use the included .htaccess with mod_rewrite and public/ as the document root. Production serves the React build and PHP /api under one HTTPS origin; no blanket CORS policy is configured.
+
+Sports/clubs and training/attendance now use the shared authenticated router and `{ data, error }` envelope. Club writes require Admin access; training/attendance writes require Admin access or an active coach assignment for the club. Attendance reads are scoped to the participant, club coaches and Admins. Announcements require sign-in to read and Admin access to create/edit/pin/delete.
