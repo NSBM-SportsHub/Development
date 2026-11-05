@@ -280,6 +280,8 @@ final class TournamentService
                 // Release the members so they can join another entry of this tournament.
                 $db->prepare('UPDATE tournament_entry_members SET active_flag = NULL WHERE entry_id = ?')->execute([$entryId]);
             }
+            NotificationService::deliver($db, array_column($entry['members'], 'user_id'), "entry:$entryId:$status", 'tournament',
+                'Tournament entry ' . $status, 'Your entry in ' . $tournament['name'] . ' is ' . $status . '.', '/tournaments/' . $tournamentId);
         });
         return self::findEntry($actor, $entryId);
     }

@@ -4,6 +4,7 @@ import { Avatar, Brand, Icon } from "./ui.jsx";
 export default function WorkspaceLayout({ user, role, busy, error, onSignOut, children }) {
   const location = useLocation();
   const sectionNames = { "/memberships/apply": "Apply for membership", "/memberships/mine": "My memberships", "/admin/memberships": "Membership review", "/facilities": "Facilities", "/equipment": "Equipment", "/bookings/new": "Request a booking", "/bookings/mine": "My bookings", "/announcements": "Announcements" };
+  Object.assign(sectionNames, { "/notifications": "Notifications", "/participation": "My participation history", "/admin/reports": "Participation reports" });
   const sectionName = sectionNames[location.pathname] || (location.pathname.startsWith("/admin")
     ? "User management"
     : location.pathname.startsWith("/tournaments")
@@ -32,6 +33,9 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
           <NavLink to="/sports-clubs">Clubs preview</NavLink>
           <NavLink to="/training-attendance">Training preview</NavLink>
           <NavLink to="/announcements">Announcements</NavLink>
+          <NavLink to="/notifications">Notifications</NavLink>
+          <NavLink to="/participation">My participation history</NavLink>
+          {role === "admin" && <NavLink to="/admin/reports">Participation reports</NavLink>}
         </nav>
         <div className="sidebar-note">
           <Icon name="shield" />

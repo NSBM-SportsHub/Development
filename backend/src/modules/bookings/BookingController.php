@@ -159,6 +159,7 @@ final class BookingController
                 if ($statement->rowCount() === 0) {
                     $this->ensurePending($id);
                 }
+                NotificationService::booking($this->db, $id, $data['status']);
                 $this->db->commit();
             } catch (Throwable $exception) {
                 if ($this->db->inTransaction()) {
@@ -232,22 +233,25 @@ final class BookingController
 
     private function cancel(int $id, array $user): never
     {
-        if ($user['role'] === 'admin') {
-            $statement = $this->db->prepare(
-                'UPDATE bookings SET status = \'cancelled\', reviewed_by = :reviewed_by, updated_at = CURRENT_TIMESTAMP
-                 WHERE id = :id AND status IN (\'pending\', \'approved\')'
-            );
-            $statement->execute(['reviewed_by' => $user['id'], 'id' => $id]);
-        } else {
-            $statement = $this->db->prepare(
-                'UPDATE bookings SET status = \'cancelled\', updated_at = CURRENT_TIMESTAMP
-                 WHERE id = :id AND requested_by = :requested_by AND status = \'pending\''
-            );
-            $statement->execute(['id' => $id, 'requested_by' => $user['id']]);
-        }
-        if ($statement->rowCount() === 0) {
-            $this->ensurePending($id, $user['role'] === 'admin' ? null : $user['id']);
-        }
+        Database::transaction(function (PDO $db) use ($id, $user): void {
+            if ($user['role'] === 'admin') {
+                $statement = $db->prepare(
+                    'UPDATE bookings SET status = \'cancelled\', reviewed_by = :reviewed_by, updated_at = CURRENT_TIMESTAMP
+                     WHERE id = :id AND status IN (\'pending\', \'approved\')'
+                );
+                $statement->execute(['reviewed_by' => $user['id'], 'id' => $id]);
+            } else {
+                $statement = $db->prepare(
+                    'UPDATE bookings SET status = \'cancelled\', updated_at = CURRENT_TIMESTAMP
+                     WHERE id = :id AND requested_by = :requested_by AND status = \'pending\''
+                );
+                $statement->execute(['id' => $id, 'requested_by' => $user['id']]);
+            }
+            if ($statement->rowCount() === 0) {
+                $this->ensurePending($id, $user['role'] === 'admin' ? null : $user['id']);
+            }
+            NotificationService::booking($db, $id, 'cancelled');
+        });
         sendJson(null, 204);
     }
 

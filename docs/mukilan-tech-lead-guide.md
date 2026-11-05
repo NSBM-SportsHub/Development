@@ -267,6 +267,8 @@ Ask first for resource CRUD with migrations and API examples, then one request/a
 
 ### Nimesha: notifications/reports and QA coordination
 
+Implementation update: Mukilan covers the notifications/reports code on `feat/mukilan-notifications-reports`. See the [implemented contract and checks](notifications-reports-api.md). Nimesha’s separate individual coding contribution remains to be agreed; the original allocation follows for context.
+
 - Own notification, personal participation history and report frontend/backend.
 - Obtain the meaning of source events, statuses, participation and dates from each module owner.
 - Implement recipient/read ownership and scoped report queries. Report totals must match known source records.

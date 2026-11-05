@@ -57,7 +57,7 @@ Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP.
 - src/shared/ResourceBookingHttp.php: module validation and shared-response adapter, distinct from Http.php on every operating system.
 - tests/: real HTTP/database integration runner.
 
-Setup applies every database/migrations/NNN_name.sql file in numeric order and refuses duplicate numbers: 001 (users, auth_rate_limits), 002 (facilities, equipment, bookings), 003 (sports, clubs), 004 (memberships, club_coaches), 005 (tournaments and entries), 006 (matches), 007 (training sessions/attendance) and 008 (announcements). `--seed` also loads reference sports and demo clubs. See [database design](../docs/database-erd.md) and [backend conventions](../docs/backend-conventions.md). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
+Setup applies every database/migrations/NNN_name.sql file in numeric order and refuses duplicate numbers: 001 (users, auth_rate_limits), 002 (facilities, equipment, bookings), 003 (sports, clubs), 004 (memberships, club_coaches), 005 (tournaments and entries), 006 (matches), 007 (training sessions/attendance), 008 (announcements) and 009 (notifications). `--seed` also loads reference sports and demo clubs. See [database design](../docs/database-erd.md) and [backend conventions](../docs/backend-conventions.md). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
 
 ## Implemented behavior
 
@@ -77,7 +77,7 @@ Facilities/equipment writes require Admin access; Students read active resources
 
 ## Ownership and deployment
 
-Mukilan owns auth/users, public routing, and session/CSRF integration. Jassim coordinates schema/PDO/response review and implements memberships/competitions. Looga implements clubs/training; Mursid resources/bookings; Shahilan announcements; Nimesha notifications/reports. Other backend modules remain placeholders. Each owner reuses shared helpers and implements their module's validation, permissions, and tests.
+Mukilan owns auth/users, public routing, and session/CSRF integration. Jassim coordinates schema/PDO/response review and implements memberships/competitions. Looga implements clubs/training; Mursid resources/bookings; Shahilan announcements; Nimesha notifications/reports. Notifications and reports are implemented on `feat/mukilan-notifications-reports` by Mukilan, covering the originally allocated scope; see the [API contract](../docs/notifications-reports-api.md). Each owner reuses shared helpers and implements their module's validation, permissions, and tests.
 
 Keep config, logs, and sessions outside public/ and Git. Prepared PDO queries are required. Never return hashes, credentials, stack traces, or raw database errors. Use a restricted runtime database account; setup and integration tests need DDL permissions.
 

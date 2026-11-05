@@ -9,6 +9,7 @@ import { testCompetitions } from './competitions.mjs';
 import { testMemberships } from './memberships.mjs';
 import { testSportsTraining } from './sports-training.mjs';
 import { testResourcesAndBookings } from './resources-bookings.mjs';
+import { testNotificationsReports } from './notifications-reports.mjs';
 
 // Real PHP + MySQL/MariaDB HTTP tests. Creates and drops ONLY a random test DB.
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -218,6 +219,7 @@ try {
   const membershipContext = await testMemberships({ check, Client, admin, cli, suffix, password });
   await testCompetitions({ check, Client, admin, ...membershipContext });
   await testSportsTraining({ check, Client, admin, ...membershipContext });
+  await testNotificationsReports({ check, Client, admin, password, ...membershipContext });
 
   await check('Announcement reads require authentication and Students cannot mutate announcements', async () => {
     const anonymous = new Client();

@@ -146,6 +146,8 @@ final class MembershipService
                 self::requireFrom($from, ['approved'], $status);
                 $db->prepare("UPDATE memberships SET status = 'ended', ended_by = ?, ended_at = UTC_TIMESTAMP(), review_note = COALESCE(?, review_note) WHERE id = ?")
                     ->execute([$actorId, $note, $id]);
+                NotificationService::deliver($db, [(int) $membership['user_id']], "membership:$id:ended", 'membership',
+                    'Membership ended', 'Your membership in ' . $membership['club_name'] . ' has ended.', '/memberships/mine');
                 return;
             }
             if (!$reviewer) {
@@ -165,6 +167,8 @@ final class MembershipService
             }
             $db->prepare('UPDATE memberships SET status = ?, review_note = ?, reviewed_by = ?, reviewed_at = UTC_TIMESTAMP() WHERE id = ?')
                 ->execute([$status, $note, $actorId, $id]);
+            NotificationService::deliver($db, [(int) $membership['user_id']], "membership:$id:$status", 'membership',
+                'Membership ' . $status, 'Your application to ' . $membership['club_name'] . ' was ' . $status . '.', '/memberships/mine');
         });
         return self::publicMembership(self::load($id));
     }

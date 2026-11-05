@@ -34,7 +34,15 @@ try {
         '/api/users/me/password' => ['PATCH'],
         '/api/users' => ['GET', 'POST'],
         '/api/announcements' => ['GET', 'POST'],
+        '/api/notifications' => ['GET'],
+        '/api/participation/me' => ['GET'],
+        '/api/reports/participation' => ['GET'],
     ];
+    $notificationId = null;
+    if (preg_match('~\A/api/notifications/([1-9][0-9]{0,17})\z~', $path, $match)) {
+        $notificationId = (int) $match[1];
+        $routes[$path] = ['PATCH'];
+    }
     $sportsRoute = \SportsHub\SportsTrainingRoutes::match($path);
     if ($sportsRoute !== null) {
         $routes[$path] = $sportsRoute['methods'];
@@ -103,6 +111,19 @@ try {
     }
     Session::start();
     Session::currentUser(); // Refresh the account status and session version on every request.
+    if ($path === '/api/notifications' || $notificationId !== null) {
+        $actor = Session::requireUser();
+        $body = [];
+        if ($method === 'PATCH') {
+            Session::verifyCsrf();
+            $body = Http::body();
+        }
+        Http::json(\SportsHub\NotificationController::handle($method, $notificationId, $body, $_GET, $actor));
+    }
+    if (in_array($path, ['/api/participation/me', '/api/reports/participation'], true)) {
+        $actor = Session::requireUser();
+        Http::json(\SportsHub\ReportController::listing($path === '/api/reports/participation', $_GET, $actor));
+    }
     if ($sportsRoute !== null) {
         \SportsHub\SportsTrainingRoutes::dispatch($sportsRoute, $method);
     }

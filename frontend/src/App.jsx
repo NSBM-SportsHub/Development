@@ -24,6 +24,8 @@ import EquipmentForm from "./modules/equipment/EquipmentForm.jsx";
 import BookingForm from "./modules/bookings/BookingForm.jsx";
 import MyBookings from "./modules/bookings/MyBookings.jsx";
 import "./modules/business.css";
+import NotificationsPage from "./modules/notifications/NotificationsPage.jsx";
+import ParticipationPage from "./modules/reports/ParticipationPage.jsx";
 
 function ProtectedRoute({ admin = false, student = false }) {
   const { user, loading, sessionError, reloadSession } = useAuth();
@@ -109,6 +111,11 @@ export default function App() {
       <Route element={<ProtectedRoute />}>
         <Route element={<Shell />}>
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/notifications" element={<NotificationsPage />} />
+          <Route path="/participation" element={<ParticipationPage key="personal" />} />
+          <Route element={<ProtectedRoute admin />}>
+            <Route path="/admin/reports" element={<ParticipationPage key="admin" admin />} />
+          </Route>
           <Route path="/memberships/apply" element={<MembershipApplication />} />
           <Route path="/memberships/mine" element={<MyMemberships />} />
           <Route path="/facilities" element={<FacilityList />} />

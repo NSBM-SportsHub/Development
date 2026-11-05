@@ -11,6 +11,7 @@ erDiagram
     users ||--o{ bookings : "requests"
     users ||--o{ tournament_entries : "captains"
     users ||--o{ tournament_entry_members : "plays in"
+    users ||--o{ notifications : "receives"
     sports ||--o{ clubs : "has"
     sports ||--o{ tournaments : "is played in"
     clubs ||--o{ memberships : "has"
@@ -35,6 +36,7 @@ erDiagram
     facilities { bigint id PK }
     equipment { bigint id PK }
     bookings { bigint id PK "facility_id or equipment_id" }
+    notifications { bigint id PK "recipient_id FK, event_key, read_at" }
 ```
 
 ## Migration order
@@ -47,7 +49,11 @@ erDiagram
 | `004_memberships_and_coaches.sql` | Jassim | `club_coaches`, `memberships` |
 | `005_tournaments.sql` | Jassim | `tournaments`, `tournament_entries`, `tournament_entry_members` |
 | `006_matches.sql` | Jassim | `matches` |
-| `007` onward | Ask Jassim for the next number | Announcements, training/attendance, notifications, reports |
+| `007_training_and_attendance.sql` | Looga | `training_sessions`, `training_attendance` |
+| `008_announcements.sql` | Shahilan | `announcements` |
+| `009_notifications.sql` | Mukilan (covering original Nimesha scope) | `notifications` |
+
+Reports read attendance, tournament entries and completed matches directly; they do not duplicate those records in a report table. Notification event snapshots have a unique `(event_key, recipient_id)` key and a recipient/read-state index. See the [notification/report contract](notifications-reports-api.md).
 
 `php backend/bin/setup.php` applies every `NNN_lowercase_name.sql` file in numeric order. It refuses two files that share a number, so renumber yours if main already has it. Every migration must be re-runnable: use `CREATE TABLE IF NOT EXISTS` and never `DROP` or automatic `ALTER`. Add each new table's key columns to `$expected` in `setup.php`, which verifies existing tables before applying anything.
 

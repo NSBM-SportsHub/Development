@@ -94,6 +94,27 @@
   }
 }
 
+/* Keep all module links and sign-out reachable as the workspace grows. */
+@media (min-width: 651px) {
+  .sidebar .side-nav {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+  }
+
+  .sidebar > .brand-link,
+  .sidebar-section-label,
+  .sidebar-note,
+  .sidebar-account {
+    flex-shrink: 0;
+  }
+
+  .sidebar-note {
+    margin-top: 20px;
+    margin-bottom: 16px;
+  }
+}
+
 @media (max-width: 650px) {
   .sidebar {
     grid-template-columns: minmax(0, 1fr) auto;

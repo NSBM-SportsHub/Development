@@ -38,10 +38,13 @@ final class AnnouncementRepository
             random_int(0x8000, 0xbfff),
             random_int(0, 0xffffffffffff)
         );
-        $statement = Database::get()->prepare(
-            'INSERT INTO announcements (announcement_id, club_id, title, body, is_pinned, is_deleted) VALUES (?, ?, ?, ?, ?, 0)'
-        );
-        $statement->execute([$id, $data['club_id'], $data['title'], $data['body'], $data['is_pinned']]);
+        Database::transaction(function (PDO $db) use ($id, $data): void {
+            $statement = $db->prepare(
+                'INSERT INTO announcements (announcement_id, club_id, title, body, is_pinned, is_deleted) VALUES (?, ?, ?, ?, ?, 0)'
+            );
+            $statement->execute([$id, $data['club_id'], $data['title'], $data['body'], $data['is_pinned']]);
+            NotificationService::announcement($db, $id, $data);
+        });
         return self::find($id) ?? throw new \RuntimeException('The created announcement could not be loaded.');
     }
 

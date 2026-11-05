@@ -1,0 +1,6 @@
+.report-filters { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 190px), 1fr)); gap: 16px; }
+.report-filter-actions { grid-column: 1 / -1; margin-top: 0; }
+.report-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 170px), 1fr)); gap: 12px; margin: 24px 0 16px; }
+.report-summary dt { color: #536b60; font-size: .85rem; }
+.report-summary dd { margin: 8px 0 0; color: #087b55; font-size: 1.8rem; font-weight: 750; }
+.report-filters select, .report-filters input { width: 100%; min-height: 44px; padding: 10px 12px; border: 1px solid #c8d7ce; border-radius: 8px; background: white; color: #17352b; font: inherit; }

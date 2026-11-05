@@ -29,6 +29,9 @@ The build writes the ignored dist/ directory. The tests check club create/update
 | /login | PHP email/password sign-in |
 | /register | PHP registration of an active Student |
 | /profile | Protected PHP-backed profile editing and password change |
+| /notifications | Recipient-owned PHP-backed inbox, read state, filters and pagination |
+| /participation | Personal participation history and filtered training/registration/match totals |
+| /admin/reports | Admin-only participation/performance reports with user, sport, date, type and status filters |
 | /admin/users | Admin-only PHP user directory and create/edit/activate/deactivate/archive |
 | /memberships/apply | Authenticated application submission to the PHP membership API |
 | /memberships/mine | Personal membership status, withdraw, and leave actions |

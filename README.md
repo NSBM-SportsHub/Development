@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: integrated account, membership, resource/booking, competition and announcement workflows.** React screens use the shared PHP/MySQL session and API client. Sports/clubs, training sessions and attendance now have authenticated backend endpoints; club and training screens still use browser demo data. Notifications, reports and the Admin booking-review screen remain pending. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), and the [branch integration review](docs/all-branches-integration-review.md).
+> **Current status: integrated account, membership, resource/booking, competition and announcement workflows.** React screens use the shared PHP/MySQL session and API client. Sports/clubs, training sessions and attendance now have authenticated backend endpoints; club and training screens still use browser demo data. Notifications, personal participation history and Admin participation/performance reports now use PHP/MySQL. The Admin booking-review screen remains pending. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), and the [branch integration review](docs/all-branches-integration-review.md).
 
 ## Start here
 
@@ -20,7 +20,7 @@ The project aims to bring sports clubs, membership applications, training, compe
 | Frontend | HTML, CSS, JavaScript, React | Shared layouts/API client; account, membership, booking, competition and announcement screens |
 | UI framework | Bootstrap is planned | Shared auth CSS and module preview themes; coordinate presentation with Shahadh |
 | Backend | PHP 8.2+ | Shared API router, PDO, session/CSRF, auth/users, resources/bookings, memberships, competitions, announcements and sports/training |
-| Database | MySQL 8+ / compatible MariaDB | Ordered migrations 001–008; private `.env` configuration |
+| Database | MySQL 8+ / compatible MariaDB | Ordered migrations 001–009; private `.env` configuration |
 | Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
@@ -53,7 +53,7 @@ Student and Admin interfaces must be separate. All protected actions must also b
 | `notifications` | In-app updates and recipient read state; external delivery is not agreed |
 | `reports` | Student participation history and authorized participation/performance reports |
 
-Membership, tournament entry, fixture, result and standings rules are implemented in the backend and described in their API contracts. Training screens, notifications and reports still need their remaining implementation and acceptance checks.
+Membership, tournament entry, fixture, result and standings rules are implemented in the backend and described in their API contracts. Training screens still need API integration. Notifications and participation reports are implemented on this branch; see the [notification/report contract](docs/notifications-reports-api.md) for event recipients, report definitions and acceptance checks.
 
 ## Repository structure
 

@@ -53,6 +53,11 @@ try {
     $connection->exec('CREATE DATABASE IF NOT EXISTS `' . $database . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
     $connection->exec('USE `' . $database . '`');
     $expected = [
+        'notifications' => [
+            'id' => 'bigint unsigned', 'recipient_id' => 'bigint unsigned', 'event_key' => 'varchar(190)',
+            'type' => 'varchar(40)', 'title' => 'varchar(255)', 'message' => 'varchar(1000)',
+            'link' => 'varchar(255)', 'read_at' => 'datetime', 'created_at' => 'datetime',
+        ],
         'users' => [
             'id' => 'bigint unsigned', 'name' => 'varchar(100)', 'email' => 'varchar(190)',
             'password_hash' => 'varchar(255)', 'role' => "enum('student','admin')",
@@ -163,6 +168,9 @@ try {
             if (!in_array([$field], $uniqueColumns, true)) {
                 throw new RuntimeException('Existing table ' . $table . ' requires a unique ' . $field . ' index. Review it manually; no changes were applied to it.');
             }
+        }
+        if ($table === 'notifications' && !in_array(['event_key', 'recipient_id'], $uniqueColumns, true)) {
+            throw new RuntimeException('Existing notifications table requires a unique event_key/recipient_id index. Review it manually; no changes were applied to it.');
         }
     }
 
