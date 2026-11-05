@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 
 // Run through real login sessions and the same PHP router as the authentication suite.
-export async function testResourcesAndBookings({ check, Client, admin, student, cli }) {
+export async function testResourcesAndBookings({ check, Client, admin, student, cli, createAdminClient }) {
   const other = new Client();
   const studentId = (await student.session()).data.user.id;
+  let otherId;
   let facilityId;
   let equipmentId;
   let bookingId;
@@ -59,9 +60,11 @@ export async function testResourcesAndBookings({ check, Client, admin, student, 
 
   await check('Bookings enforce ownership, Admin review and facility time conflicts', async () => {
     await other.session();
-    assert.equal((await other.request('/auth/register', {
+    const registration = await other.request('/auth/register', {
       method: 'POST', body: { name: 'Other booker', email: `booker-${Date.now()}@example.test`, password: 'OtherBooker!23456789' },
-    })).status, 201);
+    });
+    assert.equal(registration.status, 201);
+    otherId = registration.data.user.id;
     assert.equal((await other.request('/bookings')).data.length, 0);
     assert.equal((await other.request(`/bookings/${bookingId}`)).status, 404);
     assert.equal((await other.request(`/bookings/${bookingId}`, { method: 'PATCH', body: { notes: 'Forbidden' } })).status, 404);
@@ -75,6 +78,64 @@ export async function testResourcesAndBookings({ check, Client, admin, student, 
     assert.equal((await student.request(`/bookings/${bookingId}`)).data.status, 'approved');
     assert.equal((await student.request(`/bookings/${bookingId}`, { method: 'DELETE' })).status, 404);
     assert.ok((await admin.request('/bookings')).data.some((entry) => entry.id === bookingId));
+  });
+
+  await check('Concurrent Admin approvals cannot double-book a facility', async () => {
+    const facility = await admin.request('/facilities', {
+      method: 'POST', body: { name: 'Concurrent approval court' },
+    });
+    assert.equal(facility.status, 201);
+    const bookings = JSON.parse(cli('backend/tests/booking-fixtures.php', [
+      'facility', String(facility.data.id), String(studentId), String(otherId), '1', '1',
+      '2030-10-30T09:00:00Z', '2030-10-30T10:00:00Z',
+    ]));
+    assert.equal(bookings.length, 2);
+    for (const id of bookings) {
+      assert.equal((await admin.request(`/bookings/${id}`)).data.status, 'pending');
+    }
+
+    const admins = await Promise.all([createAdminClient(), createAdminClient()]);
+    const results = await Promise.all(bookings.map((id, index) => admins[index].request(
+      `/bookings/${id}`, { method: 'PATCH', body: { status: 'approved' } },
+    )));
+    assert.deepEqual(results.map((result) => result.status).sort(), [200, 409]);
+    const conflict = results.find((result) => result.status === 409);
+    assert.equal(conflict.error.code, 'conflict');
+    assert.equal(conflict.error.message, 'The requested time or quantity is unavailable.');
+
+    const saved = await Promise.all(bookings.map((id) => admin.request(`/bookings/${id}`)));
+    assert.equal(saved.filter((result) => result.data.status === 'approved').length, 1);
+    assert.equal(saved.filter((result) => result.data.status === 'pending').length, 1);
+  });
+
+  await check('Concurrent Admin approvals cannot overbook equipment stock', async () => {
+    const equipment = await admin.request('/equipment', {
+      method: 'POST', body: { name: 'Concurrent approval equipment', total_quantity: 5 },
+    });
+    assert.equal(equipment.status, 201);
+    const bookings = JSON.parse(cli('backend/tests/booking-fixtures.php', [
+      'equipment', String(equipment.data.id), String(studentId), String(otherId), '3', '3',
+      '2030-10-31T09:00:00Z', '2030-10-31T10:00:00Z',
+    ]));
+    assert.equal(bookings.length, 2);
+    for (const id of bookings) {
+      assert.equal((await admin.request(`/bookings/${id}`)).data.status, 'pending');
+    }
+
+    const admins = await Promise.all([createAdminClient(), createAdminClient()]);
+    const results = await Promise.all(bookings.map((id, index) => admins[index].request(
+      `/bookings/${id}`, { method: 'PATCH', body: { status: 'approved' } },
+    )));
+    assert.deepEqual(results.map((result) => result.status).sort(), [200, 409]);
+    const conflict = results.find((result) => result.status === 409);
+    assert.equal(conflict.error.code, 'conflict');
+    assert.equal(conflict.error.message, 'The requested time or quantity is unavailable.');
+
+    const saved = await Promise.all(bookings.map((id) => admin.request(`/bookings/${id}`)));
+    const approved = saved.filter((result) => result.data.status === 'approved');
+    assert.equal(approved.length, 1);
+    assert.equal(approved.reduce((quantity, result) => quantity + result.data.quantity, 0), 3);
+    assert.equal(saved.filter((result) => result.data.status === 'pending').length, 1);
   });
 
   await check('Equipment capacity and reductions respect active reservations', async () => {
