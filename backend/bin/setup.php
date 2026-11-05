@@ -11,7 +11,7 @@ if (PHP_SAPI !== 'cli') {
     exit;
 }
 if (in_array('--help', $argv, true)) {
-    fwrite(STDOUT, "Usage: php backend/bin/setup.php [--seed]\nConfigure SPORTSHUB_DB_* first. Creates the database and applies every database/migrations/NNN_name.sql file in order; never alters or replaces existing tables.\n--seed also applies the idempotent database/seeds/NNN_name.sql files (reference sports and demo clubs).\n");
+    fwrite(STDOUT, "Usage: php backend/bin/setup.php [--seed|--reference-seed] [--existing-database]\nConfigure SPORTSHUB_DB_* first. Creates the database and applies every database/migrations/NNN_name.sql file in order; never alters or replaces existing tables.\n--existing-database skips CREATE DATABASE for a provisioned database.\n--reference-seed loads reference sports only, without demo clubs.\n--seed also applies the idempotent database/seeds/NNN_name.sql files (reference sports and demo clubs).\n");
     exit(0);
 }
 
@@ -50,7 +50,9 @@ try {
     $database = Config::all()['database']['name'];
     $connection = Database::connect(false);
     // Config already enforces a safe, bounded SQL identifier; values use prepared statements.
-    $connection->exec('CREATE DATABASE IF NOT EXISTS `' . $database . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+    if (!in_array('--existing-database', $argv, true)) {
+        $connection->exec('CREATE DATABASE IF NOT EXISTS `' . $database . '` CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
+    }
     $connection->exec('USE `' . $database . '`');
     $expected = [
         'notifications' => [
@@ -182,6 +184,9 @@ try {
             applySqlFile($connection, $seed);
         }
         fwrite(STDOUT, "Reference and demo seed data were applied.\n");
+    } elseif (in_array('--reference-seed', $argv, true)) {
+        applySqlFile($connection, dirname(__DIR__, 2) . '/database/seeds/001_sports.sql');
+        fwrite(STDOUT, "Reference sports were applied without demo clubs.\n");
     }
     fwrite(STDOUT, 'Database ' . $database . " is ready. Existing records were preserved.\n");
     fwrite(STDOUT, "Provision the first administrator with php backend/bin/create-admin.php.\n");

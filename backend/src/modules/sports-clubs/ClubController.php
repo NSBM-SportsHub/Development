@@ -95,7 +95,7 @@ final class ClubController
                 return;
             }
 
-            $query = 'SELECT * FROM clubs WHERE is_archived = 0 ORDER BY name ASC';
+            $query = "SELECT c.*, (SELECT COUNT(*) FROM memberships m WHERE m.club_id = c.id AND m.status = 'approved') AS member_count FROM clubs c WHERE c.is_archived = 0 ORDER BY c.name ASC";
             $stmt = $pdo->query($query);
             $clubs = $stmt->fetchAll();
 

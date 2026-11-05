@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: integrated account, membership, resource/booking, competition and announcement workflows.** React screens use the shared PHP/MySQL session and API client. Sports/clubs, training sessions and attendance now have authenticated backend endpoints; club and training screens still use browser demo data. Notifications, personal participation history and Admin participation/performance reports now use PHP/MySQL. The Admin booking-review screen remains pending. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), and the [branch integration review](docs/all-branches-integration-review.md).
+> **Current status: all core module screens use the shared PHP/MySQL APIs.** Clubs, training and attendance are connected to the database; Admin booking review, Student booking editing and coach assignment/review interfaces are implemented on `feat/mukilan-complete-workflows`, which includes the notifications/reports branch. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), [QA evidence](docs/final-integration-review.md), and [Vercel/Render deployment](docs/deployment-vercel-render.md). Live cloud deployment remains to be provisioned and verified.
 
 ## Start here
 
@@ -18,7 +18,7 @@ The project aims to bring sports clubs, membership applications, training, compe
 | Area | Requirement or direction | Current state |
 | --- | --- | --- |
 | Frontend | HTML, CSS, JavaScript, React | Shared layouts/API client; account, membership, booking, competition and announcement screens |
-| UI framework | Bootstrap is planned | Shared auth CSS and module preview themes; coordinate presentation with Shahadh |
+| UI framework | Bootstrap is planned | Shared auth CSS and sports-module themes; coordinate presentation with Shahadh |
 | Backend | PHP 8.2+ | Shared API router, PDO, session/CSRF, auth/users, resources/bookings, memberships, competitions, announcements and sports/training |
 | Database | MySQL 8+ / compatible MariaDB | Ordered migrations 001–009; private `.env` configuration |
 | Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
@@ -32,7 +32,7 @@ React/Vite are used on this implementation branch. Confirm assignment framework 
 | --- | --- |
 | Student | Register/login, manage a profile, browse clubs, apply for membership, view schedules and competitions, request resources, and view personal participation |
 | Admin | Manage accounts, clubs, memberships, resources, booking approvals, schedules, competitions, results, announcements, and reports |
-| Coach | Club assignments grant scoped membership/competition review and training/attendance API permissions; dedicated training screens remain pending |
+| Coach | Club assignments grant scoped membership/competition review and training/attendance API permissions; assigned coaches use the connected training and attendance screens |
 
 Student and Admin interfaces must be separate. All protected actions must also be checked on the PHP server. Account roles remain `student`/`admin`; coach permissions come from active `club_coaches` assignments, as described in the membership and competition contracts.
 
@@ -53,7 +53,7 @@ Student and Admin interfaces must be separate. All protected actions must also b
 | `notifications` | In-app updates and recipient read state; external delivery is not agreed |
 | `reports` | Student participation history and authorized participation/performance reports |
 
-Membership, tournament entry, fixture, result and standings rules are implemented in the backend and described in their API contracts. Training screens still need API integration. Notifications and participation reports are implemented on this branch; see the [notification/report contract](docs/notifications-reports-api.md) for event recipients, report definitions and acceptance checks.
+The core module workflows are connected to their backend APIs. Notifications and reports use real source records; see the [notification/report contract](docs/notifications-reports-api.md). Coaches receive club-scoped permissions through assignments managed by Admins.
 
 ## Repository structure
 
@@ -69,22 +69,22 @@ Development/
 |       `-- modules/         The twelve module folders listed above
 |-- backend/
 |   |-- README.md
-|   |-- config/             Planned server/database configuration
-|   |-- public/             Planned PHP web entry point directory
+|   |-- config/             Server/database configuration
+|   |-- public/             PHP web entry point directory
 |   `-- src/
-|       |-- shared/         Planned authentication, routing, and backend helpers
+|       |-- shared/         Authentication, routing, and backend helpers
 |       `-- modules/        Matching PHP module folders
 |-- database/
-|   |-- migrations/         Future ordered schema changes
-|   `-- seeds/              Future safe reference/development data
-`-- docs/                   Future requirements, architecture, API, and QA documents
+|   |-- migrations/         Ordered schema changes
+|   `-- seeds/              Reference/development data
+`-- docs/                   Requirements, architecture, API, and QA documents
 ```
 
-Both module directories contain the twelve planned module folders. Authentication/users has React and PHP implementations. The frontend also contains clubs, training/attendance and announcement previews. Resource/booking PHP handlers reuse the shared login session and PDO connection. Ordered migrations cover authentication and resources/bookings; other business handlers/schemas still need integration.
+The React frontend, PHP modules and ordered schema migrations share canonical user, club and resource IDs. Club archival and workflow cancellations preserve history. All protected routes share the same server session and CSRF-aware client.
 
 ## Team and working ownership
 
-The following allocation is the working task plan. Changes should be coordinated with the team lead and affected owners.
+The following table records the original working allocation. At the team lead’s request, Mukilan covered remaining coding and integration on `feat/mukilan-complete-workflows`, including the notifications/reports implementation. This does not establish other members’ individual contribution evidence.
 
 | Member | Primary implementation ownership | Coordination responsibility |
 | --- | --- | --- |

@@ -1,7 +1,10 @@
+import { useAuth } from "../../shared/AuthContext.jsx";
 import { useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 export default function ClubDetails({ clubs, loading, onDelete }) {
+  const { user } = useAuth();
+  const [busy, setBusy] = useState(false);
   const { clubId } = useParams();
   const navigate = useNavigate();
   const [deleteError, setDeleteError] = useState("");
@@ -21,15 +24,16 @@ export default function ClubDetails({ clubs, loading, onDelete }) {
     );
   }
 
-  function handleDelete() {
-    if (!window.confirm(`Delete ${club.name}? This cannot be undone.`)) return;
+  async function handleDelete() {
+    if (busy || !window.confirm(`Archive ${club.name}? Existing participation and membership history will be kept.`)) return;
+    setBusy(true);
 
     try {
-      onDelete(club.id);
+      await onDelete(club.id);
       navigate("/sports-clubs", { replace: true });
     } catch (deleteFailure) {
-      setDeleteError(deleteFailure instanceof Error ? deleteFailure.message : "Unable to delete the club.");
-    }
+      setDeleteError(deleteFailure instanceof Error ? deleteFailure.message : "Unable to archive the club.");
+    } finally { setBusy(false); }
   }
 
   return (
@@ -41,8 +45,8 @@ export default function ClubDetails({ clubs, loading, onDelete }) {
           <h1>{club.name}</h1>
           <p>{club.description}</p>
           <div className="club-actions">
-            <Link className="light-button" to={`/sports-clubs/${club.id}/edit`}>Edit club <span aria-hidden="true">→</span></Link>
-            <button className="danger-button" type="button" onClick={handleDelete}>Delete club</button>
+            {user.role === "admin" && <><Link className="light-button" to={`/sports-clubs/${club.id}/edit`}>Edit club <span aria-hidden="true">→</span></Link>
+            <button className="danger-button" type="button" disabled={busy} onClick={handleDelete}>Archive club</button></>}
             <span className="club-status">{club.status}</span>
           </div>
           {deleteError && <p className="form-error" role="alert">{deleteError}</p>}
@@ -65,22 +69,7 @@ export default function ClubDetails({ clubs, loading, onDelete }) {
         </div>
       </section>
 
-      <section className="club-gallery">
-        <div className="gallery-heading">
-          <div><p className="eyebrow">Moments together</p><h2>Club <span>Photos</span></h2></div>
-          <span className="gallery-caption">A glimpse into our community</span>
-        </div>
-        <div className="gallery-grid">
-          {[0, 1, 2, 3, 4, 5].map((image) => (
-            <img
-              key={image}
-              src={club.image.replace("w=900", "w=700") + `&sat=${image * 8}`}
-              alt={`${club.name} training and club activities`}
-              loading="lazy"
-            />
-          ))}
-        </div>
-      </section>
+      <div className="business-actions"><Link className="business-link" to="/memberships/apply">Apply for membership</Link><Link className="business-link" to="/training-attendance">View training schedule</Link></div>
     </article>
   );
 }

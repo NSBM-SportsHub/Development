@@ -1,11 +1,13 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
+import { useClubAccess } from "./useClubAccess.js";
 import { Avatar, Brand, Icon } from "./ui.jsx";
 
 export default function WorkspaceLayout({ user, role, busy, error, onSignOut, children }) {
   const location = useLocation();
+  const access = useClubAccess();
   const sectionNames = { "/memberships/apply": "Apply for membership", "/memberships/mine": "My memberships", "/admin/memberships": "Membership review", "/facilities": "Facilities", "/equipment": "Equipment", "/bookings/new": "Request a booking", "/bookings/mine": "My bookings", "/announcements": "Announcements" };
-  Object.assign(sectionNames, { "/notifications": "Notifications", "/participation": "My participation history", "/admin/reports": "Participation reports" });
-  const sectionName = sectionNames[location.pathname] || (location.pathname.startsWith("/admin")
+  Object.assign(sectionNames, { "/admin/bookings": "Booking review", "/admin/coaches": "Coach assignments", "/memberships/review": "Club membership review", "/notifications": "Notifications", "/participation": "My participation history", "/admin/reports": "Participation reports" });
+  const sectionName = sectionNames[location.pathname] || (location.pathname.startsWith("/sports-clubs") ? "Sports clubs" : location.pathname.startsWith("/training-attendance") ? "Training and attendance" : location.pathname.startsWith("/bookings/") ? "Bookings" : location.pathname.startsWith("/admin")
     ? "User management"
     : location.pathname.startsWith("/tournaments")
       ? "Tournaments"
@@ -22,7 +24,8 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
           {role === "admin" && <NavLink to="/admin/users"><Icon name="users" />User management</NavLink>}
           <NavLink to="/memberships/apply">Apply for membership</NavLink>
           <NavLink to="/memberships/mine">My memberships</NavLink>
-          {role === "admin" && <NavLink to="/admin/memberships">Membership review</NavLink>}
+          {role === "admin" && <><NavLink to="/admin/memberships">Membership review</NavLink><NavLink to="/admin/bookings">Booking review</NavLink><NavLink to="/admin/coaches">Coach assignments</NavLink></>}
+          {role !== "admin" && access.assignments.length > 0 && <NavLink to="/memberships/review">Club membership review</NavLink>}
           <NavLink to="/facilities">Facilities</NavLink>
           <NavLink to="/equipment">Equipment</NavLink>
           {role === "student" && <>
@@ -30,8 +33,8 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
             <NavLink to="/bookings/mine">My bookings</NavLink>
           </>}
           <NavLink to="/tournaments">Tournaments</NavLink>
-          <NavLink to="/sports-clubs">Clubs preview</NavLink>
-          <NavLink to="/training-attendance">Training preview</NavLink>
+          <NavLink to="/sports-clubs">Sports clubs</NavLink>
+          <NavLink to="/training-attendance">Training and attendance</NavLink>
           <NavLink to="/announcements">Announcements</NavLink>
           <NavLink to="/notifications">Notifications</NavLink>
           <NavLink to="/participation">My participation history</NavLink>

@@ -1,0 +1,11 @@
+.git
+.tools
+.artifacts
+node_modules
+frontend
+backend/.env
+backend/.env.*
+backend/config/local.php
+backend/var
+**/*.log
+docs

@@ -1,8 +1,10 @@
 import { Link } from "react-router-dom";
 import { useMemo, useState } from "react";
+import { useAuth } from "../../shared/AuthContext.jsx";
 import GlassSelect from "../../shared/GlassSelect.jsx";
 
 export default function ClubList({ clubs, loading, error, onRetry }) {
+  const { user } = useAuth();
   const [query, setQuery] = useState("");
   const [sport, setSport] = useState("");
   const [status, setStatus] = useState("");
@@ -23,7 +25,7 @@ export default function ClubList({ clubs, loading, error, onRetry }) {
             <h1 id="clubs-title">Sports <span>Clubs</span></h1>
             <p className="clubs-intro">Discover your passion. Play your part. Grow together.</p>
           </div>
-          <Link className="primary-button" to="/sports-clubs/new">Create a club <span aria-hidden="true">→</span></Link>
+          {user.role === "admin" && <Link className="primary-button" to="/sports-clubs/new">Create a club <span aria-hidden="true">→</span></Link>}
         </div>
 
         <div className="club-filters" aria-label="Filter clubs">

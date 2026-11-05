@@ -16,14 +16,19 @@ final class Database
         if ($selectDatabase) {
             $dsn .= ';dbname=' . $settings['name'];
         }
-        $connection = new PDO($dsn, $settings['user'], $settings['password'], [
+        $options = [
             PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
             PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
             PDO::ATTR_EMULATE_PREPARES => false,
             PDO::ATTR_STRINGIFY_FETCHES => false,
             PDO::ATTR_TIMEOUT => 5,
             PDO::MYSQL_ATTR_MULTI_STATEMENTS => false,
-        ]);
+        ];
+        if ($settings['ssl_ca'] !== '') {
+            $options[PDO::MYSQL_ATTR_SSL_CA] = $settings['ssl_ca'];
+            $options[PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT] = true;
+        }
+        $connection = new PDO($dsn, $settings['user'], $settings['password'], $options);
         $connection->exec("SET time_zone = '+00:00'");
         return $connection;
     }

@@ -1,0 +1,15 @@
+.main-content > .sports-hub { min-height: 0; width: 100%; background: transparent; }
+.main-content .sports-hub > .sports-header, .main-content .sports-hub > .sports-footer { display: none; }
+.main-content .sports-hub .sports-main { width: 100%; max-width: 1100px; margin: 0 auto; padding: 0; }
+.main-content .sports-hub select, .business-field > select, .business-field > input { width: 100%; min-width: 0; min-height: 44px; padding: 10px 12px; border: 1px solid #c8d7ce; border-radius: 8px; background: white; color: #17352b; font: inherit; }
+.main-content .sports-hub button:disabled { cursor: wait; opacity: .6; }
+.business-page > .business-form, .business-page > .business-field { margin-bottom: 20px; }
+.business-page > .button { margin-bottom: 16px; }
+.club-info-card strong, .business-record p, .business-record dd { overflow-wrap: anywhere; }
+.training-detail-actions { flex-wrap: wrap; }
+@media (max-width: 650px) {
+  .main-content .sports-hub .sports-main { padding: 0; }
+  .main-content .sports-hub .club-filters { display: grid; grid-template-columns: 1fr; }
+  .main-content .sports-hub .club-info-grid { grid-template-columns: 1fr; }
+  .main-content .sports-hub .training-form-row { grid-template-columns: 1fr; }
+}

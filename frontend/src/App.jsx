@@ -24,6 +24,10 @@ import EquipmentForm from "./modules/equipment/EquipmentForm.jsx";
 import BookingForm from "./modules/bookings/BookingForm.jsx";
 import MyBookings from "./modules/bookings/MyBookings.jsx";
 import "./modules/business.css";
+import "./shared/integrated-workflows.css";
+import BookingReview from "./modules/bookings/BookingReview.jsx";
+import BookingEdit from "./modules/bookings/BookingEdit.jsx";
+import CoachAssignments from "./modules/memberships/CoachAssignments.jsx";
 import NotificationsPage from "./modules/notifications/NotificationsPage.jsx";
 import ParticipationPage from "./modules/reports/ParticipationPage.jsx";
 
@@ -64,38 +68,12 @@ function HomeRedirect() {
 function AuthFrame() {
   return (
     <div className="auth-route">
-      <nav className="auth-module-nav" aria-label="SportsHub previews">
-        <Link to="/sports-clubs">Clubs preview</Link>
+      <nav className="auth-module-nav" aria-label="SportsHub modules">
+        <Link to="/sports-clubs">Clubs</Link>
         <Link to="/training-attendance">Training</Link>
         <Link to="/announcements">Announcements</Link>
       </nav>
       <Outlet />
-    </div>
-  );
-}
-
-function ModulePreview() {
-  const { user, loading } = useAuth();
-  return (
-    <div className="module-preview">
-      <a href="#module-content" className="skip-link">Skip to module content</a>
-      <div className="module-account-bar">
-        <p><strong>Preview</strong><span>Club and training previews use browser demo data. Announcements are saved to SportsHub.</span></p>
-        <nav aria-label="Account">
-          {loading ? <span role="status">Checking sign-in…</span> : user ? (
-            <>
-              <Link to="/profile">My profile</Link>
-              {user.role === "admin" && <Link to="/admin/users">Manage users</Link>}
-            </>
-          ) : (
-            <>
-              <Link to="/login">Sign in</Link>
-              <Link to="/register">Create account</Link>
-            </>
-          )}
-        </nav>
-      </div>
-      <div id="module-content" tabIndex={-1}><Outlet /></div>
     </div>
   );
 }
@@ -127,10 +105,16 @@ export default function App() {
           <Route element={<ProtectedRoute student />}>
             <Route path="/bookings/new" element={<BookingForm />} />
             <Route path="/bookings/mine" element={<MyBookings />} />
+            <Route path="/bookings/:bookingId/edit" element={<BookingEdit />} />
           </Route>
           <Route element={<ProtectedRoute admin />}>
             <Route path="/admin/memberships" element={<MembershipReview />} />
+            <Route path="/admin/bookings" element={<BookingReview />} />
+            <Route path="/admin/coaches" element={<CoachAssignments />} />
           </Route>
+          <Route path="/memberships/review" element={<MembershipReview />} />
+          <Route path="/sports-clubs/*" element={<SportsClubs />} />
+          <Route path="/training-attendance/*" element={<TrainingAttendance />} />
           <Route path="/announcements/*" element={<Announcements />} />
           <Route path="/tournaments" element={<TournamentList />} />
           <Route path="/tournaments/:tournamentId" element={<TournamentDetails />} />
@@ -139,10 +123,6 @@ export default function App() {
             <Route path="/admin/users" element={<UsersPage />} />
           </Route>
         </Route>
-      </Route>
-      <Route element={<ModulePreview />}>
-        <Route path="/sports-clubs/*" element={<SportsClubs />} />
-        <Route path="/training-attendance/*" element={<TrainingAttendance />} />
       </Route>
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

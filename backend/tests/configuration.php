@@ -334,6 +334,23 @@ ENV;
         check(!array_key_exists('UNRELATED_SETTING', $value), 'An unrelated file key appeared in application settings.');
     });
 
+    regression('database TLS is optional and defaults to no CA file', function (): void {
+        equal('', settings(inspectConfiguration(configurationFixture()))['database']['ssl_ca'], 'The default TLS CA must be empty.');
+    });
+
+    regression('database TLS accepts a readable CA path from the process environment', function (): void {
+        $backend = configurationFixture();
+        $certificate = $backend . '/config/test-ca.pem';
+        file_put_contents($certificate, "fixture certificate contents\n");
+        equal($certificate, settings(inspectConfiguration($backend, ['SPORTSHUB_DB_SSL_CA' => $certificate]))['database']['ssl_ca'], 'The TLS CA path was not loaded.');
+    });
+
+    regression('database TLS rejects missing files and directories', function (): void {
+        $backend = configurationFixture();
+        configurationError(inspectConfiguration($backend, ['SPORTSHUB_DB_SSL_CA' => $backend . '/missing.pem']), 'TLS CA');
+        configurationError(inspectConfiguration($backend, ['SPORTSHUB_DB_SSL_CA' => $backend . '/config']), 'TLS CA');
+    });
+
     regression('secure flag 0 and 1 become strict booleans', function (): void {
         equal(false, settings(inspectConfiguration(configurationFixture("SPORTSHUB_SESSION_SECURE=0\n")))['session']['secure'], 'Secure flag zero must become false.');
         equal(true, settings(inspectConfiguration(configurationFixture("SPORTSHUB_SESSION_SECURE=1\n")))['session']['secure'], 'Secure flag one must become true.');

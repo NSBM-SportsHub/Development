@@ -52,7 +52,7 @@ export default function MyBookings() {
         <div className="business-record-head"><div><p className="business-eyebrow">{statusLabel(record.resource_type)}</p><h2>{record.resource_name}</h2></div><span className={`business-status status-${record.status}`}>{statusLabel(record.status)}</span></div>
         <dl className="business-details"><div><dt>Starts</dt><dd>{formatDate(record.starts_at, { hour: "2-digit", minute: "2-digit" })}</dd></div><div><dt>Ends</dt><dd>{formatDate(record.ends_at, { hour: "2-digit", minute: "2-digit" })}</dd></div>{record.resource_type === "equipment" && <div><dt>Quantity</dt><dd>{record.quantity}</dd></div>}<div><dt>Requested</dt><dd>{formatDate(record.created_at)}</dd></div></dl>
         {record.notes && <p className="business-note"><strong>Notes:</strong> {record.notes}</p>}
-        {record.status === "pending" && <div className="business-actions"><Button type="button" className="button-danger" busy={busyId === record.id} disabled={busyId !== null} onClick={() => cancel(record)}>{busyId === record.id ? "Cancelling…" : "Cancel request"}</Button></div>}
+        {record.status === "pending" && <div className="business-actions"><Link className="business-link" to={`/bookings/${record.id}/edit`}>Edit booking</Link><Button type="button" className="button-danger" busy={busyId === record.id} disabled={busyId !== null} onClick={() => cancel(record)}>{busyId === record.id ? "Cancelling…" : "Cancel request"}</Button></div>}
       </article>)}
     </div>}
     {!loading && <button className="business-text-button" type="button" onClick={() => setReload((value) => value + 1)}>Refresh booking status</button>}

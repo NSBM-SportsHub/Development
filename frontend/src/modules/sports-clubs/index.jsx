@@ -11,31 +11,35 @@ export default function SportsClubs() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  function loadClubs() {
+  async function loadClubs(signal) {
     setLoading(true);
     setError("");
     try {
-      setClubList(clubsService.list());
+      const rows = await clubsService.list({ signal });
+      if (!signal?.aborted) setClubList(rows);
     } catch (loadError) {
+      if (signal?.aborted) return;
       setClubList([]);
       setError(loadError instanceof Error ? loadError.message : "Unable to load saved clubs.");
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadClubs();
+    const controller = new AbortController();
+    loadClubs(controller.signal);
+    return () => controller.abort();
   }, []);
 
-  function saveClub(club) {
-    const result = clubsService.save(clubList, club);
+  async function saveClub(club) {
+    const result = await clubsService.save(clubList, club);
     setClubList(result.clubs);
     return result.id;
   }
 
-  function deleteClub(id) {
-    const updated = clubsService.delete(clubList, id);
+  async function deleteClub(id) {
+    const updated = await clubsService.delete(clubList, id);
     setClubList(updated);
   }
 
@@ -59,7 +63,7 @@ export default function SportsClubs() {
 
       <main className="sports-main">
         <Routes>
-          <Route index element={<ClubList clubs={clubList} loading={loading} error={error} onRetry={loadClubs} />} />
+          <Route index element={<ClubList clubs={clubList} loading={loading} error={error} onRetry={() => loadClubs()} />} />
           <Route path="new" element={<ClubForm clubs={clubList} loading={loading} onSave={saveClub} />} />
           <Route path=":clubId/edit" element={<ClubForm clubs={clubList} loading={loading} onSave={saveClub} />} />
           <Route path=":clubId" element={<ClubDetails clubs={clubList} loading={loading} onDelete={deleteClub} />} />

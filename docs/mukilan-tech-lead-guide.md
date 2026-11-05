@@ -1,6 +1,6 @@
 # Mukilan's personal tech-lead guide
 
-> **Latest update — 30 October 2026:** You are working on `feat/mukilan-module-integration`, based on local `main` at `6a0a7ec`. Authentication/users, resource/booking, membership and competition APIs are present. All **31 configuration checks, 53 real HTTP/database scenarios, 7 frontend tests and the production build passed**; all 29 local PHP files passed syntax checks. The shared client now supports match-result writes through `api.put()`. See [the integration review](mukilan-integration-review.md) for evidence and remaining dependencies. This personal guide remains untracked/local. GitHub was not refreshed during this check. Older historical examples below are background; use sections 1, 2 and 10 for current actions. Browser acceptance checks and deployment remain pending.
+> **Latest implementation update - 5 November 2026:** `feat/mukilan-complete-workflows` completes the connected club/training/attendance interfaces, booking review/editing and coach management/review, on top of notifications/reports. The production build, 74 backend scenarios, 10 frontend tests, 34 configuration checks and 11 browser workflow groups passed. Use [current QA evidence](final-integration-review.md) and [Vercel/Render setup](deployment-vercel-render.md). Live deployment remains to be provisioned and verified; older plans below are background.
 
 **Project:** NSBM SportsHub. **Prepared:** 29 October 2026, Sri Lanka time. **Audience:** Mukilan, the student team lead and repository owner.
 

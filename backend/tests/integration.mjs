@@ -10,6 +10,7 @@ import { testMemberships } from './memberships.mjs';
 import { testSportsTraining } from './sports-training.mjs';
 import { testResourcesAndBookings } from './resources-bookings.mjs';
 import { testNotificationsReports } from './notifications-reports.mjs';
+import { testBookingConcurrency } from './booking-concurrency.mjs';
 
 // Real PHP + MySQL/MariaDB HTTP tests. Creates and drops ONLY a random test DB.
 const root = fileURLToPath(new URL('../../', import.meta.url));
@@ -57,6 +58,7 @@ function safeUser(user) {
 
 let base;
 class Client {
+  constructor(baseUrl) { this.baseUrl = baseUrl; }
   cookie = '';
   csrf = '';
 
@@ -67,7 +69,7 @@ class Client {
       requestHeaders['Content-Type'] ??= 'application/json';
       if (token && this.csrf) requestHeaders['X-CSRF-Token'] = this.csrf;
     }
-    const response = await fetch(`${base}${path}`, {
+    const response = await fetch(`${this.baseUrl || base}${path}`, {
       method, headers: requestHeaders,
       body: raw ?? (body === undefined ? (method === 'GET' ? undefined : '{}') : JSON.stringify(body)),
       redirect: 'manual',
@@ -215,11 +217,18 @@ try {
     assert.equal(other.error.message, result.error.message);
     assert.equal((await admin.request('/auth/login', { method: 'POST', body: { email: adminEmail, password: adminPassword } })).data.user.role, 'admin');
   });
+  await check('Hosted setup loads reference sports repeatably without creating demo clubs', async () => {
+    cli('backend/bin/setup.php', ['--existing-database', '--reference-seed']);
+    cli('backend/bin/setup.php', ['--existing-database', '--reference-seed']);
+    assert.equal((await admin.request('/sports')).data.length, 13);
+    assert.deepEqual((await admin.request('/clubs')).data, []);
+  });
   await testResourcesAndBookings({ check, Client, admin, student, cli });
   const membershipContext = await testMemberships({ check, Client, admin, cli, suffix, password });
   await testCompetitions({ check, Client, admin, ...membershipContext });
   await testSportsTraining({ check, Client, admin, ...membershipContext });
   await testNotificationsReports({ check, Client, admin, password, ...membershipContext });
+  await testBookingConcurrency({ check, Client, admin, php, root, env, ...membershipContext });
 
   await check('Announcement reads require authentication and Students cannot mutate announcements', async () => {
     const anonymous = new Client();
@@ -365,6 +374,7 @@ try {
   });
   await check('Setup is repeatable and initial-Admin provisioning cannot be repeated', async () => {
     cli('backend/bin/setup.php');
+    cli('backend/bin/setup.php', ['--existing-database']);
     assert.equal((await admin.request('/users?role=admin')).data.pagination.total, 1);
     const result = spawnSync(php, [resolve(root, 'backend/bin/create-admin.php'), '--name=Unauthorized Bootstrap', `--email=extra-${suffix}@example.test`], {
       cwd: root, env: { ...env, SPORTSHUB_ADMIN_PASSWORD: adminPassword }, encoding: 'utf8', timeout: 30_000,

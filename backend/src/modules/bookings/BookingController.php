@@ -34,9 +34,10 @@ final class BookingController
 
     private function listOrRead(?int $id, array $user): never
     {
-        $query = 'SELECT b.*, COALESCE(f.name, e.name) AS resource_name,
+        $query = 'SELECT b.*, u.name AS requester_name, u.student_id AS requester_student_id, COALESCE(f.name, e.name) AS resource_name,
                          CASE WHEN b.facility_id IS NOT NULL THEN \'facility\' ELSE \'equipment\' END AS resource_type
                   FROM bookings b
+                  LEFT JOIN users u ON u.id = b.requested_by
                   LEFT JOIN facilities f ON f.id = b.facility_id
                   LEFT JOIN equipment e ON e.id = b.equipment_id';
         $parameters = [];

@@ -1,6 +1,6 @@
 # Local development: PHP APIs and React frontend
 
-This integration combines authentication/users, resources/bookings, memberships, competitions, announcements and sports/club/training APIs. All PHP modules use the same private configuration, PDO connection, session and CSRF helpers. Account, membership, resource/Student booking, competition and announcement interfaces use those APIs. Club and training screens remain browser previews; notifications and participation reports now use PHP/MySQL. Admin booking review remains pending.
+All core React module screens use the shared PHP/MySQL APIs, including clubs, training/attendance, Admin booking review, Student booking editing, coach assignments, notifications and reports. All PHP modules use one private configuration, PDO connection, session and CSRF implementation. See [final integration evidence](final-integration-review.md) and [Vercel/Render deployment](deployment-vercel-render.md).
 
 ## Requirements
 
@@ -43,13 +43,13 @@ Configuration precedence is defaults < optional private `backend/config/local.ph
 ## 2. Initialize the schema and first Admin
 
 ```powershell
-php backend/bin/setup.php
+php backend/bin/setup.php --reference-seed
 php backend/bin/create-admin.php --name="Mukilan" --email="your-real-email@example.com"
 ```
 
 Replace the example email with yours. Skip Admin provisioning if the first Admin already exists. The Admin command prompts for a password without showing it on an interactive terminal. There is no default password. For automation, `SPORTSHUB_ADMIN_PASSWORD` can be supplied through the process environment; keep it out of scripts and shell arguments.
 
-The setup command creates the configured database and applies every `database/migrations/NNN_name.sql` file in numeric order, without dropping data or altering existing tables. Add `--seed` (`php backend/bin/setup.php --seed`) to also load the reference sports and the demo clubs used by the membership and competition APIs. See [database design](database-erd.md) for the schema and migration order. The setup account needs permission to create that database/tables. Use a restricted application database account for normal runtime after initialization. The Admin command only provisions the first Admin and refuses repeated bootstrap or existing-email promotion. Later Admins are created by an authorized Admin through the UI/API.
+The `--reference-seed` option loads reference sports without demo clubs, allowing Admins to create real clubs in a fresh installation. The setup command creates the configured database and applies every `database/migrations/NNN_name.sql` file in numeric order, without dropping data or altering existing tables. Add `--seed` (`php backend/bin/setup.php --seed`) to also load the reference sports and the demo clubs used by the membership and competition APIs. See [database design](database-erd.md) for the schema and migration order. The setup account needs permission to create that database/tables. Use a restricted application database account for normal runtime after initialization. The Admin command only provisions the first Admin and refuses repeated bootstrap or existing-email promotion. Later Admins are created by an authorized Admin through the UI/API.
 
 The first migration creates users/rate limits; the second creates facilities, equipment and bookings; `003`–`006` create sports, clubs, memberships, club coaches, tournaments, entries and matches. `007` creates training sessions/attendance and `008` creates announcements using canonical club IDs and `009` creates recipient-owned notifications. Reports query the existing attendance, tournament and match tables. See the [notifications/reports contract](notifications-reports-api.md). Setup refuses two migrations that share a number. Setup checks existing schema compatibility and preserves records on repeat runs. Mursid's original resource-only migration was renamed from 001_resources_and_bookings.sql to 002_resources_and_bookings.sql; existing compatible tables can be retained. Review schema changes with Jassim; future schema changes need new ordered migrations.
 
@@ -87,7 +87,7 @@ npm.cmd run build
 npm.cmd test
 ```
 
-The frontend unit tests cover preview club persistence and the shared API contract: authenticated result writes with `PUT`, CSRF renewal, empty cancellation responses, validation errors and expired sessions.
+The frontend unit tests cover club API contracts (canonical IDs, status normalization, archival and failures) and the shared API contract: authenticated result writes with `PUT`, CSRF renewal, empty cancellation responses, validation errors and expired sessions.
 
 Run configuration checks and the integration suite from the repository root with PHP and a running MySQL-compatible server configured as above:
 
@@ -108,4 +108,4 @@ node backend/tests/integration.mjs
 
 Membership checks cover applications, duplicate/concurrent applications, coach assignments, scoped reads, reviews and lifecycle transitions. Competition checks cover eligibility, entries, league/knockout fixtures, result corrections and standings. The integrated membership and competition screens use these APIs. Sports/training checks cover club CRUD/archival, coach permissions, attendance membership/uniqueness and scoped reads. Announcement checks cover authenticated reads, Admin CRUD, CSRF, pinning and persistence. See the [membership contract](memberships-api.md) and [competition contract](competitions-api.md).
 
-The suite checks registration, login/logout, CSRF, field validation, private-field protection, Student/Admin access, profile persistence, user create/read/update/archive, pagination/search/filtering, password changes, session revocation, and Admin lockout protection. It also checks authenticated resource CRUD, booking ownership, Admin review, facility overlap, equipment stock limits, cancellation, archival, repeatable setup and revoked-account access. These HTTP tests exercise sequential conflicts; simultaneous multi-request booking concurrency needs separate verification. Browser verification should additionally cover forms, confirmations, mobile layouts, and backend-unavailable feedback.
+The suite checks registration, login/logout, CSRF, field validation, private-field protection, Student/Admin access, profile persistence, user create/read/update/archive, pagination/search/filtering, password changes, session revocation, and Admin lockout protection. It also checks authenticated resource CRUD, booking ownership, Admin review, facility overlap, equipment stock limits, cancellation, archival, repeatable setup and revoked-account access. The integration suite also starts two separate PHP processes to verify simultaneous facility requests, equipment stock limits and conflicting pending-booking edits. Run the production-build browser workflow suite in tests/browser-workflows.mjs for connected forms, confirmations, mobile layouts and backend-unavailable feedback; see the QA guide for setup.

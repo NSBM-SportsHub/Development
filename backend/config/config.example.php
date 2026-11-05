@@ -12,6 +12,7 @@ return [
         'name' => 'nsbm_sportshub',
         'user' => '',
         'password' => '',
+        'ssl_ca' => '', // Optional CA certificate file for verified TLS to hosted MySQL.
     ],
     'session' => [
         'name' => 'SPORTSHUBSESSID',

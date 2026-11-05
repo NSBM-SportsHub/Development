@@ -5,6 +5,7 @@ import AttendanceForm from "./AttendanceForm.jsx";
 import AttendanceList from "./AttendanceList.jsx";
 import TrainingForm from "./TrainingForm.jsx";
 import TrainingSchedule from "./TrainingSchedule.jsx";
+import { api } from "../../shared/api.js";
 import { trainingService } from "./trainingService.js";
 import "./training-attendance.css";
 
@@ -13,27 +14,36 @@ export default function TrainingAttendance() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  function loadSessions() {
+  async function loadSessions(signal) {
     setLoading(true);
     setError("");
     try {
-      setSessions(trainingService.list());
+      const rows = await trainingService.list({ signal });
+      if (!signal?.aborted) setSessions(rows);
     } catch (loadError) {
+      if (signal?.aborted) return;
       setSessions([]);
       setError(loadError instanceof Error ? loadError.message : "Unable to load training sessions.");
     } finally {
-      setLoading(false);
+      if (!signal?.aborted) setLoading(false);
     }
   }
 
   useEffect(() => {
-    loadSessions();
+    const controller = new AbortController();
+    loadSessions(controller.signal);
+    return () => controller.abort();
   }, []);
 
-  function saveSession(session) {
-    const result = trainingService.save(sessions, session);
+  async function saveSession(session) {
+    const result = await trainingService.save(sessions, session);
     setSessions(result.sessions);
     return result.id;
+  }
+
+  async function cancelSession(id) {
+    await api.patch(`/training-sessions/${id}/cancel`, {});
+    setSessions((current) => current.map((item) => item.id === id ? { ...item, status: "cancelled" } : item));
   }
 
   return (
@@ -51,14 +61,14 @@ export default function TrainingAttendance() {
         </nav>
       </header>
       <main className="sports-main">
-        {error && <div className="club-state club-error" role="alert">{error} <button type="button" onClick={loadSessions}>Try again</button></div>}
+        {error && <div className="club-state club-error" role="alert">{error} <button type="button" onClick={() => loadSessions()}>Try again</button></div>}
         <Routes>
-          <Route index element={<TrainingSchedule sessions={sessions} loading={loading} />} />
+          <Route index element={<TrainingSchedule sessions={sessions} loading={loading} onCancel={cancelSession} />} />
           <Route path="new" element={<TrainingForm sessions={sessions} loading={loading} onSave={saveSession} />} />
           <Route path=":sessionId/attendance/record" element={<AttendanceForm sessions={sessions} loading={loading} />} />
           <Route path=":sessionId/attendance" element={<AttendanceList sessions={sessions} loading={loading} />} />
           <Route path=":sessionId/edit" element={<TrainingForm sessions={sessions} loading={loading} onSave={saveSession} />} />
-          <Route path=":sessionId" element={<TrainingSchedule sessions={sessions} loading={loading} />} />
+          <Route path=":sessionId" element={<TrainingSchedule sessions={sessions} loading={loading} onCancel={cancelSession} />} />
           <Route path="*" element={<Navigate to="/training-attendance" replace />} />
         </Routes>
       </main>

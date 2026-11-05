@@ -35,6 +35,7 @@ final class Config
             'SPORTSHUB_DB_NAME' => ['database', 'name'],
             'SPORTSHUB_DB_USER' => ['database', 'user'],
             'SPORTSHUB_DB_PASSWORD' => ['database', 'password'],
+            'SPORTSHUB_DB_SSL_CA' => ['database', 'ssl_ca'],
             'SPORTSHUB_SESSION_PATH' => ['session', 'path'],
         ];
         foreach ($variables as $variable => $keys) {
@@ -82,6 +83,9 @@ final class Config
             throw new \RuntimeException('Set the database user in private configuration or SPORTSHUB_DB_USER.');
         }
         $settings['database']['port'] = (int) $database['port'];
+        if (!is_string($database['ssl_ca']) || ($database['ssl_ca'] !== '' && (!is_file($database['ssl_ca']) || !is_readable($database['ssl_ca'])))) {
+            throw new \RuntimeException('The database TLS CA must be a readable certificate file.');
+        }
         self::$settings = $settings;
         return $settings;
     }

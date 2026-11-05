@@ -57,6 +57,8 @@ Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP.
 - src/shared/ResourceBookingHttp.php: module validation and shared-response adapter, distinct from Http.php on every operating system.
 - tests/: real HTTP/database integration runner.
 
+Use `--reference-seed` to load reference sports without demo clubs. Use `--existing-database` to apply migrations to an already-provisioned hosted database without issuing CREATE DATABASE. Optional `SPORTSHUB_DB_SSL_CA` enables verified MySQL TLS using a readable CA file. See [Vercel/Render deployment](../docs/deployment-vercel-render.md).
+
 Setup applies every database/migrations/NNN_name.sql file in numeric order and refuses duplicate numbers: 001 (users, auth_rate_limits), 002 (facilities, equipment, bookings), 003 (sports, clubs), 004 (memberships, club_coaches), 005 (tournaments and entries), 006 (matches), 007 (training sessions/attendance), 008 (announcements) and 009 (notifications). `--seed` also loads reference sports and demo clubs. See [database design](../docs/database-erd.md) and [backend conventions](../docs/backend-conventions.md). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
 
 ## Implemented behavior

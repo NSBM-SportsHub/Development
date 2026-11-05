@@ -74,7 +74,7 @@ Browser regression checklist:
 - Mark a notification read, reload, and verify its persisted state and unread count. Verify empty read/unread filters.
 - Apply and reset report filters; confirm totals apply to the selected filters across pages and reversed dates show validation.
 - Check loading, empty and API failure states, refresh/retry, keyboard labels and mobile layout.
-- Confirm source records created only in browser training previews do not appear in reports; PHP/database records are required.
+- Verify attendance recorded through the connected training interface appears in personal history and Admin reports. Old browser demo records are not automatically imported. See [current integration evidence](final-integration-review.md).
 
 ### Recorded verification — 5 November 2026
 

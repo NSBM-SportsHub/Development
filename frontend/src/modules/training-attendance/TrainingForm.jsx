@@ -1,86 +1,55 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
+import { api } from "../../shared/api.js";
+import { useClubAccess } from "../../shared/useClubAccess.js";
 
 export default function TrainingForm({ sessions, loading, onSave }) {
   const { sessionId } = useParams();
   const navigate = useNavigate();
   const session = sessions.find((item) => item.id === sessionId);
-  const editing = Boolean(sessionId);
+  const access = useClubAccess();
+  const [clubs, setClubs] = useState([]);
+  const [clubsLoading, setClubsLoading] = useState(true);
   const [error, setError] = useState("");
-
-  if (loading) return <div className="club-state" role="status">Loading session information…</div>;
-  if (editing && !session) {
-    return (
-      <section className="not-found">
-        <p className="eyebrow">Session not found</p>
-        <h1>We couldn't find that training session.</h1>
-        <Link className="primary-button" to="/training-attendance">View schedule</Link>
-      </section>
-    );
-  }
-
-  function handleSubmit(event) {
+  const [busy, setBusy] = useState(false);
+  const [retry, setRetry] = useState(0);
+  useEffect(() => {
+    const controller = new AbortController();
+    setClubsLoading(true);
+    setError("");
+    api.get("/clubs", { signal: controller.signal }).then((rows) => { if (!controller.signal.aborted) setClubs(rows); })
+      .catch((failure) => { if (!controller.signal.aborted) setError(failure.message); })
+      .finally(() => { if (!controller.signal.aborted) setClubsLoading(false); });
+    return () => controller.abort();
+  }, [retry]);
+  if (loading || clubsLoading || access.loading) return <div className="club-state" role="status">Loading training session...</div>;
+  if (sessionId && !session) return <div className="club-state">Session not found. <Link to="/training-attendance">View schedule</Link></div>;
+  if (access.error) return <div className="club-state" role="alert">{access.error}</div>;
+  const allowedClubs = clubs.filter((club) => access.canManage(club.id));
+  if ((session && !access.canManage(session.clubId)) || (!access.isAdmin && !access.assignments.length)) return <div className="club-state" role="alert">Only administrators and assigned club coaches can manage training.</div>;
+  async function submit(event) {
     event.preventDefault();
-    const form = event.currentTarget;
-    if (!form.reportValidity()) return;
-    const values = new FormData(form);
-    const startTime = values.get("startTime");
-    const endTime = values.get("endTime");
-    if (endTime <= startTime) {
-      setError("End time must be later than start time.");
-      return;
-    }
-
+    if (busy || !event.currentTarget.reportValidity()) return;
+    const values = new FormData(event.currentTarget);
+    if (values.get("endTime") <= values.get("startTime")) { setError("End time must be later than start time."); return; }
+    setBusy(true); setError("");
     try {
-      const id = onSave({
-        id: session?.id,
-        title: values.get("title").trim(),
-        club: values.get("club").trim(),
-        date: values.get("date"),
-        startTime,
-        endTime,
-        location: values.get("location").trim(),
-        coach: values.get("coach").trim(),
-        capacity: Number(values.get("capacity")),
-        description: values.get("description").trim(),
-      });
-      navigate(`/training-attendance/${id}`);
-    } catch (saveError) {
-      setError(saveError instanceof Error ? saveError.message : "Unable to save the session.");
-    }
+      const id = await onSave({ id: session?.id, title: values.get("title").trim(), clubId: values.get("clubId"), club: clubs.find((club) => String(club.id) === values.get("clubId"))?.name, date: values.get("date"), startTime: values.get("startTime"), endTime: values.get("endTime"), description: values.get("description").trim(), status: values.get("status") });
+      navigate("/training-attendance/" + id);
+    } catch (failure) { setError(failure.message); }
+    finally { setBusy(false); }
   }
-
-  return (
-    <section className="training-form-page">
-      <div className="training-form-aside">
-        <Link className="back-link" to={session ? `/training-attendance/${session.id}` : "/training-attendance"}>← Back to schedule</Link>
-        <p className="eyebrow">{editing ? "Session management" : "Plan a practice"}</p>
-        <h1>{editing ? "Edit session." : "Make time to play."}</h1>
-        <p>Bring your team together with a clear plan for the next training session.</p>
-        <span className="form-decoration" aria-hidden="true">NSBM<br />SPORTS HUB</span>
-      </div>
-      <form className="training-form" onSubmit={handleSubmit}>
-        <div className="form-title">
-          <p className="eyebrow">{editing ? "Session details" : "New session"}</p>
-          <h2>{editing ? "Update training session" : "Create a session"}</h2>
-        </div>
-        <label>Session name<input name="title" defaultValue={session?.title ?? ""} minLength="3" maxLength="80" required /></label>
-        <label>Club<input name="club" defaultValue={session?.club ?? ""} minLength="2" maxLength="80" required /></label>
-        <div className="training-form-row">
-          <label>Date<input name="date" type="date" defaultValue={session?.date ?? ""} required /></label>
-          <label>Capacity<input name="capacity" type="number" defaultValue={session?.capacity ?? 20} min="1" max="500" required /></label>
-        </div>
-        <div className="training-form-row">
-          <label>Start time<input name="startTime" type="time" defaultValue={session?.startTime ?? ""} required /></label>
-          <label>End time<input name="endTime" type="time" defaultValue={session?.endTime ?? ""} required /></label>
-        </div>
-        <label>Location<input name="location" defaultValue={session?.location ?? ""} maxLength="100" required /></label>
-        <label>Coach<input name="coach" defaultValue={session?.coach ?? ""} maxLength="80" required /></label>
-        <label>Description<textarea name="description" rows="4" defaultValue={session?.description ?? ""} minLength="10" maxLength="500" required /></label>
-        {error && <p className="form-error" role="alert">{error}</p>}
-        <button className="primary-button form-submit" type="submit">{editing ? "Save changes" : "Create session"} <span aria-hidden="true">→</span></button>
-        <p className="form-note">Preview only — saved locally in this browser.</p>
-      </form>
-    </section>
-  );
+  return <section className="training-form-page"><div className="training-form-aside"><Link className="back-link" to="/training-attendance">Back to schedule</Link><p className="eyebrow">Training management</p><h1>{session ? "Edit session" : "Create training session"}</h1><p>Plan and manage practice for your clubs.</p></div>
+    <form key={session?.id || "new"} className="training-form" onSubmit={submit}>
+      <label>Session name<input name="title" defaultValue={session?.title || ""} maxLength="150" required disabled={busy} /></label>
+      <label>Club<select aria-label="Club" name="clubId" defaultValue={session?.clubId || ""} required disabled={busy}><option value="">Choose a club</option>{allowedClubs.map((club) => <option key={club.id} value={club.id}>{club.name}</option>)}</select></label>
+      <label>Date<input name="date" type="date" defaultValue={session?.date || ""} required disabled={busy} /></label>
+      <div className="training-form-row"><label>Start time<input name="startTime" type="time" defaultValue={session?.startTime || ""} required disabled={busy} /></label><label>End time<input name="endTime" type="time" defaultValue={session?.endTime || ""} required disabled={busy} /></label></div>
+      <label>Status<select aria-label="Status" name="status" defaultValue={session?.status || "scheduled"} disabled={busy}><option value="scheduled">Scheduled</option><option value="completed">Completed</option><option value="cancelled">Cancelled</option></select></label>
+      <label>Notes (optional)<textarea name="description" rows="4" maxLength="2000" defaultValue={session?.description || ""} disabled={busy} /></label>
+      {error && <p role="alert" className="form-error">{error}</p>}
+      {!allowedClubs.length && <p>No active clubs are available to manage.</p>}
+      <button type="submit" className="primary-button form-submit" disabled={busy || !allowedClubs.length}>{busy ? "Saving..." : session ? "Save changes" : "Create session"}</button>
+      {error && <button type="button" className="business-text-button" onClick={() => setRetry(retry + 1)}>Reload clubs</button>}
+    </form></section>;
 }

@@ -109,7 +109,7 @@ final class AttendanceController
             $participantId = isset($_GET['participant_id']) ? self::normalizePositiveInt($_GET['participant_id'], 'participant_id') : null;
             $status = self::normalizeText($_GET['status'] ?? null, 50);
 
-            $sql = 'SELECT * FROM training_attendance WHERE 1 = 1';
+            $sql = 'SELECT training_attendance.*, (SELECT name FROM users WHERE id = participant_id) AS participant_name, (SELECT student_id FROM users WHERE id = participant_id) AS student_id FROM training_attendance WHERE 1 = 1';
             $params = [];
             $actor = Session::requireUser();
             if ($actor['role'] !== 'admin') {
