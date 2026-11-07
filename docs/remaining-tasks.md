@@ -9,7 +9,7 @@ The agreed core modules are implemented: accounts, clubs, memberships and coach 
 - [x] Keep one Admin booking route with search, status filters, paging, approval/rejection and cancellation; refresh after a conflict.
 - [x] Pass the production build, 10 frontend tests, 34 configuration checks, 78 real PHP/database scenarios, five Railway public-layout smoke groups and PHP/shell syntax checks.
 - [x] Pass all 11 production-build browser workflow groups against real PHP/MySQL using Microsoft Edge.
-- [ ] Merge and publish the verified result to GitHub `main`.
+- [x] Merge and publish the verified result to GitHub `main` (integration commit `ecc8887`).
 
 ## Remaining work to finish today
 
