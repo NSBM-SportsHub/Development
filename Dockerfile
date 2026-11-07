@@ -1,3 +1,10 @@
+FROM node:22-bookworm-slim AS frontend-build
+WORKDIR /build/frontend
+COPY frontend/package.json frontend/package-lock.json ./
+RUN npm ci
+COPY frontend/ ./
+RUN npm run build
+
 FROM php:8.3-apache
 RUN apt-get update && apt-get install -y --no-install-recommends libonig-dev \
     && docker-php-ext-install pdo_mysql mbstring \
@@ -6,6 +13,9 @@ RUN apt-get update && apt-get install -y --no-install-recommends libonig-dev \
 WORKDIR /var/www/html
 COPY backend ./backend
 COPY database ./database
+COPY --from=frontend-build /build/frontend/dist ./public
+COPY deployment/public.htaccess ./public/.htaccess
+COPY deployment/api-index.php ./public/api/index.php
 COPY deployment/apache.conf /etc/apache2/sites-available/000-default.conf
 COPY deployment/start-backend.sh /usr/local/bin/start-sportshub
 RUN sed -i 's/\r$//' /usr/local/bin/start-sportshub \

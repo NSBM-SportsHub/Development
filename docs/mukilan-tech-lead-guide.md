@@ -1,6 +1,6 @@
 # Mukilan's personal tech-lead guide
 
-> **Latest implementation update - 5 November 2026:** `feat/mukilan-complete-workflows` completes the connected club/training/attendance interfaces, booking review/editing and coach management/review, on top of notifications/reports. The production build, 74 backend scenarios, 10 frontend tests, 34 configuration checks and 11 browser workflow groups passed. Use [current QA evidence](final-integration-review.md) and [Vercel/Render setup](deployment-vercel-render.md). Live deployment remains to be provisioned and verified; older plans below are background.
+> **Latest implementation update - 5 November 2026:** `feat/mukilan-complete-workflows` completes the connected club/training/attendance interfaces, booking review/editing and coach management/review, on top of notifications/reports. The production build, 74 backend scenarios, 10 frontend tests, 34 configuration checks and 11 browser workflow groups passed. Use [current QA evidence](final-integration-review.md) and [Railway setup](deployment-railway.md). Live deployment remains to be provisioned and verified; older plans below are background.
 
 **Project:** NSBM SportsHub. **Prepared:** 29 October 2026, Sri Lanka time. **Audience:** Mukilan, the student team lead and repository owner.
 

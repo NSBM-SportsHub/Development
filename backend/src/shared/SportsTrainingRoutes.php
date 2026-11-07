@@ -5,6 +5,8 @@ namespace SportsHub;
 
 final class SportsTrainingRoutes
 {
+    private static bool $writeTransaction = false;
+
     public static function match(string $path): ?array
     {
         if (!preg_match('~\A/api/(sports|clubs|training-sessions|attendance)(?:/([1-9][0-9]{0,18})(?:/(archive|cancel))?)?\z~', $path, $parts)) return null;
@@ -25,6 +27,33 @@ final class SportsTrainingRoutes
     public static function dispatch(array $route, string $method): never
     {
         $actor = Session::requireUser();
+        if ($method !== 'GET' && in_array($route['type'], ['training-sessions', 'attendance'], true)) {
+            Database::get()->beginTransaction();
+            self::$writeTransaction = true;
+        }
+        try {
+            self::dispatchController($route, $method, $actor);
+        } catch (\Throwable $exception) {
+            self::finishWrite(false);
+            throw $exception;
+        }
+    }
+
+    // Legacy controllers end the request inside Response::json. That adapter
+    // finishes only this route's transaction before sending its response.
+    public static function finishWrite(bool $success): void
+    {
+        if (!self::$writeTransaction) return;
+        $db = Database::get();
+        if ($db->inTransaction()) {
+            if ($success) $db->commit();
+            else $db->rollBack();
+        }
+        self::$writeTransaction = false;
+    }
+
+    private static function dispatchController(array $route, string $method, array $actor): never
+    {
         ['type' => $type, 'id' => $id, 'action' => $action] = $route;
         if ($method !== 'GET') {
             Session::verifyCsrf();
@@ -71,7 +100,7 @@ final class SportsTrainingRoutes
 
     private static function session(int $id): array
     {
-        $statement = Database::get()->prepare('SELECT * FROM training_sessions WHERE id = ?');
+        $statement = Database::get()->prepare('SELECT * FROM training_sessions WHERE id = ? FOR UPDATE');
         $statement->execute([$id]);
         return $statement->fetch() ?: throw new ApiException(404, 'not_found', 'Training session not found.');
     }

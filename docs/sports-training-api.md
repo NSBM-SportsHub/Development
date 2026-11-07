@@ -24,7 +24,7 @@ Club statuses are `active`, `recruiting`, `full`, `inactive`. Only active/recrui
 | `PATCH/PUT /training-sessions/{id}` | Admin or assigned coach edits a session |
 | `PATCH /training-sessions/{id}/cancel` | Admin or assigned coach cancels a session, preserving attendance |
 
-Fields are `title`, numeric `club_id`, `session_date` (`YYYY-MM-DD`), `start_time`/`end_time` (`HH:MM`), optional `notes` and `status` (`scheduled`, `completed`, `cancelled`). End time must follow start time. Clubs must be non-archived. Moving a session requires permission in both the original and new club. Calendar date/time fields preserve the source API's existing scheduling semantics; they do not reserve a facility. Facility booking, capacity and coach-text inputs from the old preview are not silently stored as real session fields.
+Fields are `title`, numeric `club_id`, `session_date` (`YYYY-MM-DD`), `start_time`/`end_time` (`HH:MM`), optional `notes` and `status` (`scheduled`, `completed`, `cancelled`). End time must follow start time. Clubs must be non-archived. Moving a session requires permission in both the original and new club and is rejected with 409 once attendance exists, preserving historical club ownership. Session edits/cancellations and attendance creation lock the same session row in a transaction so concurrent requests cannot bypass that restriction. Calendar date/time fields preserve the source API's existing scheduling semantics; they do not reserve a facility. Facility booking, capacity and coach-text inputs from the old preview are not silently stored as real session fields.
 
 ## Attendance
 

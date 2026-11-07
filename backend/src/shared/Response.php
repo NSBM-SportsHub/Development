@@ -9,6 +9,7 @@ final class Response
 {
     public static function json(int $statusCode, array $payload): never
     {
+        SportsTrainingRoutes::finishWrite($statusCode < 400);
         if ($statusCode >= 400) {
             Http::error(new ApiException($statusCode, match ($statusCode) {
                 400, 422 => 'validation_failed',

@@ -1,0 +1,13 @@
+Options -Indexes
+DirectoryIndex index.html
+RewriteEngine On
+
+# API failures must remain API JSON responses, including unknown endpoints.
+RewriteRule ^api(?:/|$) api/index.php [END,QSA]
+
+RewriteCond %{REQUEST_FILENAME} -f [OR]
+RewriteCond %{REQUEST_FILENAME} -d
+RewriteRule ^ - [END]
+
+# React routes must support opening a deep link or refreshing the page.
+RewriteRule ^ index.html [END]

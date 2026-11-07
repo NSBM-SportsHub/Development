@@ -333,6 +333,14 @@ final class TrainingController
             $clubId = array_key_exists('club_id', $input) ? self::normalizePositiveInt($input['club_id'], 'club_id') : (int) ($session['club_id'] ?? 0);
             $notes = array_key_exists('notes', $input) ? (self::normalizeText($input['notes'] ?? '', 2000) ?? '') : (string) ($session['notes'] ?? '');
 
+            if ($clubId !== (int) $session['club_id']) {
+                $recorded = $pdo->prepare('SELECT 1 FROM training_attendance WHERE session_id = ? LIMIT 1');
+                $recorded->execute([$sessionId]);
+                if ($recorded->fetchColumn() !== false) {
+                    Response::json(409, ['message' => 'A session with recorded attendance cannot move to another club. Create a separate session for that club.']);
+                }
+            }
+
             if (strtotime($endTime) <= strtotime($startTime)) {
                 throw new InvalidArgumentException("Field 'end_time' must be later than 'start_time'.");
             }

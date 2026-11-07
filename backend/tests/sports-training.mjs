@@ -59,6 +59,21 @@ export async function testSportsTraining({ check, Client, admin, sports, newStud
     assert.equal((await coach.request('/attendance', { method: 'POST', body: record })).status, 400);
   });
 
+  await check('Recorded attendance prevents club changes and keeps the original coach visibility', async () => {
+    const foreignClub = (await admin.request('/clubs')).data.find((item) => item.id !== club.id);
+    assert.equal((await admin.request('/club-coaches', { method: 'POST', body: { club_id: foreignClub.id, user_id: outsider.id } })).status, 201);
+    const moved = await admin.request(`/training-sessions/${session.id}`, { method: 'PATCH', body: { club_id: foreignClub.id, title: 'Must not overwrite history' } });
+    assert.equal(moved.status, 409);
+    const saved = (await admin.request(`/training-sessions/${session.id}`)).data;
+    assert.equal(Number(saved.club_id), club.id);
+    assert.equal(saved.title, 'Practice updated');
+    assert.equal((await outsider.request(`/attendance/${attendance.id}`)).status, 404);
+    assert.equal((await coach.request(`/attendance/${attendance.id}`)).status, 200);
+    const empty = await admin.request('/training-sessions', { method: 'POST', body: { club_id: club.id, title: 'Session without attendance', session_date: '2026-12-06', start_time: '15:00', end_time: '16:00' } });
+    assert.equal(empty.status, 201);
+    assert.equal((await admin.request(`/training-sessions/${empty.data.id}`, { method: 'PATCH', body: { club_id: foreignClub.id } })).status, 200);
+  });
+
   await check('Club archival retains historical records and rejects new club writes', async () => {
     assert.equal((await admin.request(`/clubs/${club.id}/archive`, { method: 'PATCH' })).status, 200);
     assert.equal((await student.request(`/clubs/${club.id}`)).status, 404);

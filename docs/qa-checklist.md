@@ -46,7 +46,7 @@ On Windows with Edge already installed, set `$env:SPORTSHUB_BROWSER_CHANNEL = 'm
 | Competitions | Registration, coach entry review, fixture generation, result entry/reload, standings; backend league/knockout/correction coverage |
 | Announcements | Admin publication, Student reads, inbox notification, deletion/pinning/backend permissions |
 | UI | 390 px layouts, labelled controls, no page runtime errors, loading/empty/error/retry states |
-| Deployment | Build container, configure real Vercel/Render/MySQL, verify HTTPS cookie forwarding/deep links and repeat key workflows on hosted URLs |
+| Deployment | Build container, configure Railway web/MySQL services, verify HTTPS sessions/deep links and repeat key workflows on hosted URLs |
 
 ## Issue register
 
@@ -57,6 +57,9 @@ On Windows with Edge already installed, set `$env:SPORTSHUB_BROWSER_CHANNEL = 'm
 | QA-03 | Coach assignment and membership-review interfaces missing | Resolved: assignment/review/revocation workflow verified |
 | QA-04 | Pending booking editor missing | Resolved: ownership-scoped edit and read-only approved state verified |
 | QA-05 | Booking concurrency evidence missing | Verified: independent PHP processes test facility, stock and pending-edit contention |
-| QA-06 | Cloud deployment acceptance missing | Open external verification: accounts/services/database and hosted URLs must be provisioned |
+| QA-06 | Cloud deployment acceptance | Deferred: user requested development only; provision and verify hosting later |
+| QA-07 | Session club changes could transfer existing attendance visibility | Resolved: recorded-attendance club changes rejected; session locks serialize attendance/move races |
 
 For new issues record the commit, role, steps, expected/actual result, severity, owner, fix and retest result. Use synthetic records and keep credentials/session tokens out of evidence. Each contributor remains responsible for understanding and demonstrating their own work.
+
+For Railway packaging, run `node tests/railway-smoke.mjs` after building the frontend. It checks the assembled public layout against real PHP without writing application records. Docker/Apache and live HTTPS behavior still need platform verification.

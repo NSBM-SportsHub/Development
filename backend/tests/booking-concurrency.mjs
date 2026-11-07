@@ -4,7 +4,7 @@ import { createServer } from 'node:net';
 
 // PHP's Windows development server handles one request at a time. Two distinct
 // server processes and separate user sessions are required to exercise DB locks.
-export async function testBookingConcurrency({ check, Client, admin, newStudent, php, root, env }) {
+export async function testBookingConcurrency({ check, Client, admin, newStudent, sports, php, root, env }) {
   const workers = [];
   async function worker() {
     const listener = createServer();
@@ -59,6 +59,27 @@ export async function testBookingConcurrency({ check, Client, admin, newStudent,
       }
       const results = await Promise.all(clients.map((client, index) => client.request(`/bookings/${bookings[index].id}`, { method: 'PATCH', body: slot })));
       assert.deepEqual(results.map((result) => result.status).sort(), [200, 409]);
+    });
+    await check('Concurrent attendance and session moves cannot transfer records into another club', async () => {
+      const first = await admin.request('/clubs', { method: 'POST', body: { name: 'Concurrent Training Source', sport_id: sports.Badminton, status: 'recruiting' } });
+      const second = await admin.request('/clubs', { method: 'POST', body: { name: 'Concurrent Training Target', sport_id: sports.Badminton, status: 'recruiting' } });
+      assert.equal(first.status, 201); assert.equal(second.status, 201);
+      assert.equal((await admin.request('/club-coaches', { method: 'POST', body: { club_id: first.data.id, user_id: students[1].id } })).status, 201);
+      const membership = await clients[0].request('/memberships', { method: 'POST', body: { club_id: first.data.id } });
+      assert.equal(membership.status, 201);
+      assert.equal((await admin.request(`/memberships/${membership.data.id}`, { method: 'PATCH', body: { status: 'approved' } })).status, 200);
+      const created = await admin.request('/training-sessions', { method: 'POST', body: { club_id: first.data.id, title: 'Concurrent practice', session_date: '2034-05-15', start_time: '15:00', end_time: '16:00' } });
+      assert.equal(created.status, 201);
+      const administrator = new Client(bases[0]); administrator.cookie = admin.cookie; administrator.csrf = admin.csrf;
+      const [move, attendance] = await Promise.all([
+        administrator.request(`/training-sessions/${created.data.id}`, { method: 'PATCH', body: { club_id: second.data.id } }),
+        clients[1].request('/attendance', { method: 'POST', body: { session_id: created.data.id, participant_id: students[0].id, status: 'present' } }),
+      ]);
+      assert.ok((move.status === 200 && attendance.status === 403) || (move.status === 409 && attendance.status === 201), JSON.stringify({ move: move.status, attendance: attendance.status }));
+      const saved = (await admin.request(`/training-sessions/${created.data.id}`)).data;
+      const records = (await admin.request(`/attendance?session_id=${created.data.id}`)).data;
+      if (attendance.status === 201) { assert.equal(Number(saved.club_id), first.data.id); assert.equal(records.length, 1); }
+      else { assert.equal(Number(saved.club_id), second.data.id); assert.equal(records.length, 0); }
     });
   } finally {
     await Promise.all(workers.map(async (child) => {
