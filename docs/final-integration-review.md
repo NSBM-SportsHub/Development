@@ -42,3 +42,11 @@ The frontend build and five layout smoke groups passed after switching hosting: 
 ## Development-only completion - 5 November 2026
 
 The user deferred hosting and requested development completion only. Final local verification passed: 76 backend scenarios, 10 frontend tests, 34 configuration checks, 11 browser workflow groups, the production build and five Railway layout checks. A final attendance-ownership fix rejects club changes after attendance is recorded and locks the session during mutations; regression coverage includes a real concurrent attendance/move race. See [development status by original owner](development-status.md). Live deployment is a later step, not part of this development completion.
+
+## Main integration verification - 7 November 2026
+
+Integrated GitHub main through `835c210`, including Mursid's concurrent Admin booking approval fixes and fixture tests, with the completed workflow and notification/report branches and the saved Railway/attendance-history changes. The merge combines the HTTP test clients into one constructor and preserves both the hosted reference-seed scenario and independent-process approval/concurrency coverage. One Admin booking entry point retains search, paging, cancellation and notification feedback; conflicts refresh the list. The shared workspace keeps navigation to coaches, notifications and reports.
+
+Fresh verification passed: production build, 10 frontend tests, 34 configuration checks, **78 real PHP/MySQL integration scenarios**, **11 browser workflow groups**, five Railway public-layout smoke groups, syntax checks for all 44 PHP files and startup-shell syntax. The first Edge run timed out on its initial page navigation without application runtime errors; a fresh run against the final build passed all groups. A Chromium fallback could not launch because its executable was absent; the successful run used installed Microsoft Edge. Test records were isolated and cleaned by the suites.
+
+Live Docker/Apache/Railway acceptance and the official assessment/submission requirements remain outstanding. See the [completion checklist](remaining-tasks.md).

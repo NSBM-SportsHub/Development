@@ -98,8 +98,8 @@ For manual requests, first get /api/auth/session, then POST email/password as a 
 ## Validation and decisions requiring partner confirmation
 
 - Names are required, trimmed, and limited to 120 characters. Description is optional (up to 2000); facility location is optional (up to 160); capacity is optional and positive when set; equipment quantity is positive. Unknown fields and fields from another resource type are rejected.
-- Booking end must be after start. Pending and approved requests reserve resources; time overlap uses half-open ranges, so adjacent bookings are allowed.
-- A facility permits at most one overlapping pending/approved booking. Equipment permits overlapping reservations only while summed quantity does not exceed stock.
+- Booking end must be after start. Pending and approved requests reserve resources during creation and Student edits; time overlap uses half-open ranges, so adjacent bookings are allowed.
+- Admin approval checks existing approved bookings, not other pending requests. If conflicting pending requests are reviewed concurrently, the first approval reserves the resource and later approvals fail with 409. A facility permits at most one overlapping approved booking; overlapping equipment reservations cannot exceed stock.
 - Resource deletion archives instead of removing history. Student cancellation is allowed only while pending. Admin review acts only on pending records; Admin may cancel pending or approved bookings.
 - Availability policy, self-service Admin booking, facility capacity/attendance, bookings in the past, membership/club scope, physical equipment checkout/return, and rescheduling of approved bookings were not defined in the project plan. Confirm these rules with the team before production acceptance.
 
@@ -107,4 +107,4 @@ For manual requests, first get /api/auth/session, then POST email/password as a 
 
 With setup completed and an authenticated session, create a resource, fetch the list, reload the client, and fetch again; the resource is stored in MySQL. Repeat for a booking and verify its status and resource after reload. Test an overlapping facility request and a request that exceeds equipment quantity (both must return 409), plus a Student attempt to mutate a resource (403).
 
-Run `node backend/tests/integration.mjs` with the PHP/database configuration from local-development.md. The suite uses a random test database and real registration/login sessions, then removes only that test database. It checks authentication regression, resource CRUD, ownership, review, overlap, equipment stock, cancellation, archival, revoked-account access and repeatable setup. These checks exercise sequential availability conflicts; simultaneous multi-request concurrency and final resource/booking UI workflows need separate verification.
+Run `node backend/tests/integration.mjs` with the PHP/database configuration from local-development.md. The suite uses a random test database and real registration/login sessions, then removes only that test database. It checks authentication regression, resource CRUD, ownership, review, overlap, concurrent facility/equipment approval conflicts, cancellation, archival, revoked-account access and repeatable setup. Final resource/booking UI workflows need separate verification.

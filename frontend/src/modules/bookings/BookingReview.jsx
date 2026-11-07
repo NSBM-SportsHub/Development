@@ -30,7 +30,10 @@ export default function BookingReview() {
       else await api.patch(`/bookings/${row.id}`, { status: next });
       setNotice(`Booking #${row.id} ${next}. The requester has been notified.`);
       setReload((value) => value + 1);
-    } catch (failure) { setError(failure.message); }
+    } catch (failure) {
+      setError(failure.message);
+      if (failure.status === 409) setReload((value) => value + 1);
+    }
     finally { mutation.current = false; setBusyId(null); }
   }
   const filtered = rows.filter((row) => (!status || row.status === status) && `${row.id} ${row.resource_name} ${row.requester_name || ""} ${row.requester_student_id || ""}`.toLowerCase().includes(search.trim().toLowerCase()));

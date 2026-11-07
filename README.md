@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: all core module screens use the shared PHP/MySQL APIs.** Clubs, training and attendance are connected to the database; Admin booking review, Student booking editing and coach assignment/review interfaces are implemented on `feat/mukilan-complete-workflows`, which includes the notifications/reports branch. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), [QA evidence](docs/final-integration-review.md), and [Railway deployment](docs/deployment-railway.md). Development is complete for the agreed core scope; hosting is deferred at the user’s request. See [development status by original owner](docs/development-status.md).
+> **Current status: all core module screens use the shared PHP/MySQL APIs.** The completed club/training, booking review/editing, coach assignment/review, notification and report workflows are integrated with the latest booking approval protections. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), [QA evidence](docs/final-integration-review.md), and [Railway deployment](docs/deployment-railway.md). Core development is implemented; live deployment and final assessment acceptance remain. Follow the [remaining tasks for completion](docs/remaining-tasks.md) and [development status by original owner](docs/development-status.md).
 
 ## Start here
 

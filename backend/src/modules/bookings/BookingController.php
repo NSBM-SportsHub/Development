@@ -149,7 +149,8 @@ final class BookingController
                         $booking['starts_at'],
                         $booking['ends_at'],
                         (int) $booking['quantity'],
-                        $id
+                        $id,
+                        false
                     );
                 }
                 $statement = $this->db->prepare(
@@ -262,7 +263,8 @@ final class BookingController
         string $start,
         string $end,
         int $quantity,
-        ?int $excludeBookingId = null
+        ?int $excludeBookingId = null,
+        bool $includePendingBookings = true
     ): void {
         $table = $type === 'facility' ? 'facilities' : 'equipment';
         $resourceStatement = $this->db->prepare(
@@ -276,10 +278,11 @@ final class BookingController
         }
 
         $resourceColumn = $type === 'facility' ? 'facility_id' : 'equipment_id';
+        $statuses = $includePendingBookings ? "'pending', 'approved'" : "'approved'";
         $query = "SELECT starts_at, ends_at, quantity
                   FROM bookings
                   WHERE {$resourceColumn} = :resource_id
-                    AND status IN ('pending', 'approved')
+                    AND status IN ({$statuses})
                     AND starts_at < :ends_at AND ends_at > :starts_at";
         $parameters = ['resource_id' => $resourceId, 'starts_at' => $start, 'ends_at' => $end];
         if ($excludeBookingId !== null) {

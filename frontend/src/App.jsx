@@ -25,7 +25,7 @@ import BookingForm from "./modules/bookings/BookingForm.jsx";
 import MyBookings from "./modules/bookings/MyBookings.jsx";
 import "./modules/business.css";
 import "./shared/integrated-workflows.css";
-import BookingReview from "./modules/bookings/BookingReview.jsx";
+import BookingReview from "./modules/bookings/index.jsx";
 import BookingEdit from "./modules/bookings/BookingEdit.jsx";
 import CoachAssignments from "./modules/memberships/CoachAssignments.jsx";
 import NotificationsPage from "./modules/notifications/NotificationsPage.jsx";

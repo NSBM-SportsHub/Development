@@ -20,3 +20,9 @@ Validation: production build, 10 frontend contract tests, 34 configuration check
 The browser workflow suite uses real PHP/MySQL and a production frontend build with synthetic accounts in a temporary database; it covers the core Student/Admin/coach workflows, responsive states, error recovery and retained history. Test databases are removed on exit. See [QA checklist](qa-checklist.md) for reproduction commands.
 
 Live deployment is explicitly deferred at the user's request. Railway setup is prepared locally; Docker/image/platform acceptance belongs to that later hosting step. No extra unconfirmed features or assessment requirements are represented as complete.
+
+## Integration update - 7 November 2026
+
+The completed workflows and Railway/attendance fixes have been combined with GitHub main's newer booking approval update. Fresh verification passed the production build, 10 frontend tests, 34 configuration checks, 78 backend scenarios, 11 production-build browser workflow groups, five Railway layout groups and PHP/shell syntax checks. The increase from 76 to 78 backend scenarios comes from retaining main's concurrent facility and equipment approval tests alongside the existing request/edit/attendance concurrency coverage.
+
+Core implementation is covered; deployment, hosted acceptance and final assessment/submission evidence remain on the [completion checklist](remaining-tasks.md). Previous hosting deferral is historical and does not establish deployment completion.
