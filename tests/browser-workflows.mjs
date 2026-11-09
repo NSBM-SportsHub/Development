@@ -2,12 +2,13 @@ import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { pathToFileURL } from 'node:url';
-import { mkdirSync, existsSync } from 'node:fs';
+import { mkdirSync, existsSync, writeFileSync } from 'node:fs';
 import { createServer as createNetServer } from 'node:net';
 import { resolve } from 'node:path';
 const playwrightPath = process.env.SPORTSHUB_PLAYWRIGHT_PATH || (existsSync('.tools/qa/node_modules/playwright/index.mjs') ? resolve('.tools/qa/node_modules/playwright/index.mjs') : null);
 const { chromium } = await import(playwrightPath ? pathToFileURL(playwrightPath).href : 'playwright');
 import { preview } from '../frontend/node_modules/vite/dist/node/index.js';
+import { releaseContext } from '../scripts/release-context.mjs';
 
 const root = process.cwd();
 const php = process.env.SPORTSHUB_PHP || (existsSync('.tools/php/php.exe') ? resolve('.tools/php/php.exe') : 'php');
@@ -30,6 +31,13 @@ async function port() {
   return p;
 }
 let backend, vite, browser;
+const passedSteps = [];
+const screenshots = [];
+async function screenshot(page, name) {
+  const path = `.artifacts/${name}.png`;
+  await page.screenshot({ path, fullPage: true });
+  screenshots.push(path);
+}
 try {
   cli('backend/bin/setup.php', ['--seed']);
   cli('backend/bin/create-admin.php', [`--name=Browser Admin`, `--email=${email}`], { SPORTSHUB_ADMIN_PASSWORD: password });
@@ -63,12 +71,13 @@ try {
   const errors = [];
   for (const page of [studentPage, adminPage, coachPage]) {
     page.setDefaultTimeout(12000);
+    page.setDefaultNavigationTimeout(30000);
     page.on('pageerror', (error) => errors.push(error.message));
     page.on('dialog', (dialog) => dialog.accept());
   }
   async function visit(page, path) { await page.goto(origin + path, { waitUntil: 'domcontentloaded' }); }
   async function step(label, action) {
-    try { await action(); console.log('PASS browser ' + label); }
+    try { await action(); passedSteps.push(label); console.log('PASS browser ' + label); }
     catch (error) {
       console.error('Browser step failed:', label, 'Runtime errors:', errors);
       for (const [index, page] of [studentPage, adminPage, coachPage].entries()) await page.screenshot({ path: `.artifacts/workflow-failure-${index}.png`, fullPage: true }).catch(() => {});
@@ -90,6 +99,7 @@ try {
     clubId = Number(new URL(adminPage.url()).pathname.split('/').at(-1));
     await adminPage.reload({ waitUntil: 'domcontentloaded' });
     await adminPage.getByRole('heading', { name: 'Workflow Real Club', exact: true }).waitFor();
+    await screenshot(adminPage, 'release-club');
     await visit(studentPage, `/sports-clubs/${clubId}`);
     await studentPage.getByRole('heading', { name: 'Workflow Real Club', exact: true }).waitFor();
     assert.equal(await studentPage.getByRole('button', { name: 'Archive club', exact: true }).count(), 0);
@@ -107,6 +117,7 @@ try {
     await adminPage.getByText('Coach assigned.', { exact: true }).waitFor();
     await adminPage.reload({ waitUntil: 'domcontentloaded' });
     await adminPage.getByRole('heading', { name: 'Workflow Coach', exact: true }).waitFor();
+    await screenshot(adminPage, 'release-coach-assignments');
     await visit(coachPage, '/profile');
     await coachPage.locator('.side-nav').getByRole('link', { name: 'Club membership review', exact: true }).waitFor();
   });
@@ -124,6 +135,7 @@ try {
     await studentPage.getByText('Approved', { exact: true }).waitFor();
     await studentPage.reload({ waitUntil: 'domcontentloaded' });
     await studentPage.getByText('Approved', { exact: true }).waitFor();
+    await screenshot(studentPage, 'release-membership');
   });
   await step('Assigned coach creates training and records canonical attendance; Student sees history', async () => {
     await visit(coachPage, '/training-attendance/new');
@@ -145,6 +157,7 @@ try {
     await coachPage.getByRole('cell', { name: 'Workflow Student', exact: true }).waitFor();
     await coachPage.reload({ waitUntil: 'domcontentloaded' });
     await coachPage.getByRole('cell', { name: 'Late', exact: true }).waitFor();
+    await screenshot(coachPage, 'release-attendance');
     await visit(studentPage, `/training-attendance/${trainingId}/attendance`);
     await studentPage.getByRole('cell', { name: 'Workflow Student', exact: true }).waitFor();
     assert.equal(await studentPage.getByRole('link', { name: 'Record attendance', exact: true }).count(), 0);
@@ -153,7 +166,7 @@ try {
     assert.equal(await studentPage.locator('.report-summary div').filter({ hasText: 'Training attended' }).locator('dd').textContent(), '1');
     await visit(adminPage, '/admin/reports');
     await adminPage.getByRole('heading', { name: 'Workflow Database Training', exact: true }).waitFor();
-    await adminPage.screenshot({ path: '.artifacts/complete-reports.png', fullPage: true });
+    await screenshot(adminPage, 'complete-reports');
   });
   const facility = await admin('/facilities', 'POST', { name: 'Workflow Court', location: 'Sports centre', capacity: 10 });
   await step('Student submits and edits a pending booking; Admin approves; notification persists', async () => {
@@ -174,6 +187,7 @@ try {
     await adminPage.getByText(`Booking #${bookingId} approved. The requester has been notified.`, { exact: true }).waitFor();
     await adminPage.getByRole('button', { name: 'Approved', exact: true }).click();
     await adminPage.getByRole('heading', { name: 'Workflow Court', exact: true }).waitFor();
+    await screenshot(adminPage, 'release-booking-approval');
     await adminPage.reload({ waitUntil: 'domcontentloaded' });
     await adminPage.getByRole('button', { name: 'Approved', exact: true }).click();
     await adminPage.getByRole('heading', { name: 'Workflow Court', exact: true }).waitFor();
@@ -183,6 +197,7 @@ try {
     await card.getByRole('button', { name: 'Mark as read', exact: true }).click();
     await studentPage.getByRole('button', { name: 'Read', exact: true }).click();
     await studentPage.getByRole('heading', { name: 'Booking approved', exact: true }).waitFor();
+    await screenshot(studentPage, 'release-notifications');
     await visit(studentPage, `/bookings/${bookingId}/edit`);
     await studentPage.getByRole('alert').filter({ hasText: 'Only pending bookings can be edited' }).waitFor();
   });
@@ -233,7 +248,7 @@ try {
     await adminPage.getByRole('button', { name: 'Correct result', exact: true }).waitFor();
     await adminPage.reload({ waitUntil: 'domcontentloaded' });
     await adminPage.getByRole('button', { name: 'Correct result', exact: true }).waitFor();
-    await adminPage.screenshot({ path: '.artifacts/complete-competition.png', fullPage: true });
+    await screenshot(adminPage, 'complete-competition');
     await visit(studentPage, '/participation');
     assert.equal(await studentPage.locator('.report-summary div').filter({ hasText: 'Match roster appearances' }).locator('dd').textContent(), '1');
     await rivalContext.close();
@@ -247,6 +262,7 @@ try {
     await visit(studentPage, '/announcements');
     await studentPage.getByRole('link', { name: /Workflow Campus Update/ }).click();
     await studentPage.getByRole('heading', { name: 'Workflow Campus Update', exact: true }).waitFor();
+    await screenshot(studentPage, 'release-announcement');
     await visit(studentPage, '/notifications');
     await studentPage.getByText('Workflow Campus Update', { exact: true }).waitFor();
   });
@@ -258,7 +274,7 @@ try {
       await visit(page, path);
       await page.waitForFunction(() => document.querySelector('h1') && !Array.from(document.querySelectorAll('[role="status"]')).some((element) => /Loading|Checking/.test(element.textContent)));
       assert.ok(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), 'Mobile overflow on ' + path);
-      if (path === '/training-attendance') await page.screenshot({ path: '.artifacts/complete-training-mobile.png', fullPage: true });
+      if (path === '/training-attendance') await screenshot(page, 'complete-training-mobile');
     }
     await adminPage.route('**/api/bookings', (route) => route.fulfill({ status: 503, json: { data: null, error: { code: 'service_unavailable', message: 'Verification service temporarily unavailable.', fields: {} } } }));
     await visit(adminPage, '/admin/bookings');
@@ -319,6 +335,7 @@ try {
     await context.close();
   });
   assert.deepEqual(errors, []);
+  writeFileSync('.artifacts/browser-evidence.json', JSON.stringify({ ...releaseContext(), checked_at: new Date().toISOString(), status: 'passed', target: 'local production build with real PHP/MySQL', browser_channel: process.env.SPORTSHUB_BROWSER_CHANNEL || 'chromium', workflow_groups: passedSteps, screenshots, runtime_errors: 0, synthetic_data_only: true }, null, 2) + '\n');
   console.log('PASS real browser workflows against the production frontend build, PHP and MySQL; isolated database cleaned on exit.');
 } finally {
   if (browser) await browser.close();

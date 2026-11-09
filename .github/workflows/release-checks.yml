@@ -1,0 +1,101 @@
+name: Release checks
+
+on:
+  push:
+    branches: [main, chore/mukilan-submission-readiness]
+    paths-ignore: ['docs/**', '**.md']
+  pull_request:
+    paths-ignore: ['docs/**', '**.md']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  acceptance:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    env:
+      SPORTSHUB_DB_HOST: 127.0.0.1
+      SPORTSHUB_DB_PORT: 3306
+      SPORTSHUB_DB_USER: root
+      SPORTSHUB_DB_PASSWORD: sportshub-ci-only
+      SPORTSHUB_ENV: development
+      SPORTSHUB_SESSION_SECURE: '0'
+      SPORTSHUB_APP_KEY: synthetic-ci-key-never-used-for-production
+      SPORTSHUB_PLAYWRIGHT_PATH: .tools/qa/node_modules/playwright/index.mjs
+    services:
+      mysql:
+        image: mysql:8.0
+        env:
+          MYSQL_ROOT_PASSWORD: sportshub-ci-only
+          MYSQL_ROOT_HOST: '%'
+          MYSQL_DATABASE: sportshub_ci
+        ports: ['3306:3306']
+        options: >-
+          --health-cmd="mysqladmin ping --silent"
+          --health-interval=5s
+          --health-timeout=5s
+          --health-retries=30
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - name: Install PHP and database clients
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y php-cli php-mysql php-mbstring mysql-client
+      - name: Build and frontend tests
+        run: |
+          npm ci --prefix frontend
+          npm run build --prefix frontend
+          npm test --prefix frontend
+      - name: PHP configuration, syntax and real database integration
+        run: |
+          php backend/tests/configuration.php
+          find backend deployment -name '*.php' -print0 | xargs -0 -n1 php -l
+          bash -n deployment/start-backend.sh
+          node backend/tests/integration.mjs
+      - name: Backup and restore rehearsal
+        run: node backend/tests/backup-restore.mjs
+      - name: Browser acceptance and screenshots
+        run: |
+          npm install --prefix .tools/qa --no-save --package-lock=false playwright
+          .tools/qa/node_modules/.bin/playwright install --with-deps chromium
+          node tests/browser-workflows.mjs
+      - name: Build the actual deployment image
+        run: docker build -t sportshub-release .
+      - name: Start Apache image against MySQL
+        run: |
+          docker run -d --name sportshub-release --network host \
+            -e PORT=8080 -e SPORTSHUB_ENV=development -e SPORTSHUB_SESSION_SECURE=0 \
+            -e SPORTSHUB_APP_KEY -e SPORTSHUB_DB_HOST -e SPORTSHUB_DB_PORT \
+            -e SPORTSHUB_DB_USER -e SPORTSHUB_DB_PASSWORD \
+            -e SPORTSHUB_DB_NAME=sportshub_ci sportshub-release
+          for attempt in $(seq 1 60); do
+            if curl --fail --silent http://127.0.0.1:8080/api/health; then exit 0; fi
+            sleep 2
+          done
+          docker logs sportshub-release
+          exit 1
+      - name: Verify Apache routes, session and private files
+        run: node scripts/verify-deployment.mjs http://127.0.0.1:8080 --allow-local-http
+      - name: Preserve image logs
+        if: always()
+        run: |
+          mkdir -p .artifacts
+          docker logs sportshub-release > .artifacts/container.log 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: release-evidence
+          path: |
+            .artifacts/*.png
+            .artifacts/browser-evidence.json
+            .artifacts/backup-restore-evidence.json
+            .artifacts/container.log
+          if-no-files-found: ignore
+          retention-days: 14

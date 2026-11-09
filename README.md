@@ -13,6 +13,8 @@ The project aims to bring sports clubs, membership applications, training, compe
 3. Read the [backend guide](backend/README.md) for PHP ownership, database coordination, and security expectations.
 4. Confirm the relevant task, schema, and frontend/backend contract with its owners before implementing it.
 
+For the 9 November local handover, use the [submission package guide](docs/submission-guide.md), [demo sequence](docs/demo-guide.md) and [backup/restore rehearsal](docs/backup-restore.md). Deployment is deferred by the user. Handover changes stay on `chore/mukilan-submission-readiness` while existing main-branch deployment integrations are reviewed; the official project guideline is still needed for final assessment acceptance.
+
 ## Technology plan
 
 | Area | Requirement or direction | Current state |
