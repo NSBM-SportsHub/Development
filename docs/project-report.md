@@ -149,6 +149,8 @@ All screenshots below show synthetic workflow records. The evidence folder retai
 
 The complete handover is broader than application code. The supporting folder preserves the team's R&D PDF, original database design image and relevant project references. Original source names and SHA-256 fingerprints are recorded so those artifacts remain distinguishable from the current implementation and from this generated report.
 
+The team's separate research repository is [NSBM SportsHub Research-and-development](https://github.com/NSBM-SportsHub/Research-and-development). Its history provides additional evidence of document submissions alongside the application repository's coding/integration history. Final member credits should relate these actual artifacts and histories to the team's confirmed names.
+
 The R&D document supplies design motivation and proposed scope. The architecture image illustrates the earlier schema, while the canonical ERD/migrations record the final database. The requested UI/UX design assets and creator credits are pending and are not replaced by an invented design artifact. Application screenshots prove the implemented interface; they are not claimed as the team's original design source files.
 
 ## 10. Deployment, video and final submission status
@@ -169,6 +171,7 @@ The implemented application covers the official Topic 3 functional scope and has
 
 - Official module guideline: WAD_Batch26_1_IFSL_Project_Instructions.pdf, pages 2-4, supplied by the team leader.
 - Team R&D: Jassim - R&D Document.pdf, header attribution to Jassim and Shahilan; proposals are distinguished from final implementation.
+- Research repository and document contribution history: [NSBM SportsHub Research-and-development](https://github.com/NSBM-SportsHub/Research-and-development).
 - Original database design: NSBM Assignment.drawio.png; final design is described by migrations 001-009 and docs/database-erd.md.
 - Project source: https://github.com/NSBM-SportsHub/Development
 - Exact report source revision: {{source_url}}

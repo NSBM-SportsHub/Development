@@ -50,6 +50,8 @@ The team also wants its R&D, database architecture and UI/UX work included. Thes
 
 `Research-and-development/Jassim - R&D Document.pdf` identifies Jassim and Shahilan in its header. Its template roles and proposed CSV exports/Bootstrap use should be distinguished from final verified contributions and functionality. Other supporting authorship must be confirmed by the team. The UI/UX source/export files have not yet been supplied in the known Documents folder.
 
+The local R&D checkout has a separate origin, [NSBM-SportsHub/Research-and-development](https://github.com/NSBM-SportsHub/Research-and-development). Its history records `418fbe1` by Mohamed Jassim (R&D document submission) and `a246ec5` by WIJESINGHEWLIN (file upload). Preserve that document contribution evidence alongside the application history; confirm the mapping from account names to team members and distinguish an upload from original authorship.
+
 ## Marks and deadline - page 4
 
 | Criterion | Weight |
