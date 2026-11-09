@@ -50,3 +50,23 @@ Integrated GitHub main through `835c210`, including Mursid's concurrent Admin bo
 Fresh verification passed: production build, 10 frontend tests, 34 configuration checks, **78 real PHP/MySQL integration scenarios**, **11 browser workflow groups**, five Railway public-layout smoke groups, syntax checks for all 44 PHP files and startup-shell syntax. The first Edge run timed out on its initial page navigation without application runtime errors; a fresh run against the final build passed all groups. A Chromium fallback could not launch because its executable was absent; the successful run used installed Microsoft Edge. Test records were isolated and cleaned by the suites.
 
 Live Docker/Apache/Railway acceptance and the official assessment/submission requirements remain outstanding. See the [completion checklist](remaining-tasks.md).
+
+## Local handover and actual image verification - 9 November 2026
+
+The user explicitly deferred deployment. Handover changes are isolated on `chore/mukilan-submission-readiness`; main remains at `0316449` because existing GitHub deployment integrations were observed on main. This pass has not requested or performed a Railway deployment.
+
+Fresh local checks passed the production build, 10 frontend tests, 34 configuration checks, 78 PHP/MySQL integration scenarios, all 11 browser workflow groups and syntax for 45 PHP files plus the startup shell. The five public-layout groups and the read-only public checker pass against the assembled local layout. Ten screenshots use synthetic accounts/records only; the browser and backup/restore reports record the executable-source fingerprint. Known text source uses canonical LF line endings in that fingerprint so Windows worktrees and Git source archives identify the same code.
+
+The new backup/restore rehearsal creates two isolated random databases, dumps/restores synthetic user/resource/booking fixtures and the seeded schema, and compares all 17 tables' row counts and content fingerprints. Schema setup succeeds after restore and both test databases are removed. It does not export or modify the working application database.
+
+[GitHub Release checks run 42559574352](https://github.com/NSBM-SportsHub/Development/actions/runs/42559574352), at source commit `9f73bfd`, completed successfully on Ubuntu with MySQL 8: frontend tests/build, configuration/PHP/database integration, backup/restore, all browser workflows, the actual Docker image build and live Apache-container route/session/private-file checks. This closes the earlier local-only Docker/Apache verification gap; Railway HTTPS, hosted account setup and hosted persistence are still deferred.
+
+The generated source archive was inspected for private/generated-path exclusions and all source/evidence checksums matched. A clean extraction with no local `.env`, tools or dependencies installed the locked frontend dependencies, passed production build/10 tests, created all 17 database tables and 13 reference sports with no demo clubs, provisioned the first synthetic Admin and reran setup. The temporary verification database was removed.
+
+The [submission guide](submission-guide.md), [demo sequence](demo-guide.md) and [backup/restore guide](backup-restore.md) are prepared. The official project guideline has been requested but not supplied, so rubric-specific features, report formatting and the final assessment submission are not represented as completed.
+
+## Official guideline and complete supporting-work package - 9 November 2026
+
+The team leader supplied the four-page module guideline. [The review](guideline-review.md) maps every Topic 3 function and general requirement to existing implementation/evidence. No new mandatory application feature gap was established. The remaining required deliverables are the finalized PDF/Word report, working hosted link, accessible demonstration video with each member's own contribution explanation, and designated-member LMS submission. Deployment stays deferred. The PDF leaves its deadline to be confirmed; the team's 12 November date is not verified by that source.
+
+The confirmed leader name is **Mukilan Vasantharaj**. A report draft now includes required sections, available team allocation, ten synthetic Admin/Student/coach screenshots, current architecture/database descriptions and the original database design image. The original R&D and architecture artifacts are preserved byte-for-byte as supporting work; their proposed schema is distinguished from the current migrations/ERD. The final UI/UX files, preferred contact and contribution credits remain pending. Research/database/UI/UX/QA work receives accurate attribution alongside code; original allocation is not treated as proof of completed authorship.

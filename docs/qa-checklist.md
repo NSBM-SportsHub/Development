@@ -63,3 +63,17 @@ On Windows with Edge already installed, set `$env:SPORTSHUB_BROWSER_CHANNEL = 'm
 For new issues record the commit, role, steps, expected/actual result, severity, owner, fix and retest result. Use synthetic records and keep credentials/session tokens out of evidence. Each contributor remains responsible for understanding and demonstrating their own work.
 
 For Railway packaging, run `node tests/railway-smoke.mjs` after building the frontend. It checks the assembled public layout against real PHP without writing application records. Docker/Apache and live HTTPS behavior still need platform verification.
+
+## Release evidence and handover - 9 November 2026
+
+`tests/browser-workflows.mjs` now writes `.artifacts/browser-evidence.json` and ten synthetic screenshots while exercising the same 11 workflow groups. Its report includes the executable-source SHA-256 fingerprint; the packager refuses evidence from different source. Passwords/session tokens are not written to that report. Navigation allows 30 seconds for a cold browser start; individual assertions retain their 12-second limit.
+
+Run `node backend/tests/backup-restore.mjs` for the isolated 17-table dump/restore rehearsal described in [backup/restore](backup-restore.md). `.artifacts/backup-restore-evidence.json` records the source fingerprint and successful result. Both generated test databases are removed.
+
+The `Release checks` GitHub workflow repeats frontend/PHP/MySQL/browser/restore checks, builds the real Dockerfile and tests the Apache image against a temporary MySQL service. It starts no public Railway deployment. Read its actual run result before claiming image acceptance.
+
+The public checker `scripts/verify-deployment.mjs` is read-only and checks HTML/assets, deep links, database health, anonymous access denial, API JSON errors, session/CSRF continuity, cookie flags and private-file protection. The local layout smoke suite also exercises this checker against its assembled public fixture. HTTPS is mandatory except for explicitly allowed loopback HTTP tests. Authenticated hosted workflows and restart persistence still need separate acceptance when hosting resumes.
+
+After checks and a reviewed source commit, run `node scripts/package-submission.mjs`. See [submission guide](submission-guide.md) for required release log filenames, output files, assessment mapping and the final human checklist. Deployment remains deferred by the user's 9 November instruction.
+
+The supplied guideline is now mapped in [the official review](guideline-review.md). Build the PDF with `python scripts/build-project-report.py` before packaging. The report preserves original supporting files, includes ten application screenshots plus the early design image, and records required missing links/contact/credits explicitly. The packager checks the PDF/source/template hashes and supporting-file checksums. UI/UX inputs can be supplied with `--uiux-root`; verify those files and their credits before finalizing the report. The actual official deadline remains unconfirmed in the PDF.

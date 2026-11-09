@@ -1,5 +1,5 @@
 import assert from 'node:assert/strict';
-import { spawn } from 'node:child_process';
+import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
@@ -92,6 +92,9 @@ try {
   assert.equal(existsSync(resolve(publicPath, 'backend')), false);
   assert.equal(existsSync(resolve(publicPath, '.env')), false);
   console.log('PASS Railway layout: PHP source, database scripts and private config stay outside public');
+  const publicCheck = spawnSync(process.execPath, ['scripts/verify-deployment.mjs', origin, '--allow-local-http'], { cwd: root, encoding: 'utf8', timeout: 60000, windowsHide: true });
+  assert.equal(publicCheck.status, 0, publicCheck.stderr || publicCheck.stdout || publicCheck.error?.message);
+  console.log(publicCheck.stdout.trim());
 } finally {
   if (server && server.exitCode === null && server.signalCode === null) {
     const stopped = new Promise((ok) => server.once('exit', ok)); server.kill(); await stopped;

@@ -1,6 +1,6 @@
-# Project completion checklist - 7 November 2026
+# Project completion checklist - 9 November 2026
 
-The agreed core modules are implemented: accounts, clubs, memberships and coach assignments, facilities/equipment/bookings, training/attendance, competitions/results, announcements, notifications and participation reports. Final completion still depends on deployment acceptance and the official assignment requirements.
+The agreed core modules are implemented: accounts, clubs, memberships and coach assignments, facilities/equipment/bookings, training/attendance, competitions/results, announcements, notifications and participation reports. The user explicitly deferred deployment on 9 November. Remaining work in this pass covers local release preparation, evidence and handover.
 
 ## Integration and local checks
 
@@ -11,19 +11,34 @@ The agreed core modules are implemented: accounts, clubs, memberships and coach 
 - [x] Pass all 11 production-build browser workflow groups against real PHP/MySQL using Microsoft Edge.
 - [x] Merge and publish the verified result to GitHub `main` (integration commit `ecc8887`).
 
-## Remaining work to finish today
+## Local handover completed
 
-| Priority | Task | Completion evidence |
-| --- | --- | --- |
-| 1 | Deploy the main branch to Railway with a web service and MySQL persistent volume | Successful Docker image build/startup, database migrations, healthy public `/api/health`, and recorded deployed commit/URL |
-| 2 | Configure production variables and provision the first hosted Admin | Private application key/database variables, secure session cookies, successful Admin login; follow [Railway deployment](deployment-railway.md) |
-| 3 | Run hosted Student/Admin/coach acceptance | Sign-in, membership approval, coach assignment/revocation, training/attendance, booking approval/conflicts, competitions/results, announcements, inbox and report totals; direct deep links and mobile layouts also pass |
-| 4 | Confirm the official assessment requirements | Check the actual brief/rubric, React permission, required report/export formats, exact submission platform/time and each member's required evidence; record any mandatory gaps |
-| 5 | Prepare the final handover/submission package | Current setup/deployment instructions, ERD, test evidence and screenshots, source revision, safe database backup/export if required, and a tested restore/setup path |
-| 6 | Rehearse the demo and submit | Demonstrate the complete Student/Admin/coach flows using synthetic data; each member can explain their actual contribution; retain submission confirmation |
+- [x] Repeat the production build, 10 frontend tests, 34 configuration checks, 78 real PHP/MySQL scenarios, 11 browser workflow groups, layout checks and PHP/shell syntax checks.
+- [x] Capture ten fresh synthetic screenshots and a machine-readable browser report tied to the executable-source fingerprint.
+- [x] Rehearse backup/restore in two temporary databases: all 17 tables and every row fingerprint match; schema setup succeeds after restoration; temporary databases are removed.
+- [x] Prepare [backup/restore instructions](backup-restore.md), [demo sequence](demo-guide.md), [submission/handover guide](submission-guide.md), and the existing [ERD](database-erd.md)/API/setup documents.
+- [x] Add a source packager that excludes ignored private/generated files, requires a reviewed clean commit, verifies evidence fingerprints and emits a manifest/checksums.
+- [x] Generate a source ZIP/evidence folder, verify all checksums and private-file exclusions, extract into a clean folder, install locked dependencies, build/test, initialize all 17 tables/13 reference sports and provision the first Admin without local configuration files.
+- [x] Pass the ephemeral GitHub Docker/Apache/MySQL image check: [Release checks run 42559574352](https://github.com/NSBM-SportsHub/Development/actions/runs/42559574352) builds the actual image and passes Apache routing/session/private-file acceptance. This is CI testing, not deployment to Railway.
 
-Work through priorities 1-3 first for a hosted release, then 4-6 for assignment readiness. Do not add optional features unless the brief requires them. The repository records submission on 12 November 2026; today's target is early completion.
+The handover work is on `chore/mukilan-submission-readiness`. GitHub reports existing deployment integrations associated with `main`; leave main unchanged while deployment is deferred. Review those integrations before any later merge/push that may deploy.
 
-Hosting was deferred in the previous development-only scope. Local layout smoke tests do not build Docker or execute Apache, and cannot establish Railway HTTPS/database/persistence acceptance. This workstation has no Docker or Railway CLI available at review time. No cloud deployment or assignment submission is claimed here.
+## Official guideline review and final acceptance
+
+- [x] Read all four pages of the supplied official guideline and map Topic 3/general requirements to source and evidence in [the guideline review](guideline-review.md).
+- [x] Prepare a PDF report draft with confirmed leader **Mukilan Vasantharaj**, required narrative sections, team allocation, ten application screenshots and design-evolution notes; [editable report source](project-report.md).
+- [x] Preserve the team's R&D PDF and original database architecture image unchanged for the complete submission bundle; distinguish source references and original designs from final implementation.
+- [x] Prepare the [required video recording plan](video-demonstration.md), including every member's genuine coding, R&D, database, UI/UX or QA contribution.
+- [ ] Add the leader's preferred contact details, confirmed member names/actual credits and the supplied UI/UX source/export assets.
+- [ ] Record the screen demonstration and every member's own explanation, upload when the team is ready, verify access and put the video link in the report.
+- [ ] Add the required working hosted URL after the user resumes deployment, then verify public behavior and access.
+- [ ] Each member rehearses their own explanation and verifies actual contribution evidence, including research/design artifacts. Automated workflow rehearsal does not certify individual assessment understanding.
+- [ ] Submit through the authorized assessment account and retain confirmation. No assignment submission has been performed.
+
+The official PDF requires a PDF/Word report, live hosted application/link, accessible video/link and team-leader/designated-member submission via LMS/platform. It leaves the deadline **to be confirmed**. The team's 12 November date is a planning record, not verified by this PDF. The user wants the R&D, database architecture and UI/UX work included; available supporting artifacts are preserved, while UI/UX files and some credits/contact details remain pending.
+
+## Deferred deployment
+
+Railway provisioning, hosted Admin setup, public HTTPS/session checks, authenticated hosted acceptance and redeploy/database-volume persistence are intentionally deferred. This is an outstanding **official deliverable**, not an optional requirement. When resumed, use [deployment instructions](deployment-railway.md) and `node scripts/verify-deployment.mjs https://YOUR-PUBLIC-ORIGIN`; local or CI checks do not establish hosted acceptance.
 
 Keep credentials, personal records, session files, local `.env`, portable tools and generated dependencies out of the submission. Use the [QA guide](qa-checklist.md) to reproduce local checks.
