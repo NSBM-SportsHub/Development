@@ -18,8 +18,8 @@ The agreed core modules are implemented: accounts, clubs, memberships and coach 
 - [x] Rehearse backup/restore in two temporary databases: all 17 tables and every row fingerprint match; schema setup succeeds after restoration; temporary databases are removed.
 - [x] Prepare [backup/restore instructions](backup-restore.md), [demo sequence](demo-guide.md), [submission/handover guide](submission-guide.md), and the existing [ERD](database-erd.md)/API/setup documents.
 - [x] Add a source packager that excludes ignored private/generated files, requires a reviewed clean commit, verifies evidence fingerprints and emits a manifest/checksums.
-- [ ] Generate and inspect the final source ZIP and evidence folder after the reviewed commit.
-- [ ] Finish the ephemeral GitHub Docker/Apache/MySQL image check. This is CI testing, not deployment to Railway.
+- [x] Generate a source ZIP/evidence folder, verify all checksums and private-file exclusions, extract into a clean folder, install locked dependencies, build/test, initialize all 17 tables/13 reference sports and provision the first Admin without local configuration files.
+- [x] Pass the ephemeral GitHub Docker/Apache/MySQL image check: [Release checks run 42559574352](https://github.com/NSBM-SportsHub/Development/actions/runs/42559574352) builds the actual image and passes Apache routing/session/private-file acceptance. This is CI testing, not deployment to Railway.
 
 The handover work is on `chore/mukilan-submission-readiness`. GitHub reports existing deployment integrations associated with `main`; leave main unchanged while deployment is deferred. Review those integrations before any later merge/push that may deploy.
 

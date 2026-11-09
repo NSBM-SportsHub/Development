@@ -25,6 +25,8 @@ The output is `.artifacts/submission-<commit>/`, containing `SportsHub-source.zi
 
 Fresh release logs use `.artifacts/release-{build,frontend,configuration,integration,browser,backup,layout}.log`; these are generated during release verification. The browser report lists each successful workflow group and screenshot. Evidence files are outside the source ZIP so reviewers can inspect source and runtime evidence separately. If the submission system accepts only one file, compress the complete `submission-<commit>` folder after checking the official guideline.
 
+Validation on 9 November includes a successful clean extraction/setup/build rehearsal and [successful Docker/Apache CI](https://github.com/NSBM-SportsHub/Development/actions/runs/42559574352). The executable-source fingerprint normalizes text line endings across Windows and the Git archive. This proves packaging and local/container behavior; deployment remains deferred and guideline acceptance is still pending.
+
 ## Acceptance mapping
 
 | Implemented area | Source and documented evidence |

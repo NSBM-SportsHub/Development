@@ -26,3 +26,7 @@ Live deployment is explicitly deferred at the user's request. Railway setup is p
 The completed workflows and Railway/attendance fixes have been combined with GitHub main's newer booking approval update. Fresh verification passed the production build, 10 frontend tests, 34 configuration checks, 78 backend scenarios, 11 production-build browser workflow groups, five Railway layout groups and PHP/shell syntax checks. The increase from 76 to 78 backend scenarios comes from retaining main's concurrent facility and equipment approval tests alongside the existing request/edit/attendance concurrency coverage.
 
 Core implementation is covered; deployment, hosted acceptance and final assessment/submission evidence remain on the [completion checklist](remaining-tasks.md). Previous hosting deferral is historical and does not establish deployment completion.
+
+## Handover update - 9 November 2026
+
+The user again deferred deployment. The local handover now includes ten fresh synthetic screenshots, machine-readable browser/restore evidence, source ZIP packaging with manifest/checksums, a clean extraction/setup/build rehearsal and demo/backup/submission guides. All prior local suites pass; the restore rehearsal verifies all 17 tables. [GitHub CI](https://github.com/NSBM-SportsHub/Development/actions/runs/42559574352) additionally passed against MySQL 8 and built/tested the real Docker/Apache image. The official project guideline is still needed for rubric-specific acceptance, and final human contribution/demo/submission steps remain recorded separately.
