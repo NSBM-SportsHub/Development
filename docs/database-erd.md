@@ -12,10 +12,14 @@ erDiagram
     users ||--o{ tournament_entries : "captains"
     users ||--o{ tournament_entry_members : "plays in"
     users ||--o{ notifications : "receives"
+    users ||--o{ training_attendance : "participates"
     sports ||--o{ clubs : "has"
     sports ||--o{ tournaments : "is played in"
     clubs ||--o{ memberships : "has"
     clubs ||--o{ club_coaches : "has"
+    clubs ||--o{ training_sessions : "schedules"
+    clubs o|--o{ announcements : "optional audience"
+    training_sessions ||--o{ training_attendance : "records"
     tournaments ||--o{ tournament_entries : "accepts"
     tournament_entries ||--o{ tournament_entry_members : "lists"
     tournaments ||--o{ matches : "schedules"
@@ -37,6 +41,10 @@ erDiagram
     equipment { bigint id PK }
     bookings { bigint id PK "facility_id or equipment_id" }
     notifications { bigint id PK "recipient_id FK, event_key, read_at" }
+    training_sessions { bigint id PK "club_id FK, session_date, times, status" }
+    training_attendance { bigint id PK "session_id FK, participant_id FK, unique pair" }
+    announcements { char announcement_id PK "optional club_id FK, title, body, visibility" }
+    auth_rate_limits { char key_hash PK "attempts, expires_at; independent authentication control" }
 ```
 
 ## Migration order
@@ -54,6 +62,8 @@ erDiagram
 | `009_notifications.sql` | Mukilan (covering original Nimesha scope) | `notifications` |
 
 Reports read attendance, tournament entries and completed matches directly; they do not duplicate those records in a report table. Notification event snapshots have a unique `(event_key, recipient_id)` key and a recipient/read-state index. See the [notification/report contract](notifications-reports-api.md).
+
+The supplied `NSBM Assignment.drawio.png` is an earlier conceptual proposal, not a diagram of this exact schema. Preserve it with the [design-evolution notes](design-evolution.md) as supporting R&D evidence.
 
 `php backend/bin/setup.php` applies every `NNN_lowercase_name.sql` file in numeric order. It refuses two files that share a number, so renumber yours if main already has it. Every migration must be re-runnable: use `CREATE TABLE IF NOT EXISTS` and never `DROP` or automatic `ALTER`. Add each new table's key columns to `$expected` in `setup.php`, which verifies existing tables before applying anything.
 

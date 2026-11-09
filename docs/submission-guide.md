@@ -1,6 +1,6 @@
 # Local handover and submission package
 
-Prepared 9 November 2026. The core application is implemented and the previous main merge is recorded in [development status](development-status.md). Deployment is deferred. The official assignment guideline is still needed to confirm exact assessed deliverables and the submission method; this package does not certify rubric compliance or submission.
+Prepared 9 November 2026. The core application is implemented and the previous main merge is recorded in [development status](development-status.md). The [supplied official guideline](guideline-review.md) has now been reviewed. The user wants a combined submission containing the application, R&D, database architecture and UI/UX work. Deployment is deferred; required live/video links, some contact/credit information and UI/UX files remain open. The PDF report is a clearly marked draft, not a submission confirmation.
 
 Handover changes are prepared on `chore/mukilan-submission-readiness`. Existing GitHub deployment integrations are attached to `main`; this branch allows local release preparation and ephemeral CI tests without pushing main or requesting a cloud application deployment. Before a later merge, review those integrations if deployment must remain deferred.
 
@@ -10,22 +10,34 @@ Handover changes are prepared on `chore/mukilan-submission-readiness`. Existing 
 - Setup, API/security/permission contracts, [database ERD](database-erd.md), [QA instructions](qa-checklist.md), [backup/restore guide](backup-restore.md) and [demo guide](demo-guide.md).
 - A source ZIP of the committed Git revision, with a release manifest and SHA-256 checksums.
 - Fresh screenshots from synthetic Student/Admin/coach workflows, machine-readable browser and backup/restore evidence and local verification logs.
+- A PDF project report draft, filled editable Markdown and a report evidence record, naming **Mukilan Vasantharaj** as team leader.
+- Unmodified supplied R&D PDFs, the original database architecture image and official guideline under `supporting-documents/`, with checksums. UI/UX assets are added when their directory is supplied.
 
 Local `.env`, database accounts, application keys, sessions, dependencies, portable tools, build caches and real application data are excluded. Install dependencies with `npm ci --prefix frontend` and configure the backend using the examples in [local setup](local-development.md). There are no default Admin credentials; provision the first Admin privately.
 
 ## Build the package
 
-From the repository root, after the release checks and reviewed source commit:
+From the repository root, install the report tooling into an ignored local directory, then prepare optional private metadata:
 
 ```powershell
+python -m pip install --target .tools/report-qa -r scripts/report-requirements.txt
+Copy-Item docs/report-metadata.example.json .artifacts/report-metadata.json
+```
+
+Skip the copy if private metadata already exists. Edit that ignored JSON with the leader's preferred contact, confirmed member names/actual contribution credits, and the live/video URLs when available. Keep any private contact details out of source commits. The default Documents directory is `../Documents`; pass `--documents-root` if it is elsewhere. Supply the UI/UX folder using `--uiux-root` when ready.
+
+After the release checks and reviewed source commit:
+
+```powershell
+python scripts/build-project-report.py
 node scripts/package-submission.mjs
 ```
 
-The output is `.artifacts/submission-<commit>/`, containing `SportsHub-source.zip`, `manifest.json`, `SHA256SUMS.txt` and `evidence/`. The ZIP opens into `SportsHub/` and contains the committed source. The packager requires a clean working tree, refuses tracked private/generated paths, and checks that browser/restore evidence matches the executable-source fingerprint. It never includes ignored local files in the source archive. Existing release folders are preserved rather than overwritten.
+The output is `.artifacts/submission-<commit>/`, containing `SportsHub-source.zip`, `project-report/`, `supporting-documents/`, `manifest.json`, `SHA256SUMS.txt` and `evidence/`. The source ZIP opens into `SportsHub/`. The packager requires a clean working tree, refuses tracked private/generated paths, checks browser/restore/report fingerprints, verifies the report template and validates supporting-file hashes before copying staged inputs. The source ZIP excludes ignored local files. Existing release folders are preserved rather than overwritten.
 
 Fresh release logs use `.artifacts/release-{build,frontend,configuration,integration,browser,backup,layout}.log`; these are generated during release verification. The browser report lists each successful workflow group and screenshot. Evidence files are outside the source ZIP so reviewers can inspect source and runtime evidence separately. If the submission system accepts only one file, compress the complete `submission-<commit>` folder after checking the official guideline.
 
-Validation on 9 November includes a successful clean extraction/setup/build rehearsal and [successful Docker/Apache CI](https://github.com/NSBM-SportsHub/Development/actions/runs/42559574352). The executable-source fingerprint normalizes text line endings across Windows and the Git archive. This proves packaging and local/container behavior; deployment remains deferred and guideline acceptance is still pending.
+Validation on 9 November includes a successful clean extraction/setup/build rehearsal and [successful Docker/Apache CI](https://github.com/NSBM-SportsHub/Development/actions/runs/42559861109). The executable-source fingerprint normalizes text line endings across Windows and the Git archive. The guideline audit confirms the functional mapping; final required links, team details and human review remain pending.
 
 ## Acceptance mapping
 
@@ -39,14 +51,14 @@ Validation on 9 November includes a successful clean extraction/setup/build rehe
 | Announcements and inbox | Announcement/notification module folders, persisted announcement/read-state browser evidence |
 | Persistence and delivery | [ERD](database-erd.md), ordered migrations, isolated backup/restore rehearsal, Docker build/Apache CI and local setup instructions |
 
-This is an implementation map, not an inferred marking scheme. Check the uploaded guideline for required screenshots, report sections, diagram formats, React permission, report/export fields, contribution evidence, demo duration, exact deadline and final file naming. Record mandatory gaps before declaring the assignment ready.
+The [guideline audit](guideline-review.md) maps the actual requirements and marking weights. The guideline requires report narrative/team/screenshots plus source/live/video links and genuine member explanations. It does not specify CSV exports, a video duration or a final filename, and leaves the deadline unconfirmed. Keep the [original design-evolution notes](design-evolution.md) with the earlier diagram and current ERD so differences are explained.
 
 ## Final human handover
 
-1. Extract the source archive into a clean folder and follow the setup guide on the assessor's intended environment. Recheck framework/runtime requirements against the guideline.
+1. Extract the source archive into a clean folder and follow the setup guide on the assessor's intended environment. Check any separate lecturer frontend restrictions.
 2. Review screenshots and the manifest; confirm they contain only synthetic data and match the source fingerprint.
-3. Rehearse the [demo sequence](demo-guide.md). Each member verifies their own actual Git contribution and can explain their implementation.
-4. Add any required assessment report/cover sheet/declaration and use the official filename and submission platform.
+3. Rehearse the [demo sequence](demo-guide.md) and [required video](video-demonstration.md). Each member verifies their actual code/research/database/UI/UX/QA work and presents its evidence.
+4. Finalize leader contact/member credits and the actual UI/UX artifacts. Add accessible live/video links, rebuild/review the PDF, and follow the actual LMS filename/deadline instructions.
 5. Submit through the authorized account and retain the confirmation. No assessment submission has been performed by preparing this package.
 
 When hosting is resumed, follow [Railway deployment](deployment-railway.md) and run `node scripts/verify-deployment.mjs https://YOUR-PUBLIC-ORIGIN` for read-only health/deep-link/session/private-file checks. Repeat the authenticated role workflows and check persistence over a redeploy before recording hosted acceptance.

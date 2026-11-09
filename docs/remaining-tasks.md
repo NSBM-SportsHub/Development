@@ -23,17 +23,22 @@ The agreed core modules are implemented: accounts, clubs, memberships and coach 
 
 The handover work is on `chore/mukilan-submission-readiness`. GitHub reports existing deployment integrations associated with `main`; leave main unchanged while deployment is deferred. Review those integrations before any later merge/push that may deploy.
 
-## Waiting for the guideline and human acceptance
+## Official guideline review and final acceptance
 
-- [ ] Receive and compare the official project guideline/rubric, including React permission, required exports/report sections, diagrams, exact submission method/time and individual evidence.
-- [ ] Add only mandatory gaps established by that guideline and prepare its exact cover sheet/report/file naming.
-- [ ] Each member rehearses their own explanation and verifies actual contribution evidence. Automated workflow rehearsal does not certify individual assessment understanding.
+- [x] Read all four pages of the supplied official guideline and map Topic 3/general requirements to source and evidence in [the guideline review](guideline-review.md).
+- [x] Prepare a PDF report draft with confirmed leader **Mukilan Vasantharaj**, required narrative sections, team allocation, ten application screenshots and design-evolution notes; [editable report source](project-report.md).
+- [x] Preserve the team's R&D PDF and original database architecture image unchanged for the complete submission bundle; distinguish source references and original designs from final implementation.
+- [x] Prepare the [required video recording plan](video-demonstration.md), including every member's genuine coding, R&D, database, UI/UX or QA contribution.
+- [ ] Add the leader's preferred contact details, confirmed member names/actual credits and the supplied UI/UX source/export assets.
+- [ ] Record the screen demonstration and every member's own explanation, upload when the team is ready, verify access and put the video link in the report.
+- [ ] Add the required working hosted URL after the user resumes deployment, then verify public behavior and access.
+- [ ] Each member rehearses their own explanation and verifies actual contribution evidence, including research/design artifacts. Automated workflow rehearsal does not certify individual assessment understanding.
 - [ ] Submit through the authorized assessment account and retain confirmation. No assignment submission has been performed.
 
-The user offered to upload the project guideline; its contents have not yet been supplied. The repository records 12 November 2026 as submission; the exact official time/platform is unconfirmed.
+The official PDF requires a PDF/Word report, live hosted application/link, accessible video/link and team-leader/designated-member submission via LMS/platform. It leaves the deadline **to be confirmed**. The team's 12 November date is a planning record, not verified by this PDF. The user wants the R&D, database architecture and UI/UX work included; available supporting artifacts are preserved, while UI/UX files and some credits/contact details remain pending.
 
 ## Deferred deployment
 
-Railway provisioning, hosted Admin setup, public HTTPS/session checks, authenticated hosted acceptance and redeploy/database-volume persistence are intentionally deferred. When resumed, use [deployment instructions](deployment-railway.md) and `node scripts/verify-deployment.mjs https://YOUR-PUBLIC-ORIGIN`; local or CI checks do not establish hosted acceptance.
+Railway provisioning, hosted Admin setup, public HTTPS/session checks, authenticated hosted acceptance and redeploy/database-volume persistence are intentionally deferred. This is an outstanding **official deliverable**, not an optional requirement. When resumed, use [deployment instructions](deployment-railway.md) and `node scripts/verify-deployment.mjs https://YOUR-PUBLIC-ORIGIN`; local or CI checks do not establish hosted acceptance.
 
 Keep credentials, personal records, session files, local `.env`, portable tools and generated dependencies out of the submission. Use the [QA guide](qa-checklist.md) to reproduce local checks.

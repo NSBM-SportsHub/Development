@@ -1,0 +1,18 @@
+{
+  "leader_name": "Mukilan Vasantharaj",
+  "leader_contact": "PENDING - team leader's preferred contact details",
+  "hosted_url": "PENDING - deployment deferred by the team leader",
+  "video_url": "PENDING - accessible video with every member's own explanation",
+  "team_confirmed": false,
+  "team_note": "Names and original allocation below need confirmation against actual code, R&D, database and UI/UX contributions.",
+  "members": [
+    { "name": "Mukilan Vasantharaj", "role": "Team leader; authentication/users, integration and release preparation" },
+    { "name": "Jassim", "role": "Original membership/competition backend and schema allocation; R&D PDF names Jassim" },
+    { "name": "Shahadh", "role": "Original shared UI and competition interface allocation; final design credits to confirm" },
+    { "name": "Shahilan", "role": "Original club/training interface and announcement allocation; R&D PDF names Shahilan" },
+    { "name": "Looga", "role": "Original club/training/attendance backend allocation; final authorship/name to confirm" },
+    { "name": "Mursid", "role": "Original resource/booking backend and Admin booking allocation" },
+    { "name": "Nimesha", "role": "Original report/notification and QA allocation; completed contribution to confirm" },
+    { "name": "Sanudi", "role": "Original Student membership/resource/booking interface allocation" }
+  ]
+}

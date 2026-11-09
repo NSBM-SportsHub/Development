@@ -12,7 +12,7 @@ export function releaseContext() {
     const content = readFileSync(path);
     // Git archives use LF while Windows worktrees may use CRLF. Normalize known
     // text source so the evidence also identifies the extracted source archive.
-    const text = /\.(?:php|jsx?|mjs|cjs|json|sql|css|toml|ya?ml|sh|html|htaccess|gitkeep)$/.test(path)
+    const text = /\.(?:php|py|txt|jsx?|mjs|cjs|json|sql|css|toml|ya?ml|sh|html|htaccess|gitkeep)$/.test(path)
       || ['Dockerfile', '.dockerignore'].includes(path);
     hash.update(path + '\0').update(text ? content.toString('utf8').replaceAll('\r\n', '\n') : content).update('\0');
   }

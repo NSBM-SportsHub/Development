@@ -32,6 +32,6 @@ During competition setup, both entrants must meet the membership eligibility rul
 - Explain how resource locks and transactions prevent simultaneous double booking; how training-session locks prevent attendance from moving to another club; and where those cases are tested.
 - Show the shared API client, PHP request router, a module handler and its database query. Explain the JSON `data`/`error` envelope and UTC timestamps.
 - Explain the backup/restore rehearsal and the difference between local acceptance and later hosted acceptance.
-- Each member must explain their own actual contribution. Use Git history and the [owner coverage record](development-status.md); do not attribute completed integration work to someone who did not author it.
+- Each member must explain their own actual contribution, including code, R&D, database design, UI/UX or QA. Use Git history, the supplied artifacts and the [owner coverage record](development-status.md) to record accurate credits.
 
-The official guideline must establish the required presentation length, individual evidence, report format and submission method before this rehearsal is treated as the final assessment script.
+The supplied official guideline requires a PDF/Word report and one screen-recorded video with each member's brief contribution explanation. It sets no video duration and leaves the deadline unconfirmed. Use the [video plan](video-demonstration.md), add the actual live/video links and finalize team details before submission through the designated team account.

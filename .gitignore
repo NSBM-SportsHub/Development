@@ -2,6 +2,8 @@
 node_modules/
 frontend/dist/
 *.tsbuildinfo
+__pycache__/
+*.py[cod]
 
 # Local PHP/database configuration, sessions, and logs
 backend/config/local.php

@@ -13,7 +13,7 @@ The project aims to bring sports clubs, membership applications, training, compe
 3. Read the [backend guide](backend/README.md) for PHP ownership, database coordination, and security expectations.
 4. Confirm the relevant task, schema, and frontend/backend contract with its owners before implementing it.
 
-For the 9 November local handover, use the [submission package guide](docs/submission-guide.md), [demo sequence](docs/demo-guide.md) and [backup/restore rehearsal](docs/backup-restore.md). Deployment is deferred by the user. Handover changes stay on `chore/mukilan-submission-readiness` while existing main-branch deployment integrations are reviewed; the official project guideline is still needed for final assessment acceptance.
+For the 9 November handover, use the [official guideline review](docs/guideline-review.md), [submission package guide](docs/submission-guide.md), [report source](docs/project-report.md), [demo/video plan](docs/video-demonstration.md) and [backup/restore rehearsal](docs/backup-restore.md). Team leader: **Mukilan Vasantharaj**. The full submission includes actual R&D, database and UI/UX work alongside source and test evidence. Deployment is deferred by the user; handover changes stay on `chore/mukilan-submission-readiness` while existing main-branch deployment integrations are reviewed. The guideline requires a working hosted link and accessible video before final submission.
 
 ## Technology plan
 
@@ -26,7 +26,7 @@ For the 9 November local handover, use the [submission package guide](docs/submi
 | Local environment | PHP and MySQL/MariaDB; XAMPP is an option | Exact commands in the local setup guide |
 | Version control | Git and GitHub | Repository initialized; remote configured |
 
-React/Vite are used on this implementation branch. Confirm assignment framework permissions before submission. PHP and MySQL remain the backend/database requirements; Node.js serves frontend development/build work only. Confirm local XAMPP database/runtime compatibility using the setup guide.
+React/Vite implement the JavaScript frontend and generate HTML/CSS/JavaScript. The supplied guideline mandates PHP/MySQL and permits Bootstrap/Material UI; it does not explicitly name or prohibit React. Check any separate lecturer restrictions. Node.js serves frontend development/build work only. Confirm local XAMPP database/runtime compatibility using the setup guide.
 
 ## Users and access
 
@@ -99,7 +99,7 @@ The following table records the original working allocation. At the team lead’
 | **Nimesha** | Participation history/reports and notifications, frontend and backend | QA coordination, bug reporting, regression verification |
 | **Sanudi** | Membership, facilities/equipment, and Student booking interfaces | Responsive forms, status feedback, integration with Jassim/Mursid |
 
-Every member must contribute actual code and their own reviewed GitHub contributions. Documentation and testing support implementation; they do not replace it. Mukilan coordinates integration rather than implementing all modules for other members.
+Maintain evidence of each member's actual contribution, including code, R&D, database architecture, UI/UX and QA. The official guideline asks for contribution history and each member's own video explanation; do not treat the original allocation as proof of finished authorship. Mukilan's integration coverage is recorded separately from other members' work.
 
 ### Shared ownership boundaries
 
@@ -112,6 +112,8 @@ Every member must contribute actual code and their own reviewed GitHub contribut
 ## Delivery schedule
 
 All dates below are in **2026**. Development dates are internal targets; the assignment submission date was supplied by the team.
+
+The supplied official guideline leaves its deadline to be confirmed. The 12 November date below is the team's planning record and must be checked against the actual LMS/lecturer announcement.
 
 | Milestone | Date |
 | --- | --- |
@@ -200,7 +202,7 @@ Nimesha coordinates overall QA, but each developer tests their own contribution.
 
 ## Decisions still to resolve
 
-- Official assignment brief/rubric, React permission, exact submission time/platform, and required evidence.
+- Exact confirmed submission time/platform, any separate lecturer frontend restrictions, final team/contact details and the required live/video links; the supplied guideline is mapped in docs/guideline-review.md.
 - Coach workflows, single versus multiple roles, registration verification, and initial Admin/staff provisioning.
 - Membership eligibility, review permissions, duplicate/reapplication behavior, and self-review restrictions.
 - Personal versus club bookings, pending-request availability, cancellation rules, and equipment issue/return tracking.
