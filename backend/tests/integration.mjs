@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { spawn, spawnSync } from 'node:child_process';
 import { randomBytes } from 'node:crypto';
-import { mkdirSync } from 'node:fs';
+import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:net';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -11,10 +11,12 @@ import { testSportsTraining } from './sports-training.mjs';
 import { testResourcesAndBookings } from './resources-bookings.mjs';
 import { testNotificationsReports } from './notifications-reports.mjs';
 import { testBookingConcurrency } from './booking-concurrency.mjs';
+import { testApiOperations } from './api-operations.mjs';
+import { releaseContext } from '../../scripts/release-context.mjs';
 
-// Real PHP + MySQL/MariaDB HTTP tests. Creates and drops ONLY a random test DB.
+// Real PHP + MySQL/MariaDB HTTP tests. Retains its new random test DB for review.
 const root = fileURLToPath(new URL('../../', import.meta.url));
-const php = process.env.SPORTSHUB_PHP || 'php';
+const php = process.env.SPORTSHUB_PHP || (existsSync(resolve(root, '.tools/php/php.exe')) ? resolve(root, '.tools/php/php.exe') : 'php');
 const suffix = randomBytes(8).toString('hex');
 const database = `sportshub_test_${suffix}`;
 const sessionPath = resolve(root, '.artifacts', `sessions-${suffix}`);
@@ -34,6 +36,17 @@ let backend;
 let concurrentBackend;
 let serverLog = '';
 let count = 0;
+let workingBefore;
+const scenarios = [];
+const evidencePath = resolve(root, '.artifacts', `api-operations-${suffix}`);
+mkdirSync(evidencePath, { recursive: true });
+function inspectWorkingDatabase() {
+  const result = spawnSync(process.execPath, [resolve(root, 'backend/tests/api-verification.mjs'), '--inspect'], {
+    cwd: root, env: { ...process.env, SPORTSHUB_PHP: php }, encoding: 'utf8', windowsHide: true, timeout: 30000,
+  });
+  assert.equal(result.status, 0, 'Read-only local development database inspection failed.');
+  return JSON.parse(result.stdout);
+}
 
 function cli(file, args = [], extra = {}) {
   const result = spawnSync(php, [resolve(root, file), ...args], {
@@ -44,7 +57,8 @@ function cli(file, args = [], extra = {}) {
 }
 
 async function check(label, operation) {
-  await operation();
+  try { await operation(); scenarios.push({ label, result: 'PASS' }); }
+  catch (error) { scenarios.push({ label, result: 'FAIL', details: error.message }); throw error; }
   count += 1;
   console.log(`PASS ${label}`);
 }
@@ -112,6 +126,7 @@ async function freePort() {
 }
 
 try {
+  workingBefore = inspectWorkingDatabase();
   console.log(`Using isolated database ${database}`);
   cli('backend/bin/setup.php');
   cli('backend/bin/create-admin.php', ['--name=Integration Admin', `--email=${adminEmail}`], {
@@ -122,7 +137,7 @@ try {
   backend = spawn(php, ['-S', `127.0.0.1:${port}`, '-t', 'backend/public', 'backend/router.php'], {
     cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true,
   });
-  backend.stderr.on('data', (data) => { serverLog = (serverLog + data).slice(-12_000); });
+  backend.stderr.on('data', (data) => { serverLog += data; });
   backend.on('error', (error) => { serverLog += String(error); });
   let ready = false;
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -136,7 +151,7 @@ try {
   concurrentBackend = spawn(php, ['-S', `127.0.0.1:${concurrentPort}`, '-t', 'backend/public', 'backend/router.php'], {
     cwd: root, env, stdio: ['ignore', 'pipe', 'pipe'], windowsHide: true,
   });
-  concurrentBackend.stderr.on('data', (data) => { serverLog = (serverLog + data).slice(-12_000); });
+  concurrentBackend.stderr.on('data', (data) => { serverLog += data; });
   concurrentBackend.on('error', (error) => { serverLog += String(error); });
   let concurrentReady = false;
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -258,6 +273,7 @@ try {
   await testSportsTraining({ check, Client, admin, ...membershipContext });
   await testNotificationsReports({ check, Client, admin, password, ...membershipContext });
   await testBookingConcurrency({ check, Client, admin, php, root, env, ...membershipContext });
+  await testApiOperations({ check, Client, admin, password, suffix, php, root, env, ...membershipContext });
 
   await check('Announcement reads require authentication and Students cannot mutate announcements', async () => {
     const anonymous = new Client();
@@ -423,7 +439,7 @@ try {
   console.log(`\n${count} integration scenarios passed against PHP and MySQL/MariaDB.`);
 } catch (error) {
   console.error(error);
-  console.error(serverLog);
+  console.error(serverLog.slice(-4000));
   process.exitCode = 1;
 } finally {
   for (const server of [backend, concurrentBackend]) {
@@ -432,5 +448,21 @@ try {
       await new Promise((accept) => server.once('exit', accept));
     }
   }
-  try { cli('backend/tests/cleanup-database.php'); } catch (error) { console.error(error.message); process.exitCode = 1; }
+  let workingDatabaseUnchanged = false;
+  if (workingBefore) {
+    try {
+      workingDatabaseUnchanged = JSON.stringify(inspectWorkingDatabase()) === JSON.stringify(workingBefore);
+      assert.equal(workingDatabaseUnchanged, true, 'Working database records or schema changed during testing.');
+    } catch (error) { console.error(error.message); process.exitCode = 1; }
+  }
+  const databaseDiagnostics = serverLog.split(/\r?\n/).filter((line) => /SQLSTATE|PDOException/i.test(line));
+  const backendErrors = serverLog.split(/\r?\n/).filter((line) =>
+    /SQLSTATE|PHP (?:Fatal|Warning|Parse)|SportsHub (?:database|application) failure|PDOException/i.test(line) &&
+    !/PDOException: SQLSTATE\[23000\].*1062 Duplicate entry/.test(line));
+  writeFileSync(resolve(evidencePath, 'php-server.log'), serverLog);
+  writeFileSync(resolve(evidencePath, 'integration.json'), JSON.stringify({ ...releaseContext(),
+    executed_at: new Date().toISOString(), database, working_database: workingBefore, working_database_unchanged: workingDatabaseUnchanged,
+    scenarios, backend_errors: backendErrors, handled_database_diagnostics: databaseDiagnostics }, null, 2) + '\n');
+  console.log(`Fixture database retained: ${database}. Working database unchanged: ${workingDatabaseUnchanged}`);
+  if (backendErrors.length) { console.error(`${backendErrors.length} backend errors; see ${evidencePath}`); process.exitCode = 1; }
 }

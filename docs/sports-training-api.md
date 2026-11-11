@@ -10,9 +10,11 @@ All endpoints use the common `/api` router, authenticated PHP session and `{data
 | `GET /clubs`, `GET /clubs/{id}` | Signed-in, non-archived club reads |
 | `POST /clubs` | Admin creation: `name`, numeric `sport_id`, optional `description`, `status` |
 | `PATCH/PUT /clubs/{id}` | Admin updates to the same club fields |
-| `PATCH /clubs/{id}/archive` | Admin archival; retains memberships, schedules and participation history |
+| `PATCH /clubs/{id}/archive`, `DELETE /clubs/{id}` | Admin archival (200); retains memberships, schedules and participation history; missing/already archived club returns 404 |
 
 Club statuses are `active`, `recruiting`, `full`, `inactive`. Only active/recruiting clubs accept membership applications. The list also supplies `member_count`, derived from approved memberships. Client display names come from canonical sports and active coach assignments. The form does not submit preview-only coach strings, images or fictional member totals. Existing image/schedule columns remain readable when present.
+
+`GET /clubs` accepts optional `search` (up to 100 characters, matches name/description), `sport_id` and `status` filters. Filters combine; blank filters are ignored. Search treats SQL wildcard characters as literal text. Invalid or unsupported filters return 422.
 
 ## Training
 

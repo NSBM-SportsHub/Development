@@ -18,6 +18,7 @@ jobs:
     env:
       SPORTSHUB_DB_HOST: 127.0.0.1
       SPORTSHUB_DB_PORT: 3306
+      SPORTSHUB_DB_NAME: sportshub_ci
       SPORTSHUB_DB_USER: root
       SPORTSHUB_DB_PASSWORD: sportshub-ci-only
       SPORTSHUB_ENV: development
@@ -59,6 +60,7 @@ jobs:
           find backend deployment -name '*.php' -print0 | xargs -0 -n1 php -l
           bash -n deployment/start-backend.sh
           node backend/tests/integration.mjs
+          SPORTSHUB_API_PORT=8001 node backend/tests/api-verification.mjs
       - name: Backup and restore rehearsal
         run: node backend/tests/backup-restore.mjs
       - name: Browser acceptance and screenshots
@@ -97,5 +99,11 @@ jobs:
             .artifacts/browser-evidence.json
             .artifacts/backup-restore-evidence.json
             .artifacts/container.log
+            .artifacts/api-operations-*/*.json
+            .artifacts/api-operations-*/*.md
+            .artifacts/api-operations-*/*.log
+            .artifacts/api-verification/*/results.json
+            .artifacts/api-verification/*/results.md
+            .artifacts/api-verification/*/php-server.log
           if-no-files-found: ignore
           retention-days: 14
