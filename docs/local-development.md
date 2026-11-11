@@ -96,7 +96,9 @@ php backend/tests/configuration.php
 node backend/tests/integration.mjs
 ```
 
-Set `SPORTSHUB_PHP` to a PHP executable path if necessary. The test process creates a random `sportshub_test_<16 hex characters>` database, provisions a temporary Admin with a random password, launches its own PHP server on a free loopback port, exercises real HTTP/database operations, then drops only that test database. The configured database account needs CREATE/DROP DATABASE permissions for this suite. The application's configured database is not used for test records. Session artifacts under `.artifacts/` are ignored by Git.
+Set `SPORTSHUB_PHP` to a PHP executable path if necessary; the runner also detects this checkout's portable PHP. The test process first inspects the configured loopback development database read-only, then creates a random `sportshub_test_<16 hex characters>` database, provisions a temporary Admin with a random password and launches PHP workers on free loopback ports. It exercises all 83 checklist operations plus regression/concurrency scenarios and verifies that the working database's rows and schema remain unchanged. The configured account needs CREATE DATABASE/table permissions. The test database is retained for review; no database is dropped. HTTP credentials are temporary and are not printed or stored in the evidence. Results, server logs and session artifacts under `.artifacts/` are ignored by Git.
+
+See [complete API verification](api-verification-retest.md) for the latest per-operation results and [Shahilan's reproduction guide](shahilan-api-retesting.md) for configuration inspection, backup verification and the original 37-case replay.
 
 With this workstation's portable PHP, run from the repository root:
 

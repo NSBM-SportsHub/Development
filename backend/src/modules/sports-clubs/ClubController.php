@@ -88,6 +88,11 @@ final class ClubController
 
     public static function list(): void
     {
+        Validation::allowed($_GET, ['search', 'sport_id', 'status']);
+        $search = Validation::text($_GET, 'search', 100, false);
+        $sportId = Validation::queryId($_GET, 'sport_id');
+        $status = Validation::queryChoice($_GET, 'status', self::STATUSES);
+
         try {
             $pdo = Database::get();
             if (!self::tableExists($pdo, 'clubs')) {
@@ -95,8 +100,23 @@ final class ClubController
                 return;
             }
 
-            $query = "SELECT c.*, (SELECT COUNT(*) FROM memberships m WHERE m.club_id = c.id AND m.status = 'approved') AS member_count FROM clubs c WHERE c.is_archived = 0 ORDER BY c.name ASC";
-            $stmt = $pdo->query($query);
+            $query = "SELECT c.*, (SELECT COUNT(*) FROM memberships m WHERE m.club_id = c.id AND m.status = 'approved') AS member_count FROM clubs c WHERE c.is_archived = 0";
+            $parameters = [];
+            if ($search !== null) {
+                $pattern = '%' . str_replace(['!', '%', '_'], ['!!', '!%', '!_'], $search) . '%';
+                $query .= " AND (c.name LIKE ? ESCAPE '!' OR c.description LIKE ? ESCAPE '!')";
+                array_push($parameters, $pattern, $pattern);
+            }
+            if ($sportId !== null) {
+                $query .= ' AND c.sport_id = ?';
+                $parameters[] = $sportId;
+            }
+            if ($status !== null) {
+                $query .= ' AND c.status = ?';
+                $parameters[] = $status;
+            }
+            $stmt = $pdo->prepare($query . ' ORDER BY c.name ASC');
+            $stmt->execute($parameters);
             $clubs = $stmt->fetchAll();
 
             Response::json(200, ['success' => true, 'data' => $clubs]);
@@ -264,7 +284,7 @@ final class ClubController
 
     public static function archive(int $clubId): void
     {
-        if ($_SERVER['REQUEST_METHOD'] !== 'PATCH' && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+        if (!in_array($_SERVER['REQUEST_METHOD'], ['PATCH', 'DELETE'], true)) {
             Response::json(405, ['success' => false, 'message' => 'Method not allowed.']);
             return;
         }
@@ -299,9 +319,7 @@ final class ClubController
             return;
         }
 
-        Response::json(409, [
-            'success' => false,
-            'message' => 'Club deletion is disabled until historical-record retention rules are confirmed.',
-        ]);
+        // DELETE is the same historical-record-preserving archive as PATCH /archive.
+        self::archive($clubId);
     }
 }

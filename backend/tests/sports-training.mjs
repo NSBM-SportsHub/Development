@@ -18,7 +18,7 @@ export async function testSportsTraining({ check, Client, admin, sports, newStud
     assert.ok((await student.request('/clubs')).data.some((item) => item.id === club.id));
     assert.equal((await admin.request('/clubs', { method: 'POST', body })).status, 409);
     assert.equal((await admin.request(`/clubs/${club.id}`, { method: 'PATCH', body: { description: 'Updated club' } })).status, 200);
-    assert.equal((await admin.request(`/clubs/${club.id}`, { method: 'DELETE' })).status, 409);
+    assert.equal((await student.request(`/clubs/${club.id}`, { method: 'DELETE' })).status, 403);
     const sport = await student.request(`/sports/${sports.Badminton}`);
     assert.equal(sport.status, 200);
     assert.equal(sport.data.name, 'Badminton');
@@ -78,6 +78,19 @@ export async function testSportsTraining({ check, Client, admin, sports, newStud
     assert.equal((await admin.request(`/clubs/${club.id}/archive`, { method: 'PATCH' })).status, 200);
     assert.equal((await student.request(`/clubs/${club.id}`)).status, 404);
     assert.equal((await admin.request(`/clubs/${club.id}`, { method: 'PATCH', body: { name: 'Reopened' } })).status, 404);
+    assert.equal((await student.request(`/attendance/${attendance.id}`)).status, 200);
+  });
+
+  await check('DELETE archives a club while retaining membership and attendance history', async () => {
+    const created = await admin.request('/clubs', { method: 'POST', body: { name: 'Delete archive fixture', sport_id: sports.Badminton } });
+    assert.equal(created.status, 201);
+    const id = created.data.id;
+    assert.equal((await admin.request(`/clubs/${id}`, { method: 'DELETE', token: false })).status, 403);
+    assert.equal((await admin.request(`/clubs/${id}`, { method: 'DELETE' })).status, 200);
+    assert.equal((await student.request(`/clubs/${id}`)).status, 404);
+    assert.ok(!(await admin.request('/clubs')).data.some((item) => item.id === id));
+    assert.equal((await admin.request(`/clubs/${id}`, { method: 'DELETE' })).status, 404);
+    assert.equal((await admin.request('/clubs/999999', { method: 'DELETE' })).status, 404);
     assert.equal((await student.request(`/attendance/${attendance.id}`)).status, 200);
   });
 }

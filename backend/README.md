@@ -6,6 +6,8 @@ See [local development](../docs/local-development.md) for configuration, migrati
 
 Run `php tests/configuration.php` from `backend/` for isolated configuration checks. The HTTP/database integration runner remains `node backend/tests/integration.mjs` from the repository root.
 
+The integration runner now verifies all 83 checklist operations, including successful writes and separate MySQL persistence checks, and retains its synthetic test database for review. Existing application records and schema are fingerprinted before/after the run. `node backend/tests/api-verification.mjs --inspect` performs read-only local configuration/schema inspection; without `--inspect` it replays the original 37 report cases in another new fixture database. See the [verification report](../docs/api-verification-retest.md) and [reproduction guide](../docs/shahilan-api-retesting.md).
+
 ## Quick start
 
 Keep MySQL/MariaDB running in its own terminal. Open PowerShell **in `backend/`**. On a new clone without `.env`, create your private persistent configuration and generate an application key:
