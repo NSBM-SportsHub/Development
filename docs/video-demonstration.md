@@ -17,7 +17,7 @@ Use the [demo guide](demo-guide.md) with synthetic accounts and future-dated act
 | Communication and retention | Published announcement/inbox; cancellation/archival retains history; logout/protected-route behavior | 45-60 seconds |
 | Database evidence | Current ERD/migrations; show a synthetic stored record before/after a UI write and refresh; explain actual design changes | 45-60 seconds |
 | Team contributions | Each member presents their own real code, R&D, database or UI/UX artifact and its effect on the project | About 20-40 seconds each |
-| Closing | Source link, completed deliverables and current hosting status; replace the status with the real hosted URL after deployment | 15-20 seconds |
+| Closing | Source link, completed deliverables and application link supplied by the responsible team member | 15-20 seconds |
 
 For database evidence, use a synthetic record in a local database viewer or a safe read-only query. Avoid displaying application keys, password hashes or session values. Show the original architecture image as the early proposal and the current 17-table ERD as the implemented schema.
 
@@ -38,4 +38,4 @@ The R&D header identifies Jassim and Shahilan. Use the team's confirmed credits 
 - Watch the complete file; confirm readable screens, audible speech, every required topic and all members.
 - Have the team upload it to the guideline's permitted accessible platform, such as an unlisted YouTube video, when ready. This document does not authorize an automatic upload.
 - Test the link from a signed-out/private session and put it into the report metadata, then rebuild the PDF.
-- Confirm the live application link separately. A local demonstration or container test does not complete the required public hosting deliverable.
+- Confirm the application link separately with the responsible team member before final submission.

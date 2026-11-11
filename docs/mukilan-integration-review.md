@@ -24,13 +24,13 @@ The HTTP runner created a random isolated test database, ran the real PHP API, a
 
 The API-client tests mock HTTP responses. They check match-result `PUT` with the token renewed by login, empty cancellation responses, server field errors and token renewal after an expired session. They complement the real backend suite; they do not certify browser forms or new business screens.
 
-Browser acceptance checks were not rerun in this pass. Production hosting/HTTPS and simultaneous booking concurrency were not verified. The authentication/users baseline is covered by passing automated checks; full-system acceptance still depends on the remaining modules.
+Browser acceptance checks and simultaneous booking concurrency were not verified in this historical pass. The authentication/users baseline is covered by passing automated checks; full-system acceptance depends on the remaining modules.
 
 ## Next integration dependencies
 
 | Owner(s) | Next reviewable delivery |
 | --- | --- |
-| Mukilan | Browser-check account workflows, review incoming module PRs, wire agreed routes and record final system acceptance/deployment evidence |
+| Mukilan | Browser-check account workflows, review incoming module PRs, wire agreed routes and record final system acceptance evidence |
 | Looga; coordinate with Shahilan | Adapt/integrate sports, clubs, training and attendance APIs with the shared router/config/session/CSRF and reviewed migrations. Confirm ownership of the cached Natheeshan branch |
 | Shahilan | Replace club/training browser storage with API calls and implement the announcement backend and integration |
 | Sanudi | Membership, resource and Student booking screens using the existing APIs |

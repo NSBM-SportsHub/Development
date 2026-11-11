@@ -51,7 +51,7 @@ Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP.
 - bin/: database setup and initial Admin CLI.
 - .env.example: tracked safe configuration template; .env: ignored private persistent settings.
 - config/: defaults and optional ignored private local.php.
-- public/: only PHP web document root; API index and Apache rewrite rules.
+- public/: PHP API entry point and local web-server rewrite rules.
 - router.php: development PHP-server router.
 - src/shared/: HTTP, config, PDO, validation, session/CSRF, login throttling.
 - src/modules/authentication-users/: controllers and user repository.
@@ -59,7 +59,7 @@ Use `SPORTSHUB_ENV=development` and `SPORTSHUB_SESSION_SECURE=0` for local HTTP.
 - src/shared/ResourceBookingHttp.php: module validation and shared-response adapter, distinct from Http.php on every operating system.
 - tests/: real HTTP/database integration runner.
 
-Use `--reference-seed` to load reference sports without demo clubs. Use `--existing-database` to apply migrations to an already-provisioned hosted database without issuing CREATE DATABASE. Optional `SPORTSHUB_DB_SSL_CA` enables verified MySQL TLS using a readable CA file. See [Railway deployment](../docs/deployment-railway.md).
+Use `--reference-seed` to load reference sports without demo clubs. Use `--existing-database` to apply migrations to an already-provisioned database without issuing CREATE DATABASE. Optional `SPORTSHUB_DB_SSL_CA` enables verified MySQL TLS using a readable CA file.
 
 Setup applies every database/migrations/NNN_name.sql file in numeric order and refuses duplicate numbers: 001 (users, auth_rate_limits), 002 (facilities, equipment, bookings), 003 (sports, clubs), 004 (memberships, club_coaches), 005 (tournaments and entries), 006 (matches), 007 (training sessions/attendance), 008 (announcements) and 009 (notifications). `--seed` also loads reference sports and demo clubs. See [database design](../docs/database-erd.md) and [backend conventions](../docs/backend-conventions.md). It checks existing column types/unique indexes without silently altering tables; repeated runs preserve records. The original resource-only 001_resources_and_bookings.sql was renamed. If you imported it already, retain its compatible tables and records. Jassim reviews schema changes; future changes use new ordered migrations.
 
@@ -79,12 +79,12 @@ Account roles are student/admin. Active club coach assignments grant scoped memb
 
 Facilities/equipment writes require Admin access; Students read active resources and create/edit/cancel their own pending bookings. Admins review and cancel bookings. Availability checks use transactions and resource locks. All modules reuse Session, Database, Http and SPORTSHUB_* configuration. Resource archival and booking cancellation return 204 with no body.
 
-## Ownership and deployment
+## Ownership
 
 Mukilan owns auth/users, public routing, and session/CSRF integration. Jassim coordinates schema/PDO/response review and implements memberships/competitions. Looga implements clubs/training; Mursid resources/bookings; Shahilan announcements; Nimesha notifications/reports. Notifications and reports are implemented on `feat/mukilan-notifications-reports` by Mukilan, covering the originally allocated scope; see the [API contract](../docs/notifications-reports-api.md). Each owner reuses shared helpers and implements their module's validation, permissions, and tests.
 
 Keep config, logs, and sessions outside public/ and Git. Prepared PDO queries are required. Never return hashes, credentials, stack traces, or raw database errors. Use a restricted runtime database account; setup and integration tests need DDL permissions.
 
-The built-in server is for local development. Apache/XAMPP can use the included .htaccess with mod_rewrite and public/ as the document root. Production serves the React build and PHP /api under one HTTPS origin; no blanket CORS policy is configured.
+Use the built-in PHP server for local development. XAMPP can use the included `.htaccess` with `mod_rewrite` and `backend/public/` as the document root. Keep the shared session/CSRF behavior and same-origin `/api` requests when integrating the application.
 
 Sports/clubs and training/attendance now use the shared authenticated router and `{ data, error }` envelope. Club writes require Admin access; training/attendance writes require Admin access or an active coach assignment for the club. Attendance reads are scoped to the participant, club coaches and Admins. Announcements require sign-in to read and Admin access to create/edit/pin/delete.

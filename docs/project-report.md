@@ -15,7 +15,7 @@ Faculty of Computing, NSBM Green University
 
 **Submission source:** {{source_url}}
 
-**Working application:** {{hosted_url}}
+**Working application:** {{application_url}}
 
 **Demonstration video:** {{video_url}}
 
@@ -23,7 +23,7 @@ Faculty of Computing, NSBM Green University
 
 **Completion items:** {{pending_items}}
 
-This draft accompanies the application source, test evidence and original R&D/database design artifacts. It must be reviewed by the team and completed with the required contact details, confirmed contributions, working live link and accessible video before assessment submission. Deployment remains deferred at the team leader's request.
+This draft accompanies the application source, test evidence and original R&D/database design artifacts. It must be reviewed by the team and completed with the required contact details, confirmed contributions, working live link and accessible video before assessment submission.
 
 <!-- pagebreak -->
 
@@ -102,7 +102,7 @@ The original database architecture image is included as early design evidence. T
 - Resource transactions and locks prevent simultaneous requests/edits/approvals from double-booking facilities or exceeding stock.
 - Session locks and attendance-history rules prevent a concurrent club change from transferring existing attendance visibility.
 - Archive/cancel operations retain relationships needed for reports and history. Reports distinguish roster appearances from actual training attendance.
-- Secrets, private configuration, sessions and source remain outside the public document root; cookies and HTTPS still need final hosted acceptance.
+- Secrets, private configuration, sessions and source remain outside the public document root; cookie and access controls are verified by the application tests.
 
 ## 7. Verification and results
 
@@ -117,9 +117,9 @@ The local suites use synthetic accounts and isolated temporary databases, which 
 | Browser workflow acceptance | 11 groups passed, no page runtime errors |
 | Backup/restore rehearsal | 17 tables and exact row fingerprints restored; schema setup succeeds afterward |
 | Clean source extraction | Dependency install/build/test, schema/reference setup and initial Admin provisioning passed |
-| MySQL 8 / actual Docker / Apache CI | Passed on the submission-readiness branch |
+| MySQL 8 application CI | PHP, database and browser checks run independently of the final platform |
 
-Container verification establishes that the image builds and serves the routes/API/session/private-file controls in a test environment. It does not establish a public live application, final HTTPS behavior, hosted database persistence or lecturer assessment acceptance.
+Local verification establishes the tested API, database, browser and session behavior. It does not establish lecturer assessment acceptance.
 
 ## 8. Screenshots of key features
 
@@ -153,9 +153,9 @@ The team's separate research repository is [NSBM SportsHub Research-and-developm
 
 The R&D document supplies design motivation and proposed scope. The architecture image illustrates the earlier schema, while the canonical ERD/migrations record the final database. The requested UI/UX design assets and creator credits are pending and are not replaced by an invented design artifact. Application screenshots prove the implemented interface; they are not claimed as the team's original design source files.
 
-## 10. Deployment, video and final submission status
+## 10. Application link, video and final submission status
 
-The official guideline requires a working hosted application and a live link in the report. Deployment is intentionally deferred by the team leader, so that deliverable remains open. Existing main-branch deployment integrations are why handover work is kept on the submission-readiness branch. No hosting is claimed complete on the basis of container CI.
+The official guideline requires a working application link in the report. The responsible team member will provide that link and its verification separately; this source package prescribes no platform or publishing configuration.
 
 The required screen recording must demonstrate login, both panels, CRUD, database integration and the main workflows, followed by a brief real explanation from every member. The demo guide and recording checklist support preparation; an accessible video link is still required after recording/upload. No voice or contribution explanation is invented on behalf of a member.
 
@@ -163,7 +163,7 @@ Only the team leader or a designated member should submit the final report throu
 
 ## 11. Conclusion and completion checklist
 
-The implemented application covers the official Topic 3 functional scope and has local/database/browser/container evidence. The team submission also preserves research and design work. Final readiness depends on accurate team/contact details, the supplied UI/UX artifacts, working hosting and video links, genuine individual explanations and the team leader's final review/submission.
+The implemented application covers the official Topic 3 functional scope and has local/database/browser evidence. The team submission also preserves research and design work. Final readiness depends on accurate team/contact details, the supplied UI/UX artifacts, working application and video links, genuine individual explanations and the team leader's final review/submission.
 
 **Items still open:** {{pending_items}}
 

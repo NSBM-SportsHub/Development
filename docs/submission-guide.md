@@ -1,8 +1,8 @@
 # Local handover and submission package
 
-Prepared 9 November 2026. The core application is implemented and the previous main merge is recorded in [development status](development-status.md). The [supplied official guideline](guideline-review.md) has now been reviewed. The user wants a combined submission containing the application, R&D, database architecture and UI/UX work. Deployment is deferred; required live/video links, some contact/credit information and UI/UX files remain open. The PDF report is a clearly marked draft, not a submission confirmation.
+Updated 11 November 2026. The application source, R&D, database architecture and UI/UX work form the combined submission. Required application/video links, contact/credit information and any outstanding UI/UX files still need confirmation. The PDF report is a draft, not a submission confirmation.
 
-Handover changes are prepared on `chore/mukilan-submission-readiness`. Existing GitHub deployment integrations are attached to `main`; this branch allows local release preparation and ephemeral CI tests without pushing main or requesting a cloud application deployment. Before a later merge, review those integrations if deployment must remain deferred.
+This guide covers local source/report preparation and assessment handover. The responsible team member supplies the working application link separately.
 
 ## What is included
 
@@ -35,9 +35,9 @@ node scripts/package-submission.mjs
 
 The output is `.artifacts/submission-<commit>/`, containing `SportsHub-source.zip`, `project-report/`, `supporting-documents/`, `manifest.json`, `SHA256SUMS.txt` and `evidence/`. The source ZIP opens into `SportsHub/`. The packager requires a clean working tree, refuses tracked private/generated paths, checks browser/restore/report fingerprints, verifies the report template and validates supporting-file hashes before copying staged inputs. The source ZIP excludes ignored local files. Existing release folders are preserved rather than overwritten.
 
-Fresh release logs use `.artifacts/release-{build,frontend,configuration,integration,browser,backup,layout}.log`; these are generated during release verification. The browser report lists each successful workflow group and screenshot. Evidence files are outside the source ZIP so reviewers can inspect source and runtime evidence separately. If the submission system accepts only one file, compress the complete `submission-<commit>` folder after checking the official guideline.
+Fresh release logs use `.artifacts/release-{build,frontend,configuration,integration,browser,backup}.log`; these are generated during release verification. The browser report lists each successful workflow group and screenshot. Evidence files are outside the source ZIP so reviewers can inspect source and runtime evidence separately. If the submission system accepts only one file, compress the complete `submission-<commit>` folder after checking the official guideline.
 
-Validation on 9 November includes a successful clean extraction/setup/build rehearsal and [successful Docker/Apache CI](https://github.com/NSBM-SportsHub/Development/actions/runs/42559861109). The executable-source fingerprint normalizes text line endings across Windows and the Git archive. The guideline audit confirms the functional mapping; final required links, team details and human review remain pending.
+Local validation includes a clean extraction/setup/build rehearsal and application CI. Source fingerprints normalize text line endings across Windows and Git archives. Final links, team details and human review remain pending.
 
 ## Acceptance mapping
 
@@ -49,7 +49,7 @@ Validation on 9 November includes a successful clean extraction/setup/build rehe
 | Training, attendance and participation | Training/report module folders, [notification/report contract](notifications-reports-api.md), attendance/history/ownership/concurrency and report-total checks |
 | Competitions and results | Tournament/match module folders, [competition contract](competitions-api.md), registration/eligibility/fixture/result/standings tests |
 | Announcements and inbox | Announcement/notification module folders, persisted announcement/read-state browser evidence |
-| Persistence and delivery | [ERD](database-erd.md), ordered migrations, isolated backup/restore rehearsal, Docker build/Apache CI and local setup instructions |
+| Persistence and delivery | [ERD](database-erd.md), ordered migrations, isolated backup/restore rehearsal, application CI and local setup instructions |
 
 The [guideline audit](guideline-review.md) maps the actual requirements and marking weights. The guideline requires report narrative/team/screenshots plus source/live/video links and genuine member explanations. It does not specify CSV exports, a video duration or a final filename, and leaves the deadline unconfirmed. Keep the [original design-evolution notes](design-evolution.md) with the earlier diagram and current ERD so differences are explained.
 
@@ -61,4 +61,4 @@ The [guideline audit](guideline-review.md) maps the actual requirements and mark
 4. Finalize leader contact/member credits and the actual UI/UX artifacts. Add accessible live/video links, rebuild/review the PDF, and follow the actual LMS filename/deadline instructions.
 5. Submit through the authorized account and retain the confirmation. No assessment submission has been performed by preparing this package.
 
-When hosting is resumed, follow [Railway deployment](deployment-railway.md) and run `node scripts/verify-deployment.mjs https://YOUR-PUBLIC-ORIGIN` for read-only health/deep-link/session/private-file checks. Repeat the authenticated role workflows and check persistence over a redeploy before recording hosted acceptance.
+The responsible team member supplies the working application link and its acceptance evidence independently. Add the supplied link to the report metadata before the final review.

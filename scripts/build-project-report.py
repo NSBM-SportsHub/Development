@@ -2,7 +2,7 @@
 
 Install: python -m pip install --target .tools/report-qa -r scripts/report-requirements.txt
 Private metadata: copy docs/report-metadata.example.json to .artifacts/report-metadata.json.
-No publishing, deployment, video upload or LMS submission is performed.
+Only local report files are written; no video upload or LMS submission is performed.
 """
 from __future__ import annotations
 
@@ -50,6 +50,8 @@ def main() -> None:
     args = parser.parse_args()
     metadata_file = args.metadata if args.metadata.exists() else ROOT / 'docs/report-metadata.example.json'
     metadata = json.loads(metadata_file.read_text(encoding='utf-8-sig'))
+    # Preserve the application link in older private metadata files.
+    metadata.setdefault('application_url', metadata.get('hosted_url', 'PENDING - application link from the responsible team member'))
     artifacts = ROOT / '.artifacts'
     inputs = artifacts / 'report-inputs'
     inputs.mkdir(parents=True, exist_ok=True)
@@ -78,7 +80,7 @@ def main() -> None:
 
     context = json.loads(subprocess.check_output(['node', '--input-type=module', '-e', "import {releaseContext} from './scripts/release-context.mjs'; console.log(JSON.stringify(releaseContext()));"], cwd=ROOT, text=True))
     pending = []
-    for key, label in [('leader_contact', 'leader contact details'), ('hosted_url', 'working hosted URL (deployment deferred)'), ('video_url', 'accessible video and genuine individual explanations')]:
+    for key, label in [('leader_contact', 'leader contact details'), ('application_url', 'application link from the responsible team member'), ('video_url', 'accessible video and genuine individual explanations')]:
         if not metadata.get(key) or str(metadata[key]).upper().startswith('PENDING'):
             pending.append(label)
     if not metadata.get('team_confirmed'):
@@ -170,9 +172,11 @@ def main() -> None:
             if kind == 'evidence':
                 path = artifacts / filename
             else:
-                original = next((item for item in registry if item['original_name'] == 'NSBM Assignment.drawio.png'), None)
+                original = next((item for item in registry
+                                 if item['package_path'].startswith('supporting-documents/Database-Architecture/')
+                                 and Path(item['original_name']).suffix.lower() in {'.png', '.jpg', '.jpeg'}), None)
                 if not original:
-                    raise SystemExit('Original architecture image was not found in Documents/Architecture Design.')
+                    raise SystemExit('Database architecture image was not found in Documents/Architecture Design.')
                 path = ROOT / original['input_path']
             if not path.is_file():
                 raise SystemExit('Missing report image: ' + filename)
@@ -213,7 +217,7 @@ def main() -> None:
     document.build(story, onFirstPage=footer, onLaterPages=footer)
     (artifacts / 'project-report-filled.md').write_text(markdown.replace('{{architecture_diagram}}', '[Browser/React -> PHP API -> MySQL architecture diagram rendered in PDF]'), encoding='utf-8')
     (artifacts / 'report-supporting-files.json').write_text(json.dumps(registry, indent=2) + '\n', encoding='utf-8')
-    report = {**context, 'status': 'draft', 'leader_name': metadata['leader_name'], 'report_file': output.name, 'sha256': sha(output), 'template_sha256': sha(ROOT / 'docs/project-report.md'), 'pending_items': pending, 'figures': figures, 'supporting_documents': [{key: value for key, value in item.items() if key != 'input_path'} for item in registry], 'guideline_review': 'docs/guideline-review.md', 'deployment': 'deferred by user', 'submission': 'not submitted'}
+    report = {**context, 'status': 'draft', 'leader_name': metadata['leader_name'], 'report_file': output.name, 'sha256': sha(output), 'template_sha256': sha(ROOT / 'docs/project-report.md'), 'pending_items': pending, 'figures': figures, 'supporting_documents': [{key: value for key, value in item.items() if key != 'input_path'} for item in registry], 'guideline_review': 'docs/guideline-review.md', 'submission': 'not submitted'}
     (artifacts / 'project-report-evidence.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     print('Created report draft:', output)
     print('Figures:', len(figures), '| Preserved supporting artifacts:', len(registry))

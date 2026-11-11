@@ -1,6 +1,6 @@
 # Local development: PHP APIs and React frontend
 
-All core React module screens use the shared PHP/MySQL APIs, including clubs, training/attendance, Admin booking review, Student booking editing, coach assignments, notifications and reports. All PHP modules use one private configuration, PDO connection, session and CSRF implementation. See [final integration evidence](final-integration-review.md) and [Railway deployment](deployment-railway.md).
+All core React module screens use the shared PHP/MySQL APIs, including clubs, training/attendance, Admin booking review, Student booking editing, coach assignments, notifications and reports. All PHP modules use one private configuration, PDO connection, session and CSRF implementation. See [final integration evidence](final-integration-review.md).
 
 ## Requirements
 

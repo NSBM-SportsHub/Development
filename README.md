@@ -4,7 +4,7 @@ NSBM SportsHub is a university Sports Club Management System being developed for
 
 The project aims to bring sports clubs, membership applications, training, competitions, resources, and participation records into one platform for students and university sports administrators.
 
-> **Current status: all core module screens use the shared PHP/MySQL APIs.** The completed club/training, booking review/editing, coach assignment/review, notification and report workflows are integrated with the latest booking approval protections. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), [QA evidence](docs/final-integration-review.md), and [Railway deployment](docs/deployment-railway.md). Core development is implemented; live deployment and final assessment acceptance remain. Follow the [remaining tasks for completion](docs/remaining-tasks.md) and [development status by original owner](docs/development-status.md).
+> **Current status: all core module screens use the shared PHP/MySQL APIs.** The 83 API operations and connected account, club, membership, training, booking, competition, announcement and report workflows are verified locally. See [local setup](docs/local-development.md), [frontend routes](frontend/README.md), [API verification](docs/api-verification-retest.md), and [remaining tasks](docs/remaining-tasks.md).
 
 ## Start here
 
@@ -13,7 +13,7 @@ The project aims to bring sports clubs, membership applications, training, compe
 3. Read the [backend guide](backend/README.md) for PHP ownership, database coordination, and security expectations.
 4. Confirm the relevant task, schema, and frontend/backend contract with its owners before implementing it.
 
-For the 9 November handover, use the [official guideline review](docs/guideline-review.md), [submission package guide](docs/submission-guide.md), [report source](docs/project-report.md), [demo/video plan](docs/video-demonstration.md) and [backup/restore rehearsal](docs/backup-restore.md). Team leader: **Mukilan Vasantharaj**. The full submission includes actual R&D, database and UI/UX work alongside source and test evidence. Deployment is deferred by the user; handover changes stay on `chore/mukilan-submission-readiness` while existing main-branch deployment integrations are reviewed. The guideline requires a working hosted link and accessible video before final submission.
+Use the [official guideline review](docs/guideline-review.md), [submission package guide](docs/submission-guide.md), [report source](docs/project-report.md), [demo/video plan](docs/video-demonstration.md) and [backup/restore guide](docs/backup-restore.md) for handover. Team leader: **Mukilan Vasantharaj**. The submission includes actual R&D, database and UI/UX work alongside source and test evidence. Publishing the application is assigned to another team member, who can choose their own platform; this repository supplies local development and testing instructions.
 
 ## Technology plan
 
@@ -90,7 +90,7 @@ The following table records the original working allocation. At the team lead’
 
 | Member | Primary implementation ownership | Coordination responsibility |
 | --- | --- | --- |
-| **Mukilan** | Authentication/users frontend and backend; application entry points, routing, shared API client, auth and CSRF helpers | Team lead, module integration, code review, deployment |
+| **Mukilan** | Authentication/users frontend and backend; application entry points, routing, shared API client, auth and CSRF helpers | Team lead, module integration, code review, handover |
 | **Jassim** | Membership, tournament, and match/result backend; database configuration and shared database/response/validation helpers | Architecture lead, ERD/schema, transaction and backend review |
 | **Shahadh** | Shared UI/layouts; tournament, fixture, match, and result interfaces | UI/UX lead, responsive consistency, frontend review |
 | **Shahilan** | Sports/club and training/attendance interfaces; announcements frontend and backend | Architecture assistance and UI/backend coordination |
@@ -119,9 +119,9 @@ The supplied official guideline leaves its deadline to be confirmed. The 12 Nove
 | --- | --- |
 | Confirm assessed scope, frontend choice, roles, and initial data model | 28 October |
 | Complete all development, integration, reviews, and merges | **6 November** |
-| Reserved testing and deployment period | **7-11 November** |
+| Reserved testing and handover period | **7-11 November** |
 | Full workflow testing, bug fixes, and regression | 7-9 November |
-| Deploy and verify the target environment | 10 November |
+| Verify the complete application | 10 November |
 | Final acceptance, documentation, backup, and demo rehearsal; submission package ready | 11 November |
 | **Final assignment submission** | **12 November** |
 
@@ -138,7 +138,7 @@ The supplied official guideline leaves its deadline to be confirmed. The 12 Nove
 | Nimesha | Test plan: 29 Oct; required notifications: 4 Nov; participation history/reports: 5 Nov |
 | Sanudi | Membership/resource UI: 1 Nov; Student booking UI: 4 Nov; validation/responsive fixes: 5 Nov |
 
-A deadline means integrated, tested, reviewed, and merged work, not an isolated screen. Test during development as well as during the reserved five days. Open small PRs daily, aim for review within 24 hours, and report blockers immediately. After 6 November, focus on fixes, verification, deployment, and submission preparation rather than new features.
+A deadline means integrated, tested, reviewed, and merged work, not an isolated screen. Test during development as well as during the reserved five days. Open small PRs daily, aim for review within 24 hours, and report blockers immediately. After 6 November, focus on fixes, verification, and submission preparation rather than new features.
 
 ## Getting started as a new contributor
 
@@ -198,7 +198,7 @@ A task is complete when:
 - Setup/schema changes are documented and no secrets are included.
 - A reviewer has checked the PR and the work is merged.
 
-Nimesha coordinates overall QA, but each developer tests their own contribution. Booking concurrency, direct unauthorized requests, report totals, and deployment behavior need explicit verification.
+Nimesha coordinates overall QA, but each developer tests their own contribution. Booking concurrency, direct unauthorized requests, report totals, and complete workflows need explicit verification.
 
 ## Decisions still to resolve
 
@@ -207,6 +207,6 @@ Nimesha coordinates overall QA, but each developer tests their own contribution.
 - Membership eligibility, review permissions, duplicate/reapplication behavior, and self-review restrictions.
 - Personal versus club bookings, pending-request availability, cancellation rules, and equipment issue/return tracking.
 - Competition entrants, individual/team/club formats, registration eligibility, sport-specific results, and standings rules.
-- Required report fields/exports, announcement audiences, notification triggers/delivery, and hosting requirements.
+- Required report fields/exports, announcement audiences, notification triggers/delivery, and final handover requirements.
 
 Confirm these with the relevant owners before dependent implementation. No university policy should be inferred solely from a placeholder folder or an interface design.

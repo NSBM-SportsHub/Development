@@ -6,7 +6,7 @@ This contract implements Mursid's backend slice using PHP 8.2+, MySQL 8+ / Maria
 
 1. Follow [local development](local-development.md) to configure private backend/config/local.php or SPORTSHUB_DB_* variables and a random application key. The module shares the existing PDO connection; separate DB_* variables are not used.
 2. Run `php backend/bin/setup.php`. It applies 001_authentication_users.sql, then 002_resources_and_bookings.sql without dropping records. The original resource-only migration was renamed; compatible tables imported from it can be retained.
-3. Configure the web document root to backend/public/ using the shared Apache rewrite rules. For development, run `php -S 127.0.0.1:8000 -t backend/public backend/router.php` from the repository root.
+3. For local development, run `php -S 127.0.0.1:8000 -t backend/public backend/router.php` from the repository root.
 4. Get a CSRF token from `GET /api/auth/session`, then sign in using `POST /api/auth/login`. Keep the cookie and use the new token returned after login. Send X-CSRF-Token on every write. The standalone /api/session endpoint from the original feature branch is replaced by the shared /api/auth/session endpoint.
 5. Use HTTPS outside local development, with SPORTSHUB_ENV=production and SPORTSHUB_SESSION_SECURE=1. All modules share the same HttpOnly, SameSite session cookie and per-request account/session-revocation checks.
 

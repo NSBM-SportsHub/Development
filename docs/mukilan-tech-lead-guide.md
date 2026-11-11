@@ -1,6 +1,6 @@
 # Mukilan's personal tech-lead guide
 
-> **Latest implementation update - 5 November 2026:** `feat/mukilan-complete-workflows` completes the connected club/training/attendance interfaces, booking review/editing and coach management/review, on top of notifications/reports. The production build, 74 backend scenarios, 10 frontend tests, 34 configuration checks and 11 browser workflow groups passed. Use [current QA evidence](final-integration-review.md) and [Railway setup](deployment-railway.md). Live deployment remains to be provisioned and verified; older plans below are background.
+> **Current implementation:** connected club, training, attendance, booking, competition, announcement, notification and report workflows are implemented. Use [current API verification](api-verification-retest.md), [local setup](local-development.md) and [QA evidence](final-integration-review.md). Older plans below remain background.
 
 **Project:** NSBM SportsHub. **Prepared:** 29 October 2026, Sri Lanka time. **Audience:** Mukilan, the student team lead and repository owner.
 
@@ -24,7 +24,7 @@ This is your working guide for coordinating the project. Follow it in order, the
 14. [Run the project and diagnose failures](#14-run-the-project-and-diagnose-failures)
 15. [Daily coordination and messages](#15-daily-coordination-and-messages)
 16. [Schedule and delays](#16-schedule-and-delays)
-17. [Deploy the application](#17-deploy-the-application)
+17. [Hand over the application](#17-hand-over-the-application)
 18. [Prepare the demonstration and submission](#18-prepare-the-demonstration-and-submission)
 19. [Your final owner checklist](#19-your-final-owner-checklist)
 
@@ -58,7 +58,7 @@ Snapshot from the local repository inspection and verification on 30 October:
 
 The README assigns club/training backend to **Looga**. The relationship between Looga and the **Natheeshan-named branch is unconfirmed**. Ask the author rather than treating the names as interchangeable.
 
-Current verification passed: 31 configuration checks, 53 combined HTTP/database scenarios, 7 frontend tests, 29 PHP syntax checks and the production build. The combined suite exercises authentication/users, resources/bookings, memberships and competitions. Historical browser checks were recorded in the authentication review; they were not rerun in this pass. These results do not certify pending interfaces or deployment.
+Current verification passed: 31 configuration checks, 53 combined HTTP/database scenarios, 7 frontend tests, 29 PHP syntax checks and the production build. The combined suite exercises authentication/users, resources/bookings, memberships and competitions. Historical browser checks were recorded in the authentication review; they were not rerun in this pass. These results apply to the implementation state recorded in that review.
 
 ## 3. Confirm requirements and open decisions
 
@@ -75,7 +75,7 @@ Create a requirements checklist from the actual assignment brief. For each requi
 | Competition rules | Individual/team/club entrants, format, eligibility, scoring, ties, corrections and standings | Jassim and Shahadh |
 | Communications | Announcement audiences/publishers and notification triggers/recipients | Shahilan and Nimesha |
 | Reports | Definition of participation, included statuses, date filters, totals and any required export | Nimesha and source-module owners |
-| Delivery | Hosting capabilities, exact submission time/platform, report/video/demo requirements | You, checked against the assignment brief |
+| Delivery | Application handover, exact submission time/platform, report/video/demo requirements | You, checked against the assignment brief |
 
 Record unanswered items as **TBD**, name the decision owner, and set a decision time. Members can continue independent work while their dependent rule is being resolved. Use agreed sample responses for early frontend work, clearly marked as development fixtures.
 
@@ -98,14 +98,14 @@ Current coach permissions use active `club_coaches` assignments, not a new accou
 | Module code, agreed API contracts and meaningful checks | Each assigned frontend/backend owner |
 | Setup notes, test evidence and known limitations | Author supplies; reviewer verifies relevant behavior |
 
-Keep these local or in the appropriate private runtime/deployment storage:
+Keep these local or in the appropriate private runtime storage:
 
 - Real `.env`, database credentials, application keys, passwords and session files.
 - `node_modules/`, generated build output, caches and logs.
 - `.tools/`, portable database executables/data directories and `.artifacts/`.
 - Personal student information, real user records and unsanitized database dumps.
 
-Production build output is created for deployment as an artifact; it does not need to be committed to the source branch. Public examples should use fictional data. Keep secrets out of screenshots, issue text, PR descriptions and frontend `VITE_*` configuration too.
+Build output is generated locally as an artifact; it does not need to be committed to the source branch. Public examples should use fictional data. Keep secrets out of screenshots, issue text, PR descriptions and frontend `VITE_*` configuration too.
 
 Before a shared-file change, identify the owner and explain why it is needed. For example, Looga adds club handlers while you coordinate their registration in the existing API router. He should not need a separate application login/router/configuration system for that module.
 
@@ -121,7 +121,7 @@ Before a shared-file change, identify the owner and explain why it is needed. Fo
 
 The current local configuration targets `nsbm_sportshub` on `127.0.0.1:3307`, using portable MariaDB. PHP connects through PDO's MySQL driver. Confirm compatibility with the assessed database requirement. Other machines may use a different local port, such as XAMPP's 3306, while following the same agreed schema.
 
-Each teammate can have their **own local database instance**. Share schema migrations and contracts so those instances are compatible. `localhost` always refers to the computer making the request; it is not a team-wide hosted service.
+Each teammate can have their **own local database instance**. Share schema migrations and contracts so those instances are compatible. `localhost` always refers to the computer making the request; it is not a shared team database.
 
 ### 5.2 What to settle with Jassim
 
@@ -208,9 +208,9 @@ The allocation below comes from the project README. A reviewer helps verify a co
 - Own authentication/users frontend and backend, entry/routing integration, shared API client, session/CSRF and auth conventions.
 - Maintain the current login/profile/Admin workflows as other modules integrate.
 - Coordinate schema/database helper review with Jassim and shared UI with Shahadh.
-- Keep task status, dependencies, review decisions, release/deployment and demonstration readiness visible.
+- Keep task status, dependencies, review decisions, release and demonstration readiness visible.
 - Ask for small working contributions; bring blockers to the correct partner.
-- Check the actual brief, roles, final hosting and submission requirements.
+- Check the actual brief, roles, demonstration and submission requirements.
 
 Your next deliverable is the `.env` follow-up PR and a shared setup demonstration. After that, coordinate the first club integration rather than taking over every owner's CRUD.
 
@@ -297,7 +297,7 @@ Use this dependency order while letting independent pairs work in parallel:
 5. Training/attendance after their club/user/eligibility dependencies; add facility booking integration only if required.
 6. Competitions and results after entrant, format and scoring rules are agreed. Results depend on valid matches/fixtures.
 7. Notifications and reports wired to the authoritative source-module events and records. Their contracts/UI can start earlier.
-8. Complete cross-module tests, production deployment checks, evidence and rehearsal.
+8. Complete cross-module tests, cross-browser checks, evidence and rehearsal.
 
 Dependency-specific rules can change this order. Record them explicitly. For example, a training roster may require approved club membership; a facility session may require an approved reservation. Do not invent either requirement from a screen's appearance.
 
@@ -326,7 +326,7 @@ Have members report their next demonstrable slice, then allocate a target that a
 
 ## 10. Finish your current local changes
 
-**Working folder: repository root, `Development/`.** Current branch: `feat/mukilan-module-integration`. Changes add the missing shared `PUT` helper, API-client tests and current setup/status documentation. No commit, push, PR or deployment has been performed in this pass.
+**Working folder: repository root, `Development/`.** Current branch: `feat/mukilan-module-integration`. Changes add the missing shared `PUT` helper, API-client tests and current setup/status documentation. No changes were published in this historical pass.
 
 Inspect your state and confirm the real config stays ignored:
 
@@ -368,7 +368,7 @@ git push -u origin feat/mukilan-module-integration
 
 After pushing, open [the comparison against main](https://github.com/NSBM-SportsHub/Development/compare/main...feat/mukilan-module-integration?expand=1). Confirm **base main** and the correct compare branch, inspect Files changed, and include the shared-client change, setup impact and actual validation. Jassim should review API/schema descriptions; frontend partners should confirm the client usage.
 
-Keep unrelated module implementation in its owner's branch and PR. This branch prepares the shared integration foundation; it does not complete their interfaces or final deployment.
+Keep unrelated module implementation in its owner's branch and PR. This branch prepares the shared integration foundation; it does not complete their interfaces or final acceptance.
 
 ## 11. Branch and pull-request workflow
 
@@ -631,40 +631,22 @@ The repository records **12 November 2026** as submission, with development/inte
 | Dates | Focus and evidence |
 | --- | --- |
 | 29 October | Shared setup follow-up, requirements decisions, owner status, schema/club contract |
-| 30-31 October | Integrated clubs/resources and first membership slice; check early hosting compatibility |
+| 30-31 October | Integrated clubs/resources and first membership slice; check fresh local setup |
 | 1-3 November | Memberships/bookings/training and approved competition workflows, according to dependencies |
 | 4-5 November | Remaining results/communications/report integration, permission checks and defect fixes |
 | 6 November | Required functionality integrated, reviewed and merged; main can demonstrate the required workflows |
 | 7-9 November | Whole-system testing, concurrent booking checks, fixes and regression |
-| 10 November | Final deployment and deployed-workflow verification |
+| 10 November | Complete application verification |
 | 11 November | Acceptance, documentation, backup and demo rehearsal; submission package ready |
 | 12 November | Submit using the confirmed time/platform and retain confirmation |
 
-Test during development. Prove hosting compatibility early using the smallest running baseline so deployment is not first attempted on 10 November.
+Test during development and verify a fresh local setup early using the smallest running baseline.
 
 When a target slips, ask for the exact blocker and smallest unfinished behavior. Arrange a focused pairing/review, move independent work forward, and update the target openly. Keep assessed requirements visible. Optional enhancements can be deprioritized; changes to mandatory scope need lecturer clarification. Never mark an untested placeholder as completed to make a tracker look on schedule.
 
-## 17. Deploy the application
+## 17. Hand over the application
 
-Before choosing a destination, confirm it supports the required PHP version/extensions, compatible database, HTTPS, private configuration and the React/API routing arrangement. No hosting provider has been selected by this guide.
-
-Your deployment checklist:
-
-- [ ] Identify the target, access owner, runtime versions, domain/URL and database capabilities.
-- [ ] Confirm budget/assignment constraints and a way to inspect private server logs.
-- [ ] Build frontend assets with `npm.cmd run build` from `frontend/`.
-- [ ] Serve the React build and PHP `/api` under one HTTPS origin.
-- [ ] Make direct frontend links such as `/profile` load React; keep `/api/*` routed to PHP rather than the HTML fallback.
-- [ ] Expose only `backend/public/` for PHP; private config/source/logs/sessions/database directories stay outside the public surface.
-- [ ] Set production configuration privately: stable generated key, restricted runtime database account, `SPORTSHUB_ENV=production`, `SPORTSHUB_SESSION_SECURE=1` and correct session storage.
-- [ ] Back up relevant existing data and apply reviewed migrations in the documented order using appropriately privileged setup credentials.
-- [ ] Provision application Admin access privately; no demo password is published or committed.
-- [ ] Verify health, login/logout, CSRF, persistence, permissions, direct frontend links and each required module on the deployed build.
-- [ ] Record the deployed commit, URL, migration state, verification results and recovery procedure.
-
-The local PHP built-in server/Vite dev server are development tools. Your workstation's loopback root database account with an empty password is local testing configuration; use dedicated credentials and restricted network access for deployment. A frontend-only static deployment cannot execute these PHP APIs by itself.
-
-Keep a usable database backup and document how to restore it. A code rollback and a database restore/corrective migration are separate operations. Know both before changing a deployed schema.
+Provide the reviewed source, local setup guide, ordered schema migrations, API contracts and test evidence to the member responsible for publishing the completed application. That member chooses the platform and supplies the application link independently.
 
 ## 18. Prepare the demonstration and submission
 
@@ -674,12 +656,12 @@ Confirm the lecturer's actual report/video/source/archive requirements. Prepare 
 - ERD/data dictionary, migration/application instructions and safe demo fixtures.
 - API contracts and fresh-clone setup instructions.
 - PR/review links and each member's authored contribution evidence.
-- Test cases/results, bug fixes, screenshots and deployment verification.
-- Deployment URL/commit, backup/recovery notes and a repeatable demonstration script.
+- Test cases/results, bug fixes, screenshots and workflow verification.
+- Source revision, backup/recovery notes and a repeatable demonstration script.
 
 Plan a demonstration using separate Student/Admin sessions and fictional records. A useful future integrated journey is registration -> club browsing -> membership application/review -> training/attendance -> a permitted resource booking -> relevant announcement/notification -> participation history. Include the approved competition/result workflow if assessed. Adapt the journey to the actual implemented and required policies.
 
-Show at least one validation/permission failure and the saved state after reload. Rehearse using the deployed build, the actual demonstration devices and a plan for connectivity failure. Confirm each member can explain their own code and contribution.
+Show at least one validation/permission failure and the saved state after reload. Rehearse using the verified build, the actual demonstration devices and a plan for connectivity failure. Confirm each member can explain their own code and contribution.
 
 Inspect the submission package before sending it. Include only the required source, docs and safe database artifacts. Exclude real `.env`, credentials, personal records, session/log files, portable data directories and dependency caches. Record submission confirmation before the deadline.
 
@@ -712,4 +694,4 @@ Inspect the submission package before sending it. Include only the required sour
 - [ ] Your own work is saved on the intended branch.
 - [ ] Tomorrow's first task is specific.
 
-Your immediate next task is to review this integration branch and browser-check the account baseline. Coordinate the club backend with Jassim, Looga and Shahilan, and review Sanudi's and Shahadh's interfaces against the APIs already available. Full-system acceptance and deployment follow the remaining module integrations.
+Your immediate next task is to review this integration branch and browser-check the account baseline. Coordinate the club backend with Jassim, Looga and Shahilan, and review Sanudi's and Shahadh's interfaces against the APIs already available. Full-system acceptance follows the remaining module integrations.

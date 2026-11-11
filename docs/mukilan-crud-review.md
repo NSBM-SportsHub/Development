@@ -1,6 +1,6 @@
 # Mukilan authentication/users CRUD review
 
-Branch: `feat/mukilan-auth-users-crud`, based on `main`. Work is local; no remote branch, pull request, or deployment was created.
+Branch: `feat/mukilan-auth-users-crud`, based on `main`. This is the historical authentication/users implementation review.
 
 ## Implemented
 
@@ -22,6 +22,6 @@ DELETE archives accounts so IDs remain available for future historical relations
 - Screenshots were inspected at desktop width 1440 and mobile width 390. They are local ignored artifacts under `.artifacts/`.
 - Test databases and temporary accounts were removed. No default application account or password was committed.
 
-Tests used a local MariaDB instance. A deployed Apache/MySQL installation and production HTTPS configuration have not been verified. Review the identity migration and PDO conventions with Jassim and shared presentation with Shahadh before merging.
+Tests used a local MariaDB instance. Review the identity migration and PDO conventions with Jassim and shared presentation with Shahadh before merging.
 
 Follow [local development](local-development.md) to configure your own application database and provision your Admin. Frontend/backend partners can use the [API contract](auth-users-api.md) after starting the PHP service.

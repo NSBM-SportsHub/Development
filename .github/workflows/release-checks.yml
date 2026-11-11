@@ -1,8 +1,8 @@
-name: Release checks
+name: Application checks
 
 on:
   push:
-    branches: [main, chore/mukilan-submission-readiness]
+    branches: [main]
     paths-ignore: ['docs/**', '**.md']
   pull_request:
     paths-ignore: ['docs/**', '**.md']
@@ -57,8 +57,7 @@ jobs:
       - name: PHP configuration, syntax and real database integration
         run: |
           php backend/tests/configuration.php
-          find backend deployment -name '*.php' -print0 | xargs -0 -n1 php -l
-          bash -n deployment/start-backend.sh
+          find backend -name '*.php' -print0 | xargs -0 -n1 php -l
           node backend/tests/integration.mjs
           SPORTSHUB_API_PORT=8001 node backend/tests/api-verification.mjs
       - name: Backup and restore rehearsal
@@ -68,28 +67,6 @@ jobs:
           npm install --prefix .tools/qa --no-save --package-lock=false playwright
           .tools/qa/node_modules/.bin/playwright install --with-deps chromium
           node tests/browser-workflows.mjs
-      - name: Build the actual deployment image
-        run: docker build -t sportshub-release .
-      - name: Start Apache image against MySQL
-        run: |
-          docker run -d --name sportshub-release --network host \
-            -e PORT=8080 -e SPORTSHUB_ENV=development -e SPORTSHUB_SESSION_SECURE=0 \
-            -e SPORTSHUB_APP_KEY -e SPORTSHUB_DB_HOST -e SPORTSHUB_DB_PORT \
-            -e SPORTSHUB_DB_USER -e SPORTSHUB_DB_PASSWORD \
-            -e SPORTSHUB_DB_NAME=sportshub_ci sportshub-release
-          for attempt in $(seq 1 60); do
-            if curl --fail --silent http://127.0.0.1:8080/api/health; then exit 0; fi
-            sleep 2
-          done
-          docker logs sportshub-release
-          exit 1
-      - name: Verify Apache routes, session and private files
-        run: node scripts/verify-deployment.mjs http://127.0.0.1:8080 --allow-local-http
-      - name: Preserve image logs
-        if: always()
-        run: |
-          mkdir -p .artifacts
-          docker logs sportshub-release > .artifacts/container.log 2>&1 || true
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -98,7 +75,6 @@ jobs:
             .artifacts/*.png
             .artifacts/browser-evidence.json
             .artifacts/backup-restore-evidence.json
-            .artifacts/container.log
             .artifacts/api-operations-*/*.json
             .artifacts/api-operations-*/*.md
             .artifacts/api-operations-*/*.log

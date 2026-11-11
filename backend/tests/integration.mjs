@@ -250,7 +250,7 @@ try {
     assert.equal(other.error.message, result.error.message);
     assert.equal((await admin.request('/auth/login', { method: 'POST', body: { email: adminEmail, password: adminPassword } })).data.user.role, 'admin');
   });
-  await check('Hosted setup loads reference sports repeatably without creating demo clubs', async () => {
+  await check('Reference setup loads sports repeatably without creating demo clubs', async () => {
     cli('backend/bin/setup.php', ['--existing-database', '--reference-seed']);
     cli('backend/bin/setup.php', ['--existing-database', '--reference-seed']);
     assert.equal((await admin.request('/sports')).data.length, 13);

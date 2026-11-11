@@ -2,7 +2,7 @@
 
 Reviewed 9 November 2026 against `WAD_Batch26_1_IFSL_Project_Instructions.pdf` supplied by the team leader. The four-page PDF's SHA-256 is `3df715db71fa84a2258788b22778708133625c71137375dd5e55311e30850354`. Page references below refer to that document, not the team's R&D proposal.
 
-The guideline supplies assessment requirements; it is not an instruction to deploy, upload a video, contact anyone or submit an assignment automatically. The user's instruction to defer deployment remains in force.
+The guideline supplies assessment requirements; it does not authorize publishing, video uploads or assignment submission. Application publishing is assigned to another team member.
 
 ## Topic 3 functionality - page 2
 
@@ -25,9 +25,9 @@ The guideline supplies assessment requirements; it is not an instruction to depl
 
 ## Overall requirements - page 3
 
-The implementation has distinct Admin/Student routes and permissions, secure session login, logical CRUD/archival, responsive layouts, PHP/PDO database integration, form validation, consistent navigation and applicable search/filtering. The production build, 10 frontend tests, 34 configuration checks, 78 backend scenarios, 11 browser groups and successful MySQL 8/Docker/Apache CI provide implementation evidence. They do not substitute for lecturer assessment or individual understanding.
+The implementation has distinct Admin/Student routes and permissions, secure session login, logical CRUD/archival, responsive layouts, PHP/PDO database integration, form validation, consistent navigation and applicable search/filtering. The production build, 10 frontend tests, 34 configuration checks, 78 backend scenarios, 11 browser groups and successful MySQL 8 CI provide implementation evidence. They do not substitute for lecturer assessment or individual understanding.
 
-PHP and MySQL are mandatory. The frontend requirement names HTML, CSS and JavaScript and allows Bootstrap or Material UI. React is not expressly named or prohibited; the implemented React frontend compiles to HTML/CSS/JavaScript, while PHP/MySQL perform backend/data work. Any separate lecturer restriction still needs to be checked. The official PDF does not require CSV exports, native mobile apps, a particular hosting provider or a particular video duration. Additional ideas in the team's R&D document are design proposals, not additional official minimum requirements.
+PHP and MySQL are mandatory. The frontend requirement names HTML, CSS and JavaScript and allows Bootstrap or Material UI. React is not expressly named or prohibited; the implemented React frontend compiles to HTML/CSS/JavaScript, while PHP/MySQL perform backend/data work. Any separate lecturer restriction still needs to be checked. The official PDF does not require CSV exports, native mobile apps, a particular video duration. Additional ideas in the team's R&D document are design proposals, not additional official minimum requirements.
 
 ## Deliverables - pages 3-4
 
@@ -36,8 +36,8 @@ PHP and MySQL are mandatory. The frontend requirement names HTML, CSS and JavaSc
 | Project report in PDF or Word | Draft report prepared with title, introduction, objectives, system description, team section and Admin/Student screenshots; must finalize contact details, credits and links |
 | Leader name/contact | Leader confirmed as **Mukilan Vasantharaj**; preferred contact details pending |
 | Group member names/roles | Repository working names/allocation available; final names and actual coding/R&D/database/UI/UX credits need team confirmation |
-| Accessible complete GitHub source | Public repository available; core code on main, local-handover changes on the submission-readiness branch to avoid deployment hooks |
-| Working live application and report link | **Required but deferred by the user**; successful container CI is not a public hosted application |
+| Accessible complete GitHub source | Public repository available; reviewed application changes are integrated through pull requests |
+| Working application and report link | Required; link and acceptance evidence to be supplied by the responsible team member |
 | One screen-recorded demonstration | Recording must show login, Admin/Student panels, CRUD, database behavior and main features, plus a real explanation from every member |
 | Accessible uploaded video and report link | Pending recording/contribution segments and an accessible upload; no upload is authorized merely by supplying the guideline |
 | Team leader/designated member submits report | Pending final review and submission through the actual LMS/platform; no submission performed |
@@ -60,7 +60,7 @@ The local R&D checkout has a separate origin, [NSBM-SportsHub/Research-and-devel
 | Backend/database integration | 20% |
 | Admin functionality | 15% |
 | Student/User functionality | 15% |
-| Report, screenshots, GitHub and hosting links | 15% |
+| Report, screenshots, GitHub and application links | 15% |
 | Video demonstration and teamwork | 15% |
 
 The official deadline remains **to be confirmed** in the supplied PDF. The 12 November 2026 date in repository/team planning is not verified by this guideline. Confirm the actual LMS deadline and submission details separately.

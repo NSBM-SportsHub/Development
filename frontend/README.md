@@ -1,6 +1,6 @@
 # NSBM SportsHub frontend
 
-Every core module uses the shared PHP/MySQL APIs. See [local setup](../docs/local-development.md), [QA and browser checks](../docs/qa-checklist.md), and [Railway deployment](../docs/deployment-railway.md).
+Every core module uses the shared PHP/MySQL APIs. See [local setup](../docs/local-development.md), [QA and browser checks](../docs/qa-checklist.md).
 
 ## Start locally
 

@@ -1,6 +1,6 @@
 # Database backup and restore
 
-The source package includes migrations and reference/demo seeds, not the workstation's accounts or private database contents. Credentials, session files and SQL backups remain outside Git. Hosting and any hosted-data backup are deferred.
+The source package includes migrations and reference/demo seeds, not the workstation's accounts or private database contents. Credentials, session files and SQL backups remain outside Git.
 
 ## Verified rehearsal
 

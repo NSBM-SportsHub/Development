@@ -1,6 +1,6 @@
 # SportsHub demonstration guide
 
-Prepared 9 November 2026. Deployment is deferred at the user's request. This guide demonstrates the local production build and PHP/MySQL workflows; it does not claim lecturer acceptance or submission.
+Prepared 9 November 2026. This guide demonstrates the local production build and PHP/MySQL workflows; it does not claim lecturer acceptance or submission.
 
 ## Prepare
 
@@ -31,7 +31,7 @@ During competition setup, both entrants must meet the membership eligibility rul
 - Explain server-side authentication, CSRF checks, Admin/ownership/coach permissions and historical archival. Hiding a button alone does not grant or enforce authorization.
 - Explain how resource locks and transactions prevent simultaneous double booking; how training-session locks prevent attendance from moving to another club; and where those cases are tested.
 - Show the shared API client, PHP request router, a module handler and its database query. Explain the JSON `data`/`error` envelope and UTC timestamps.
-- Explain the backup/restore rehearsal and the difference between local acceptance and later hosted acceptance.
+- Explain the backup/restore rehearsal and the local acceptance evidence.
 - Each member must explain their own actual contribution, including code, R&D, database design, UI/UX or QA. Use Git history, the supplied artifacts and the [owner coverage record](development-status.md) to record accurate credits.
 
 The supplied official guideline requires a PDF/Word report and one screen-recorded video with each member's brief contribution explanation. It sets no video duration and leaves the deadline unconfirmed. Use the [video plan](video-demonstration.md), add the actual live/video links and finalize team details before submission through the designated team account.

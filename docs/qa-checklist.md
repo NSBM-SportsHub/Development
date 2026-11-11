@@ -15,7 +15,7 @@ $env:SPORTSHUB_PHP = (Resolve-Path .tools/php/php.exe).Path
 node backend/tests/integration.mjs
 ```
 
-Use your installed PHP path on another workstation. Backend integration tests create/drop only a random `sportshub_test_<16 hex>` database. Booking concurrency uses two separate PHP server processes and distinct account sessions, including on Windows; a single PHP development server would serialize requests and would not demonstrate concurrent database behavior.
+Use your installed PHP path on another workstation. Backend integration tests retain a new random `sportshub_test_<16 hex>` database. Booking concurrency uses two separate PHP server processes and distinct account sessions, including on Windows; a single PHP development server would serialize requests and would not demonstrate concurrent database behavior.
 
 ## Browser workflow suite
 
@@ -46,7 +46,7 @@ On Windows with Edge already installed, set `$env:SPORTSHUB_BROWSER_CHANNEL = 'm
 | Competitions | Registration, coach entry review, fixture generation, result entry/reload, standings; backend league/knockout/correction coverage |
 | Announcements | Admin publication, Student reads, inbox notification, deletion/pinning/backend permissions |
 | UI | 390 px layouts, labelled controls, no page runtime errors, loading/empty/error/retry states |
-| Deployment | Build container, configure Railway web/MySQL services, verify HTTPS sessions/deep links and repeat key workflows on hosted URLs |
+
 
 ## Issue register
 
@@ -57,12 +57,12 @@ On Windows with Edge already installed, set `$env:SPORTSHUB_BROWSER_CHANNEL = 'm
 | QA-03 | Coach assignment and membership-review interfaces missing | Resolved: assignment/review/revocation workflow verified |
 | QA-04 | Pending booking editor missing | Resolved: ownership-scoped edit and read-only approved state verified |
 | QA-05 | Booking concurrency evidence missing | Verified: independent PHP processes test facility, stock and pending-edit contention |
-| QA-06 | Cloud deployment acceptance | Deferred: user requested development only; provision and verify hosting later |
+| QA-06 | Application link for submission | To be supplied and checked by the responsible team member |
 | QA-07 | Session club changes could transfer existing attendance visibility | Resolved: recorded-attendance club changes rejected; session locks serialize attendance/move races |
 
 For new issues record the commit, role, steps, expected/actual result, severity, owner, fix and retest result. Use synthetic records and keep credentials/session tokens out of evidence. Each contributor remains responsible for understanding and demonstrating their own work.
 
-For Railway packaging, run `node tests/railway-smoke.mjs` after building the frontend. It checks the assembled public layout against real PHP without writing application records. Docker/Apache and live HTTPS behavior still need platform verification.
+
 
 ## Release evidence and handover - 9 November 2026
 
@@ -70,10 +70,10 @@ For Railway packaging, run `node tests/railway-smoke.mjs` after building the fro
 
 Run `node backend/tests/backup-restore.mjs` for the isolated 17-table dump/restore rehearsal described in [backup/restore](backup-restore.md). `.artifacts/backup-restore-evidence.json` records the source fingerprint and successful result. Both generated test databases are removed.
 
-The `Release checks` GitHub workflow repeats frontend/PHP/MySQL/browser/restore checks, builds the real Dockerfile and tests the Apache image against a temporary MySQL service. It starts no public Railway deployment. Read its actual run result before claiming image acceptance.
+The `Application checks` GitHub workflow repeats frontend, PHP/MySQL, API replay, browser and backup/restore checks. It only tests the application; read its actual run result before claiming acceptance.
 
-The public checker `scripts/verify-deployment.mjs` is read-only and checks HTML/assets, deep links, database health, anonymous access denial, API JSON errors, session/CSRF continuity, cookie flags and private-file protection. The local layout smoke suite also exercises this checker against its assembled public fixture. HTTPS is mandatory except for explicitly allowed loopback HTTP tests. Authenticated hosted workflows and restart persistence still need separate acceptance when hosting resumes.
 
-After checks and a reviewed source commit, run `node scripts/package-submission.mjs`. See [submission guide](submission-guide.md) for required release log filenames, output files, assessment mapping and the final human checklist. Deployment remains deferred by the user's 9 November instruction.
+
+After checks and a reviewed source commit, run `node scripts/package-submission.mjs`. See [submission guide](submission-guide.md) for required release log filenames, output files, assessment mapping and the final human checklist.
 
 The supplied guideline is now mapped in [the official review](guideline-review.md). Build the PDF with `python scripts/build-project-report.py` before packaging. The report preserves original supporting files, includes ten application screenshots plus the early design image, and records required missing links/contact/credits explicitly. The packager checks the PDF/source/template hashes and supporting-file checksums. UI/UX inputs can be supplied with `--uiux-root`; verify those files and their credits before finalizing the report. The actual official deadline remains unconfirmed in the PDF.

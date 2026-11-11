@@ -1,6 +1,6 @@
 # Complete API verification — 10 November 2026
 
-Branch: `fix/mukilan-api-database-integration`. Local verification refreshed on 11 November before preparing the pull request. The executable-source fingerprint below identifies the tested files. This is live HTTP verification against PHP 8.4.27 and MariaDB 11.4.13 with PDO MySQL, using the existing router, sessions, CSRF and migrations. MariaDB is the project's supported local MySQL-compatible server; these results do not establish deployment or separate MySQL-server compatibility.
+Working tree: `main`. Local verification refreshed on 11 November after removing platform-specific setup. The executable-source fingerprint below identifies the tested files. This is live HTTP verification against PHP 8.4.27 and MariaDB 11.4.13 with PDO MySQL, using the existing router, sessions, CSRF and migrations. MariaDB is the project's supported local MySQL-compatible server; these results apply to the recorded local environment.
 
 | Checklist operations | Working | Failed | Not tested |
 | --- | --- | --- | --- |
@@ -39,12 +39,12 @@ Backend log review found **zero unexpected server/database errors**. One expecte
 
 Local evidence (ignored by Git):
 
-- `.artifacts/api-operations-497c6bac8e518edd/results.json` and `results.md`: per-operation expected/actual statuses, result and permission/CSRF checks.
-- `.artifacts/api-operations-497c6bac8e518edd/integration.json` and `php-server.log`: all scenarios, source fingerprint, preserved working-database fingerprints and backend diagnostics.
-- `.artifacts/api-verification/38dbb28ab393b971/results.json`, `results.md` and `php-server.log`: original 37-case replay and its supplementary checks.
-- `.artifacts/pr-api-integration.log`: full integration console output.
+- `.artifacts/api-operations-c38b5648bb7e8439/results.json` and `results.md`: per-operation expected/actual statuses, result and permission/CSRF checks.
+- `.artifacts/api-operations-c38b5648bb7e8439/integration.json` and `php-server.log`: all scenarios, source fingerprint, preserved working-database fingerprints and backend diagnostics.
+- `.artifacts/api-verification/187c4faa3981d445/results.json`, `results.md` and `php-server.log`: original 37-case replay and its supplementary checks.
+- `.artifacts/provider-neutral-integration-final.log`: full integration console output.
 
-The successful full-suite evidence identifies executable source SHA-256 `a75749e7f3f03e1ba99d52f07499a4cf60e8c1685228d47b3dc32d8d460d38dc`. The test databases `sportshub_test_497c6bac8e518edd` and `sportshub_test_38dbb28ab393b971` remain available for local inspection. Earlier incomplete development runs also retained their synthetic databases; none were dropped.
+The successful full-suite evidence identifies executable source SHA-256 `58edac3adbe7090b6fcea5a164bfd3cb622737792e08d2360ac05a6f4db9bfba`. The test databases `sportshub_test_c38b5648bb7e8439` and `sportshub_test_187c4faa3981d445` remain available for local inspection. Earlier incomplete development runs also retained their synthetic databases; none were dropped.
 
 ## Results for all 83 operations
 
@@ -191,4 +191,4 @@ These are new automated HTTP results, not a new manual Postman session. The earl
 
 ## Remaining limitations and next actions
 
-No checklist operation remains failed or untested in this local verification. There was no new manual Postman/browser workflow run. Shahilan's original environment, its backup and its historical error logs remain unverified; no production/deployment verification was performed. Confirm his actual host/port/schema, verify a backup before any repair, then retest his original API process. Review the pull request and its CI results before merging. Local verification does not establish hosted acceptance.
+No checklist operation remains failed or untested in this local verification. There was no new manual Postman/browser workflow run. Shahilan's original environment, its backup and its historical error logs remain unverified; no production system was modified. Confirm his actual host/port/schema, verify a backup before any repair, then retest his original API process. Review and save the current changes, then rerun CI before sharing the source.
