@@ -23,6 +23,16 @@ beforeEach(async (context) => {
 });
 
 describe("shared API integration contract", () => {
+  it("uploads multipart photos with cookies and CSRF without overriding the browser boundary", async () => {
+    responses.push(json({ csrf_token: "photo-token" }), json({ id: 1, photo_url: "https://res.cloudinary.com/demo/image/upload/v1/photo.webp" }, 201));
+    const body = new FormData();
+    body.append("photo", new Blob(["test image"], { type: "image/png" }), "photo.png");
+    await client.api.post("/users/me/photo", body);
+    assert.equal(requests[1].body, body);
+    assert.equal(requests[1].headers["Content-Type"], undefined);
+    assert.equal(requests[1].headers["X-CSRF-Token"], "photo-token");
+    assert.equal(requests[1].credentials, "include");
+  });
   it("records a match result with PUT, cookies and the token renewed by login", async () => {
     const result = { home_score: 2, away_score: 1 };
     responses.push(

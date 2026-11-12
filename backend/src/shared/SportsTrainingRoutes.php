@@ -9,13 +9,13 @@ final class SportsTrainingRoutes
 
     public static function match(string $path): ?array
     {
-        if (!preg_match('~\A/api/(sports|clubs|training-sessions|attendance)(?:/([1-9][0-9]{0,18})(?:/(archive|cancel))?)?\z~', $path, $parts)) return null;
+        if (!preg_match('~\A/api/(sports|clubs|training-sessions|attendance)(?:/([1-9][0-9]{0,18})(?:/(archive|cancel|overview))?)?\z~', $path, $parts)) return null;
         $type = $parts[1];
         $id = isset($parts[2]) ? filter_var($parts[2], FILTER_VALIDATE_INT, ['options' => ['min_range' => 1]]) : null;
         if ($id === false) throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
         $action = $parts[3] ?? null;
-        if ($action !== null && !(($type === 'clubs' && $action === 'archive') || ($type === 'training-sessions' && $action === 'cancel'))) return null;
-        $methods = $action !== null ? ['PATCH'] : match ($type) {
+        if ($action !== null && !(($type === 'clubs' && in_array($action, ['archive', 'overview'], true)) || ($type === 'training-sessions' && $action === 'cancel'))) return null;
+        $methods = $action !== null ? ($action === 'overview' ? ['GET'] : ['PATCH']) : match ($type) {
             'sports' => ['GET'],
             'clubs' => $id === null ? ['GET', 'POST'] : ['GET', 'PUT', 'PATCH', 'DELETE'],
             'training-sessions' => $id === null ? ['GET', 'POST'] : ['GET', 'PUT', 'PATCH'],
@@ -55,6 +55,10 @@ final class SportsTrainingRoutes
     private static function dispatchController(array $route, string $method, array $actor): never
     {
         ['type' => $type, 'id' => $id, 'action' => $action] = $route;
+        if ($type === 'clubs' && $action === 'overview') {
+            if ($actor['role'] !== 'admin') throw new ApiException(403, 'forbidden', 'Only Admins can view club oversight.');
+            Http::json(ClubOverviewService::overview($id, $_GET));
+        }
         if ($method !== 'GET') {
             Session::verifyCsrf();
             $body = in_array($method, ['POST', 'PUT', 'PATCH'], true) ? Http::body() : [];

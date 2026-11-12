@@ -48,7 +48,7 @@ jobs:
       - name: Install PHP and database clients
         run: |
           sudo apt-get update -qq
-          sudo apt-get install -y php-cli php-mysql php-mbstring mysql-client
+          sudo apt-get install -y php-cli php-mysql php-mbstring php-curl mysql-client
       - name: Build and frontend tests
         run: |
           npm ci --prefix frontend

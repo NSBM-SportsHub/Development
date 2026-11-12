@@ -37,6 +37,10 @@ final class Config
             'SPORTSHUB_DB_PASSWORD' => ['database', 'password'],
             'SPORTSHUB_DB_SSL_CA' => ['database', 'ssl_ca'],
             'SPORTSHUB_SESSION_PATH' => ['session', 'path'],
+            'SPORTSHUB_CLOUDINARY_CLOUD_NAME' => ['cloudinary', 'cloud_name'],
+            'SPORTSHUB_CLOUDINARY_API_KEY' => ['cloudinary', 'api_key'],
+            'SPORTSHUB_CLOUDINARY_API_SECRET' => ['cloudinary', 'api_secret'],
+            'SPORTSHUB_CLOUDINARY_FOLDER' => ['cloudinary', 'folder'],
         ];
         foreach ($variables as $variable => $keys) {
             $value = getenv($variable);

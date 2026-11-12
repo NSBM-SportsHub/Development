@@ -1,0 +1,13 @@
+.membership-applicant-details > div {
+  flex: 1 1 160px;
+  min-width: 0;
+}
+
+.membership-applicant-details dd,
+.membership-review-record .business-record-head a {
+  overflow-wrap: anywhere;
+}
+
+.membership-review-record .business-record-head > div {
+  min-width: 0;
+}

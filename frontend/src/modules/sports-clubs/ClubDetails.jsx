@@ -69,7 +69,7 @@ export default function ClubDetails({ clubs, loading, onDelete }) {
         </div>
       </section>
 
-      <div className="business-actions"><Link className="business-link" to="/memberships/apply">Apply for membership</Link><Link className="business-link" to="/training-attendance">View training schedule</Link></div>
+      <div className="business-actions">{user.role === "admin" && <Link className="business-link" to={`/admin/clubs/${club.id}`}>View members, coaches and activity</Link>}<Link className="business-link" to="/memberships/apply">Apply for membership</Link><Link className="business-link" to="/training-attendance">View training schedule</Link></div>
     </article>
   );
 }

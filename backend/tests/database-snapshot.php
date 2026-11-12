@@ -13,6 +13,8 @@ if (($argv[1] ?? '') === 'seed') {
     $statement = $db->prepare("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)");
     $statement->execute(['Backup Test Student', 'backup@example.test', password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT)]);
     $user = (int) $db->lastInsertId();
+    $db->prepare("INSERT INTO user_profile_photos (user_id, cloud_name, public_id, version, photo_url) VALUES (?, 'fixture', 'backup/photo', '1', 'https://res.cloudinary.com/fixture/image/upload/v1/backup/photo.webp')")->execute([$user]);
+    $db->prepare("UPDATE site_branding SET cloud_name = 'fixture', public_id = 'backup/university-logo', version = '1', logo_url = 'https://res.cloudinary.com/fixture/image/upload/v1/backup/university-logo.webp', updated_by = ? WHERE id = 1")->execute([$user]);
     $db->exec("INSERT INTO facilities (name, location) VALUES ('Backup Test Court', 'Synthetic fixture')");
     $facility = (int) $db->lastInsertId();
     $statement = $db->prepare("INSERT INTO bookings (facility_id, requested_by, starts_at, ends_at, quantity, status) VALUES (?, ?, '2032-05-11 15:00:00', '2032-05-11 16:00:00', 1, 'pending')");

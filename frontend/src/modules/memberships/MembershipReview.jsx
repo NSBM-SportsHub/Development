@@ -4,6 +4,14 @@ import { useAuth } from "../../shared/AuthContext.jsx";
 import { api } from "../../shared/api.js";
 import { formatDate, statusLabel } from "../../shared/business.js";
 import { Button, Loading, Modal, Notice } from "../../shared/ui.jsx";
+import "./memberships.css";
+
+function ApplicantContact({ record }) {
+  return <>
+    <div><dt>Student ID</dt><dd>{record.user_student_id || "Not provided"}</dd></div>
+    <div><dt>Phone number</dt><dd>{record.user_phone ? <a className="business-link" href={`tel:${record.user_phone}`}>{record.user_phone}</a> : "Not provided"}</dd></div>
+  </>;
+}
 
 export default function MembershipReview() {
   const access = useClubAccess();
@@ -82,17 +90,17 @@ export default function MembershipReview() {
   if (!access.isAdmin && !effectiveClub) return <Notice>Only administrators and assigned club coaches can review memberships.</Notice>;
 
   return <section className="business-page" aria-labelledby="membership-review-title">
-    <header className="business-heading"><div><p className="business-eyebrow">ADMINISTRATION</p><h1 id="membership-review-title">Membership review</h1><p>Review applications and view approved member records.</p></div></header>
+    <header className="business-heading"><div><p className="business-eyebrow">{access.isAdmin ? "ADMINISTRATION" : "CLUB MANAGEMENT"}</p><h1 id="membership-review-title">Membership review</h1><p>Check applicant details, review applications and view approved member records.</p></div></header>
     <Notice>{error}</Notice><Notice type="success">{notice}</Notice>
     {!access.isAdmin && <div className="business-field"><label htmlFor="review-club">Club to review</label><select id="review-club" value={effectiveClub} onChange={(event) => { setClubId(event.target.value); setPage(1); }}>{access.assignments.map((row) => <option key={row.id} value={row.club_id}>{row.club_name}</option>)}</select></div>}
     <div className="business-tabs" role="group" aria-label="Membership status filter">
       {["pending", "approved", "rejected", "withdrawn", "ended"].map((item) => <button type="button" key={item} className={status === item ? "active" : ""} aria-pressed={status === item} onClick={() => { setStatus(item); setPage(1); }}>{statusLabel(item)}</button>)}
     </div>
     {loading ? <Loading message="Loading membership records…" /> : records.length === 0 ? <div className="business-card business-empty"><h2>No {status} records</h2><p>There are no membership records in this view.</p></div> : <div className="business-record-list">
-      {records.map((record) => <article className="business-card business-record" key={record.id}>
+      {records.map((record) => <article className="business-card business-record membership-review-record" key={record.id}>
         <div className="business-record-head"><div><p className="business-eyebrow">{record.club_name}</p><h2>{record.user_name}</h2><a href={`mailto:${record.user_email}`} className="business-link">{record.user_email}</a></div><span className={`business-status status-${record.status}`}>{statusLabel(record.status)}</span></div>
-        <dl className="business-details"><div><dt>Applied</dt><dd>{formatDate(record.applied_at)}</dd></div><div><dt>Reviewed</dt><dd>{formatDate(record.reviewed_at)}</dd></div></dl>
-        {record.message && <p className="business-note"><strong>Application:</strong> {record.message}</p>}
+        <dl className="business-details membership-applicant-details"><ApplicantContact record={record} /><div><dt>Applied</dt><dd>{formatDate(record.applied_at)}</dd></div><div><dt>Reviewed</dt><dd>{formatDate(record.reviewed_at)}</dd></div></dl>
+        <p className="business-note"><strong>Application:</strong> {record.message || "No application message provided."}</p>
         {record.review_note && <p className="business-note"><strong>Review note:</strong> {record.review_note}</p>}
         {record.status === "pending" && Number(record.user_id) !== Number(user.id) && <div className="business-actions"><Button type="button" disabled={busyId !== null} onClick={() => openDecision(record, "approved")}>Approve</Button><Button className="button-danger" type="button" disabled={busyId !== null} onClick={() => openDecision(record, "rejected")}>Reject</Button></div>}
         {record.status === "approved" && <div className="business-actions"><Button className="button-danger" disabled={busyId !== null} onClick={() => openDecision(record, "ended")}>End membership</Button></div>}
@@ -102,6 +110,8 @@ export default function MembershipReview() {
     {decision && <Modal title={decision.status === "ended" ? "End membership?" : decision.status === "rejected" ? "Reject application?" : "Approve application?"} subtitle={`${decision.record.user_name} · ${decision.record.club_name}`} onClose={() => setDecision(null)} busy={busyId !== null}>
       <form className="business-form" onSubmit={review}>
         <Notice>{error}</Notice>
+        <dl className="business-details membership-applicant-details"><ApplicantContact record={decision.record} /></dl>
+        {decision.record.message && <p className="business-note"><strong>Application:</strong> {decision.record.message}</p>}
         <div className="business-field"><label htmlFor="membership-review-note">{decision.status === "rejected" ? "Note for the applicant (optional)" : "Welcome note (optional)"}</label><textarea id="membership-review-note" maxLength={1000} value={reviewNote} disabled={busyId !== null} onChange={(event) => setReviewNote(event.target.value)} aria-describedby="membership-review-note-hint" /><span className="field-hint" id="membership-review-note-hint">{reviewNote.length}/1000 characters</span></div>
         <div className="business-actions"><Button type="button" className="button-secondary" disabled={busyId !== null} onClick={() => setDecision(null)}>Cancel</Button><Button type="submit" className={decision.status === "rejected" ? "button-danger" : "button-primary"} busy={busyId !== null}>{busyId !== null ? "Saving…" : decision.status === "ended" ? "End membership" : decision.status === "rejected" ? "Reject application" : "Approve application"}</Button></div>
       </form>

@@ -9,6 +9,7 @@ import ProfilePage from "./modules/authentication-users/ProfilePage.jsx";
 import UsersPage from "./modules/authentication-users/UsersPage.jsx";
 import Announcements from "./modules/announcements/index.jsx";
 import SportsClubs from "./modules/sports-clubs/index.jsx";
+import AdminClubs from "./modules/sports-clubs/AdminClubs.jsx";
 import TrainingAttendance from "./modules/training-attendance/index.jsx";
 import TournamentList from "./modules/tournaments/TournamentList.jsx";
 import TournamentDetails from "./modules/tournaments/TournamentDetails.jsx";
@@ -108,6 +109,8 @@ export default function App() {
             <Route path="/bookings/:bookingId/edit" element={<BookingEdit />} />
           </Route>
           <Route element={<ProtectedRoute admin />}>
+            <Route path="/admin/clubs" element={<AdminClubs />} />
+            <Route path="/admin/clubs/:clubId" element={<AdminClubs />} />
             <Route path="/admin/memberships" element={<MembershipReview />} />
             <Route path="/admin/bookings" element={<BookingReview />} />
             <Route path="/admin/coaches" element={<CoachAssignments />} />

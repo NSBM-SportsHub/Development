@@ -55,6 +55,15 @@ try {
     }
     $connection->exec('USE `' . $database . '`');
     $expected = [
+        'site_branding' => [
+            'id' => 'tinyint unsigned', 'cloud_name' => 'varchar(100)', 'public_id' => 'varchar(255)',
+            'version' => 'varchar(30)', 'logo_url' => 'varchar(1000)', 'updated_by' => 'bigint unsigned',
+            'created_at' => 'datetime', 'updated_at' => 'datetime',
+        ],
+        'user_profile_photos' => [
+            'user_id' => 'bigint unsigned', 'cloud_name' => 'varchar(100)', 'public_id' => 'varchar(255)',
+            'version' => 'varchar(30)', 'photo_url' => 'varchar(1000)', 'created_at' => 'datetime', 'updated_at' => 'datetime',
+        ],
         'notifications' => [
             'id' => 'bigint unsigned', 'recipient_id' => 'bigint unsigned', 'event_key' => 'varchar(190)',
             'type' => 'varchar(40)', 'title' => 'varchar(255)', 'message' => 'varchar(1000)',
@@ -161,6 +170,7 @@ try {
             }
         }
         $requiredUnique = match ($table) {
+            'user_profile_photos' => ['user_id'],
             'users' => ['id', 'email', 'student_id'],
             'auth_rate_limits' => ['key_hash'],
             'announcements' => ['announcement_id'],
@@ -173,6 +183,11 @@ try {
         }
         if ($table === 'notifications' && !in_array(['event_key', 'recipient_id'], $uniqueColumns, true)) {
             throw new RuntimeException('Existing notifications table requires a unique event_key/recipient_id index. Review it manually; no changes were applied to it.');
+        }
+        if ($table === 'user_profile_photos') {
+            $foreignKey = $connection->prepare("SELECT 1 FROM information_schema.KEY_COLUMN_USAGE WHERE TABLE_SCHEMA = ? AND TABLE_NAME = 'user_profile_photos' AND COLUMN_NAME = 'user_id' AND REFERENCED_TABLE_NAME = 'users' AND REFERENCED_COLUMN_NAME = 'id'");
+            $foreignKey->execute([$database]);
+            if (!$foreignKey->fetchColumn()) throw new RuntimeException('Existing user_profile_photos requires a foreign key to users.id. Review it manually; no changes were applied to it.');
         }
     }
 

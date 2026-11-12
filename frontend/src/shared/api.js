@@ -21,14 +21,15 @@ export function onUnauthorized(handler) {
 async function request(path, { method = "GET", body, signal, skipCsrf = false } = {}) {
   if (method !== "GET" && !skipCsrf && !csrfToken) await getSession();
   const headers = { Accept: "application/json" };
-  if (body !== undefined || method !== "GET") headers["Content-Type"] = "application/json";
+  const multipart = body instanceof FormData;
+  if (!multipart && (body !== undefined || method !== "GET")) headers["Content-Type"] = "application/json";
   if (method !== "GET" && csrfToken) headers["X-CSRF-Token"] = csrfToken;
 
   let response;
   try {
     response = await fetch(`${API_BASE}${path}`, {
       method, headers, credentials: "include", signal,
-      ...(body !== undefined || method !== "GET" ? { body: JSON.stringify(body ?? {}) } : {}),
+      ...(body !== undefined || method !== "GET" ? { body: multipart ? body : JSON.stringify(body ?? {}) } : {}),
     });
   } catch (error) {
     if (error.name === "AbortError") throw error;

@@ -3,11 +3,11 @@ import assert from 'node:assert/strict';
 // Membership applications, reviews and coach assignments through real sessions and the shared router.
 // Returns the seeded fixtures and a student factory for the competition suite.
 export async function testMemberships({ check, Client, admin, cli, suffix, password }) {
-  async function newStudent(label) {
+  async function newStudent(label, profile = {}) {
     const client = new Client();
     await client.session();
     const result = await client.request('/auth/register', {
-      method: 'POST', body: { name: `${label} ${suffix}`, email: `${label}-${suffix}@example.test`, password },
+      method: 'POST', body: { name: `${label} ${suffix}`, email: `${label}-${suffix}@example.test`, password, ...profile },
     });
     assert.equal(result.status, 201);
     client.id = result.data.user.id;
@@ -16,7 +16,8 @@ export async function testMemberships({ check, Client, admin, cli, suffix, passw
   }
   let fixtures;
   let clubs;
-  const alice = await newStudent('alice');
+  const aliceStudentId = `STU-${suffix}`;
+  const alice = await newStudent('alice', { student_id: aliceStudentId, phone: '+94771234567' });
   const bob = await newStudent('bob');
   const carol = await newStudent('carol');
   const dave = await newStudent('dave');
@@ -59,6 +60,8 @@ export async function testMemberships({ check, Client, admin, cli, suffix, passw
     assert.equal(applied.status, 201);
     assert.equal(applied.data.status, 'pending');
     assert.equal(applied.data.user_id, alice.id);
+    assert.equal(applied.data.user_student_id, aliceStudentId);
+    assert.equal(applied.data.user_phone, '+94771234567');
     assert.equal(applied.data.club_name, 'Badminton Club');
     aliceMembership = applied.data.id;
     const duplicate = await alice.request('/memberships', { method: 'POST', body: { club_id: clubs['Badminton Club'].id } });
@@ -108,16 +111,49 @@ export async function testMemberships({ check, Client, admin, cli, suffix, passw
     assert.deepEqual(listed.data.map((coach) => coach.user_id), [dave.id]);
   });
 
+  await check('Applicant contact details follow membership access and current profile values', async () => {
+    for (const actor of [alice, admin, dave]) {
+      const detail = await actor.request(`/memberships/${aliceMembership}`);
+      assert.equal(detail.status, 200);
+      assert.equal(detail.data.user_name, `alice ${suffix}`);
+      assert.equal(detail.data.user_email, alice.email);
+      assert.equal(detail.data.user_student_id, aliceStudentId);
+      assert.equal(detail.data.user_phone, '+94771234567');
+      const listing = await actor.request(`/memberships?user_id=${alice.id}`);
+      assert.equal(listing.status, 200);
+      assert.equal(listing.data.memberships.length, 1);
+      assert.equal(listing.data.memberships[0].user_student_id, aliceStudentId);
+      assert.equal(listing.data.memberships[0].user_phone, '+94771234567');
+      for (const key of ['password', 'password_hash', 'auth_version', 'deleted_at', 'active_flag']) {
+        assert.equal(Object.hasOwn(detail.data, key), false, `Private account field exposed: ${key}`);
+      }
+    }
+    const optional = (await bob.request('/memberships')).data.memberships[0];
+    assert.equal(optional.user_student_id, null);
+    assert.equal(optional.user_phone, null);
+    assert.equal((await carol.request(`/memberships/${aliceMembership}`)).status, 404);
+    assert.deepEqual((await carol.request(`/memberships?user_id=${alice.id}`)).data.memberships, []);
+    assert.equal((await new Client().request(`/memberships/${aliceMembership}`)).status, 401);
+    const profile = await alice.request('/users/me', { method: 'PATCH', body: { phone: '+94777654321' } });
+    assert.equal(profile.status, 200);
+    assert.equal((await admin.request(`/memberships/${aliceMembership}`)).data.user_phone, '+94777654321');
+    assert.equal((await dave.request(`/memberships?user_id=${alice.id}`)).data.memberships[0].user_phone, '+94777654321');
+  });
+
   await check('Coaches review their own clubs only and cannot review themselves', async () => {
     const chess = await carol.request('/memberships', { method: 'POST', body: { club_id: clubs['Chess Club'].id } });
     assert.equal(chess.status, 201);
     carolMembership = chess.data.id;
+    assert.equal((await dave.request(`/memberships/${carolMembership}`)).status, 404);
+    assert.deepEqual((await dave.request(`/memberships?club_id=${clubs['Chess Club'].id}`)).data.memberships, []);
     assert.equal((await dave.request(`/memberships/${carolMembership}`, { method: 'PATCH', body: { status: 'approved' } })).status, 404);
     assert.equal((await dave.request(`/memberships?club_id=${clubs['Badminton Club'].id}`)).data.pagination.total, 2);
     const approved = await dave.request(`/memberships/${aliceMembership}`, { method: 'PATCH', body: { status: 'approved', review_note: 'Welcome!' } });
     assert.equal(approved.status, 200);
     assert.equal(approved.data.status, 'approved');
     assert.equal(approved.data.reviewed_by, dave.id);
+    assert.equal(approved.data.user_student_id, aliceStudentId);
+    assert.equal(approved.data.user_phone, '+94777654321');
     assert.ok(approved.data.reviewed_at.endsWith('Z'));
     const self = await dave.request('/memberships', { method: 'POST', body: { club_id: clubs['Badminton Club'].id } });
     assert.equal(self.status, 201);
@@ -152,6 +188,7 @@ export async function testMemberships({ check, Client, admin, cli, suffix, passw
     assert.equal((await admin.request(`/club-coaches/${coachId}`, { method: 'DELETE' })).status, 204);
     assert.equal((await admin.request(`/club-coaches/${coachId}`, { method: 'DELETE' })).status, 404);
     assert.equal((await dave.request(`/memberships/${aliceMembership}`)).status, 404);
+    assert.deepEqual((await dave.request(`/memberships?user_id=${alice.id}`)).data.memberships, []);
     assert.equal((await dave.request('/memberships')).data.pagination.total, 2);
     assert.equal((await admin.request(`/memberships/${carolMembership}`, { method: 'PATCH', body: { status: 'approved' } })).status, 200);
   });

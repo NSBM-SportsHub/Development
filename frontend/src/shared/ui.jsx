@@ -1,4 +1,5 @@
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useState } from "react";
+import { useBranding } from "./BrandingContext.jsx";
 
 const paths = {
   user: <><path d="M20 21v-2a7 7 0 0 0-14 0v2" /><circle cx="13" cy="7" r="4" /></>,
@@ -15,19 +16,44 @@ const paths = {
   lock: <><rect x="4" y="10" width="16" height="11" rx="2" /><path d="M8 10V6a4 4 0 0 1 8 0v4m-4 5v2" /></>,
     trophy: <><path d="M8 21h8m-4-4v4M7 4h10v5a5 5 0 0 1-10 0V4Z" /><path d="M7 6H4v2a3 3 0 0 0 3 3m10-5h3v2a3 3 0 0 1-3 3" /></>,
   calendar: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M16 3v4M8 3v4M3 10h18" /></>,
+  clubs: <><path d="m3 9 9-6 9 6v12H3V9Zm6 12v-7h6v7M7 10h.01M17 10h.01" /></>,
+  join: <><circle cx="9" cy="7" r="4" /><path d="M2 21v-2a7 7 0 0 1 14 0v2m4-13v8m-4-4h8" /></>,
+  membership: <><rect x="3" y="4" width="18" height="16" rx="2" /><circle cx="8" cy="10" r="2" /><path d="M5 16a3 3 0 0 1 6 0m3-7h4m-4 5h4" /></>,
+  review: <><path d="M9 4H5v17h14V4h-4" /><rect x="9" y="2" width="6" height="4" rx="1" /><path d="m8 13 3 3 5-6" /></>,
+  'booking-review': <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4m8-4v4M3 10h18m-13 5 3 3 5-5" /></>,
+  coach: <><circle cx="12" cy="7" r="4" /><path d="M4 21v-2a8 8 0 0 1 16 0v2m-11-7 3 4 3-4m-3 4v3" /></>,
+  facility: <><path d="M3 21V8l9-5 9 5v13H3Zm5 0v-7h8v7M7 10h.01M12 8h.01M17 10h.01" /></>,
+  equipment: <><path d="m6 6 12 12M3 8l5-5m8 18 5-5M2 6l4-4m12 20 4-4M5 10l5-5m4 14 5-5" /></>,
+  'booking-new': <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4m8-4v4M3 10h18m-9 3v6m-3-3h6" /></>,
+  bookings: <><rect x="3" y="5" width="18" height="16" rx="2" /><path d="M8 3v4m8-4v4M3 10h18m-13 4h8m-8 4h5" /></>,
+  sport: <><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3a15 15 0 0 0 0 18m0-18a15 15 0 0 1 0 18M6 6l12 12M6 18 18 6" /></>,
+  announcement: <><path d="m4 9 15-5v16L4 15V9Zm0 0H2v6h2m3 1 2 5h4l-2-4m8-7h3" /></>,
+  bell: <><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9m-9 12a3 3 0 0 0 6 0" /></>,
+  activity: <><path d="M2 12h4l3-8 6 16 3-8h4" /></>,
+  report: <><path d="M3 3v18h18M7 16v-4m5 4V8m5 8V5" /></>,
+  more: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
 };
 
 export function Icon({ name, size = 20, ...props }) {
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>{paths[name] || paths.user}</svg>;
 }
 
+export function UniversityMark({ className = "" }) {
+  const { branding } = useBranding();
+  const [failedUrl, setFailedUrl] = useState(null);
+  const url = branding.university_logo_url;
+  const custom = url && url !== failedUrl;
+  return <span className={`brand-mark ${custom ? "brand-mark-custom" : ""} ${className}`} aria-hidden="true">{custom ? <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} /> : <>N<span>&#8599;</span></>}</span>;
+}
+
 export function Brand({ light = false }) {
-  return <div className={`brand ${light ? "brand-light" : ""}`}><span className="brand-mark" aria-hidden="true">N<span>↗</span></span><span><strong>NSBM <span>SportsHub</span></strong><small>GREEN UNIVERSITY</small></span></div>;
+  return <div className={`brand ${light ? "brand-light" : ""}`}><UniversityMark /><span><strong>NSBM <span>SportsHub</span></strong><small>GREEN UNIVERSITY</small></span></div>;
 }
 
 export function Avatar({ user, large = false }) {
+  const [failedPhoto, setFailedPhoto] = useState(null);
   const initials = user?.name?.trim().split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "U";
-  return <span className={`avatar ${large ? "avatar-large" : ""}`} aria-hidden="true">{initials}</span>;
+  return <span className={`avatar ${large ? "avatar-large" : ""}`} aria-hidden="true">{user?.photo_url && user.photo_url !== failedPhoto ? <img src={user.photo_url} alt="" referrerPolicy="no-referrer" onError={() => setFailedPhoto(user.photo_url)} style={{ width: "100%", height: "100%", objectFit: "cover", borderRadius: "inherit" }} /> : initials}</span>;
 }
 
 export function Field({ label, name, error, hint, children, ...props }) {
@@ -46,7 +72,7 @@ export function Button({ children, busy = false, className = "button-primary", .
 }
 
 export function Loading({ message = "Loading your workspace…" }) {
-  return <div className="loading-state" role="status"><span className="spinner" /><p>{message}</p></div>;
+  return <div className="loading-state" role="status"><UniversityMark className="loading-university-mark" /><span className="spinner" /><p>{message}</p></div>;
 }
 
 export function EmptyState({ icon = "search", title, children, action }) {

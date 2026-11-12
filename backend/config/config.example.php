@@ -21,5 +21,11 @@ return [
         'idle_seconds' => 7200,
         'absolute_seconds' => 43200,
     ],
+    'cloudinary' => [
+        'cloud_name' => '',
+        'api_key' => '',
+        'api_secret' => '',
+        'folder' => 'nsbm-sportshub/profiles',
+    ],
 ];
 
