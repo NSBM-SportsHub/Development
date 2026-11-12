@@ -1,0 +1,11 @@
+.profile-saved-details { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 22px; margin: 0 0 24px; }
+.profile-saved-details dt { font-size: 12px; color: #60766c; margin-bottom: 7px; }
+.profile-saved-details dd { font-size: 14px; margin: 0; overflow-wrap: anywhere; }
+.profile-edit-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.profile-security-summary { font-size: 13px; color: #60766c; line-height: 1.7; margin-bottom: 20px; }
+.profile-photo-editor { border: 1px solid #dce4de; border-radius: 8px; margin: 0 0 24px; padding: 16px; min-width: 0; display: grid; gap: 12px; }
+.profile-photo-editor legend { padding: 0 6px; font-size: 14px; font-weight: 600; }
+.profile-photo-editor p, .profile-photo-editor label { font-size: 12px; color: #60766c; line-height: 1.6; }
+.profile-photo-editor input[type="file"] { max-width: 100%; min-width: 0; }
+.profile-photo-preview { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; }
+@media (max-width: 650px) { .profile-saved-details { grid-template-columns: 1fr; } }

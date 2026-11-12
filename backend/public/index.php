@@ -26,12 +26,15 @@ try {
     }
     $routes = [
         '/api/health' => ['GET'],
+        '/api/branding' => ['GET'],
+        '/api/branding/logo' => ['POST', 'DELETE'],
         '/api/auth/session' => ['GET'],
         '/api/auth/register' => ['POST'],
         '/api/auth/login' => ['POST'],
         '/api/auth/logout' => ['POST'],
         '/api/users/me' => ['GET', 'PATCH'],
         '/api/users/me/password' => ['PATCH'],
+        '/api/users/me/photo' => ['POST', 'DELETE'],
         '/api/users' => ['GET', 'POST'],
         '/api/announcements' => ['GET', 'POST'],
         '/api/notifications' => ['GET'],
@@ -109,8 +112,32 @@ try {
         Database::get()->query('SELECT 1');
         Http::json(['status' => 'ok', 'database' => 'connected']);
     }
+    if ($path === '/api/branding') {
+        \SportsHub\Validation::allowed($_GET, []);
+        Http::json(\SportsHub\UniversityBrandingService::publicBranding());
+    }
     Session::start();
     Session::currentUser(); // Refresh the account status and session version on every request.
+    if ($path === '/api/branding/logo') {
+        $actor = Session::requireAdmin();
+        Session::verifyCsrf();
+        $branding = new \SportsHub\UniversityBrandingService();
+        if ($method === 'DELETE') {
+            \SportsHub\Validation::allowed(Http::body(), []);
+            Http::json($branding->remove($actor));
+        }
+        Http::json($branding->upload($actor, \SportsHub\ImageUpload::receive('logo')), 201);
+    }
+    if ($path === '/api/users/me/photo') {
+        $actor = Session::requireUser();
+        Session::verifyCsrf();
+        $photos = new \SportsHub\ProfilePhotoService();
+        if ($method === 'DELETE') {
+            \SportsHub\Validation::allowed(Http::body(), []);
+            Http::json($photos->remove($actor));
+        }
+        Http::json($photos->upload($actor, \SportsHub\ImageUpload::receive('photo')), 201);
+    }
     if ($path === '/api/notifications' || $notificationId !== null) {
         $actor = Session::requireUser();
         $body = [];

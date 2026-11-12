@@ -372,6 +372,17 @@ ENV;
         configurationError(inspectConfiguration(configurationFixture("SPORTSHUB_ENV=production\nSPORTSHUB_SESSION_SECURE=1\n"), ['SPORTSHUB_SESSION_SECURE' => '0']), 'Production requires secure');
     });
 
+    regression('Cloudinary private settings load from dotenv with process override and no environment mutation', function (): void {
+        $backend = configurationFixture("SPORTSHUB_CLOUDINARY_CLOUD_NAME=fixture-cloud\nSPORTSHUB_CLOUDINARY_API_KEY=12345\nSPORTSHUB_CLOUDINARY_API_SECRET=fixture-secret\nSPORTSHUB_CLOUDINARY_FOLDER=fixture/profiles\n");
+        $values = settings(inspectConfiguration($backend))['cloudinary'];
+        equal('fixture-cloud', $values['cloud_name'], 'Cloudinary cloud name was not loaded.');
+        equal('fixture-secret', $values['api_secret'], 'Cloudinary secret was not loaded.');
+        equal('fixture/profiles', $values['folder'], 'Cloudinary folder was not loaded.');
+        equal('process-secret', settings(inspectConfiguration($backend, ['SPORTSHUB_CLOUDINARY_API_SECRET' => 'process-secret']))['cloudinary']['api_secret'], 'Process secret did not override dotenv.');
+        equal('', settings(inspectConfiguration($backend, ['SPORTSHUB_CLOUDINARY_API_SECRET' => '']))['cloudinary']['api_secret'], 'Explicitly empty secret was ignored.');
+        equal('', settings(inspectConfiguration(configurationFixture()))['cloudinary']['api_secret'], 'Cloudinary should be optional.');
+    });
+
     regression('requireAppKey rejects missing and explicitly empty overriding keys', function (): void {
         configurationError(inspectConfiguration(configurationFixture(), [], 'key'), 'at least 32');
         $backend = configurationFixture("SPORTSHUB_APP_KEY=fixture-only-key-never-use-in-production-123456789\n");

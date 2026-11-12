@@ -8,6 +8,8 @@ import { fileURLToPath } from 'node:url';
 import { testCompetitions } from './competitions.mjs';
 import { testMemberships } from './memberships.mjs';
 import { testSportsTraining } from './sports-training.mjs';
+import { testClubOverview } from './club-overview.mjs';
+import { testProfilePhotos } from './profile-photos.mjs';
 import { testResourcesAndBookings } from './resources-bookings.mjs';
 import { testNotificationsReports } from './notifications-reports.mjs';
 import { testBookingConcurrency } from './booking-concurrency.mjs';
@@ -28,6 +30,9 @@ const env = {
   SPORTSHUB_APP_KEY: randomBytes(32).toString('hex'),
   SPORTSHUB_SESSION_PATH: sessionPath,
   SPORTSHUB_SESSION_SECURE: '0',
+  SPORTSHUB_CLOUDINARY_CLOUD_NAME: 'offline-tests-disabled',
+  SPORTSHUB_CLOUDINARY_API_KEY: 'disabled',
+  SPORTSHUB_CLOUDINARY_API_SECRET: 'disabled',
 };
 const adminEmail = `admin-${suffix}@example.test`;
 const adminPassword = `Admin!${randomBytes(18).toString('hex')}`;
@@ -82,14 +87,15 @@ class Client {
 
   async request(path, { method = 'GET', body, token = true, raw, headers = {} } = {}) {
     const requestHeaders = { ...headers };
+    const multipart = body instanceof FormData;
     if (this.cookie) requestHeaders.Cookie = this.cookie;
     if (!['GET', 'HEAD'].includes(method)) {
-      requestHeaders['Content-Type'] ??= 'application/json';
+      if (!multipart) requestHeaders['Content-Type'] ??= 'application/json';
       if (token && this.csrf) requestHeaders['X-CSRF-Token'] = this.csrf;
     }
     const response = await fetch(`${this.requestBase ?? base}${path}`, {
       method, headers: requestHeaders,
-      body: raw ?? (body === undefined ? (method === 'GET' ? undefined : '{}') : JSON.stringify(body)),
+      body: raw ?? (body === undefined ? (method === 'GET' ? undefined : '{}') : multipart ? body : JSON.stringify(body)),
       redirect: 'manual',
     });
     const cookies = response.headers.getSetCookie();
@@ -271,6 +277,8 @@ try {
   const membershipContext = await testMemberships({ check, Client, admin, cli, suffix, password });
   await testCompetitions({ check, Client, admin, ...membershipContext });
   await testSportsTraining({ check, Client, admin, ...membershipContext });
+  await testClubOverview({ check, Client, admin, ...membershipContext });
+  await testProfilePhotos({ check, Client, admin, cli, ...membershipContext });
   await testNotificationsReports({ check, Client, admin, password, ...membershipContext });
   await testBookingConcurrency({ check, Client, admin, php, root, env, ...membershipContext });
   await testApiOperations({ check, Client, admin, password, suffix, php, root, env, ...membershipContext });

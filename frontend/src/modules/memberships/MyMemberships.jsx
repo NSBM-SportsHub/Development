@@ -60,9 +60,9 @@ export default function MyMemberships() {
   }
 
   return <section className="business-page" aria-labelledby="my-memberships-title">
-    <header className="business-heading"><div><p className="business-eyebrow">YOUR ACCOUNT</p><h1 id="my-memberships-title">My memberships</h1><p>Applications and current or past club memberships.</p></div></header>
+    <header className="business-heading"><div><p className="business-eyebrow">YOUR ACCOUNT</p><h1 id="my-memberships-title">My memberships</h1><p>Applications and current or past club memberships.</p></div><Link className="button button-primary business-create" to="/memberships/apply">Apply for membership</Link></header>
     <Notice>{error}</Notice><Notice type="success">{notice}</Notice>
-    {loading ? <Loading message="Loading your memberships…" /> : records.length === 0 ? <div className="business-card business-empty"><h2>No memberships yet</h2><p>Your applications and club memberships will appear here.</p><Link className="business-link" to="/memberships/apply">Apply to join a club</Link></div> : <div className="business-record-list">
+    {loading ? <Loading message="Loading your memberships…" /> : records.length === 0 ? <div className="business-card business-empty"><h2>No memberships yet</h2><p>Your applications and club memberships will appear here. Choose Apply for membership to join a club.</p></div> : <div className="business-record-list">
       {records.map((record) => <article className="business-card business-record" key={record.id}>
         <div className="business-record-head"><div><p className="business-eyebrow">CLUB MEMBERSHIP</p><h2>{record.club_name}</h2></div><span className={`business-status status-${record.status}`}>{statusLabel(record.status)}</span></div>
         <dl className="business-details"><div><dt>Applied</dt><dd>{formatDate(record.applied_at)}</dd></div><div><dt>Updated</dt><dd>{formatDate(record.updated_at)}</dd></div></dl>

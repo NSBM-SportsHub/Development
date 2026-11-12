@@ -9,8 +9,8 @@ export async function testApiOperations({ check, Client, admin, newStudent, spor
   const checklist = readFileSync(resolve(root, 'docs/api-working-status-checklist.md'), 'utf8');
   const expected = [...checklist.matchAll(/^\| (GET|POST|PUT|PATCH|DELETE) \| ([^|]+)\|/gm)]
     .map((match) => `${match[1]} ${match[2].trim()}`);
-  assert.equal(expected.length, 83);
-  assert.equal(new Set(expected).size, 83);
+  assert.equal(expected.length, 89);
+  assert.equal(new Set(expected).size, expected.length);
   const observations = new Map();
   const evidencePath = resolve(root, '.artifacts', `api-operations-${suffix}`);
   mkdirSync(evidencePath, { recursive: true });
@@ -23,7 +23,8 @@ export async function testApiOperations({ check, Client, admin, newStudent, spor
       .replace(/\/[1-9][0-9]*(?=\/|$)/g, '/{id}');
   }
   function adminOnly(method, path) {
-    return (method === 'GET' && ['/api/users', '/api/users/{id}', '/api/reports/participation'].includes(path)) ||
+    if (method !== 'GET' && path === '/api/branding/logo') return true;
+    return (method === 'GET' && ['/api/users', '/api/users/{id}', '/api/reports/participation', '/api/clubs/{id}/overview'].includes(path)) ||
       (method !== 'GET' && (/^\/api\/(?:users(?:\/\{id\})?|clubs(?:\/\{id\}(?:\/archive)?)?|facilities(?:\/\{id\})?|equipment(?:\/\{id\})?|club-coaches(?:\/\{id\})?|tournaments(?:\/\{id\})?|announcements(?:\/\{uuid\})?)$/.test(path) ||
         /^\/api\/(?:tournaments\/\{id\}\/(?:matches|fixtures)|matches\/\{id\}(?:\/result)?)$/.test(path)));
   }
@@ -61,7 +62,7 @@ $db->exec('COMMIT');
     let data;
     try {
       await check(`Checklist ${key}`, async () => {
-        if (!key.includes(' /api/auth/') && key !== 'GET /api/health') {
+        if (!key.includes(' /api/auth/') && !['GET /api/health', 'GET /api/branding'].includes(key)) {
           assert.equal((await anonymous.request(path, { method, body })).status, 401, `Authentication: ${key}`);
           result.authentication = 'unauthenticated request rejected (401)';
         }
@@ -86,6 +87,7 @@ $db->exec('COMMIT');
   }
   try {
     await op(anonymous, 'GET', '/health', 200, undefined, (d) => assert.equal(d.database, 'connected'));
+    await op(anonymous, 'GET', '/branding', 200, undefined, (d) => assert.deepEqual(Object.keys(d).sort(), ['university_logo_url', 'updated_at']));
     const member = new Client();
     await op(member, 'GET', '/auth/session', 200, undefined, (d) => { assert.equal(d.user, null); assert.ok(d.csrf_token.length >= 32); });
     const email = `operations-member-${suffix}@example.test`;
@@ -94,9 +96,29 @@ $db->exec('COMMIT');
     });
     member.id = registration.user.id;
     studentActor = member;
+    const logo = new FormData();
+    logo.append('logo', new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64')], { type: 'image/png' }), 'logo.png');
+    await op(admin, 'POST', '/branding/logo', 503, logo);
+    observations.get('POST /api/branding/logo').result = 'NOT TESTED';
+    observations.get('POST /api/branding/logo').details = 'Live Cloudinary upload requires credentials. Offline checks verify safe configuration failure; success/persistence tested separately with an injected transport double.';
+    const seededBranding = spawnSync(php, ['backend/tests/university-branding.php', '--seed'], { cwd: root, env, encoding: 'utf8', windowsHide: true });
+    assert.equal(seededBranding.status, 0);
+    await op(admin, 'DELETE', '/branding/logo', 200, undefined, (d) => {
+      assert.equal(d.university_logo_url, null); persisted('site_branding', 1, 'logo_url', null);
+    });
     const login = new Client(); await login.session();
     await op(login, 'POST', '/auth/login', 200, { email, password }, (d) => assert.equal(d.user.id, member.id));
     await op(member, 'GET', '/users/me', 200, undefined, (d) => assert.equal(d.id, member.id));
+    const photo = new FormData();
+    photo.append('photo', new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64')], { type: 'image/png' }), 'photo.png');
+    await op(member, 'POST', '/users/me/photo', 503, photo);
+    observations.get('POST /api/users/me/photo').result = 'NOT TESTED';
+    observations.get('POST /api/users/me/photo').details = 'Cloudinary credentials intentionally absent in offline regression. Authentication, CSRF and safe 503 checked; live provider upload still requires credentials. Service/database success tested separately with a transport double.';
+    const seededPhoto = spawnSync(php, ['backend/tests/profile-photos.php', `--seed-user=${member.id}`], { cwd: root, env, encoding: 'utf8', windowsHide: true });
+    assert.equal(seededPhoto.status, 0);
+    await op(member, 'DELETE', '/users/me/photo', 200, undefined, (d) => {
+      assert.equal(d.photo_url, null); persisted('user_profile_photos', member.id, 'photo_url', false, 'user_id');
+    });
     await op(member, 'PATCH', '/users/me', 200, { phone: '+94770000000' }, (d) => {
       assert.equal(d.phone, '+94770000000'); persisted('users', member.id, 'phone', '+94770000000');
     });
@@ -153,6 +175,13 @@ $db->exec('COMMIT');
     await op(coach, 'PATCH', `/training-sessions/${session.id}`, 200, { notes: 'PATCH training notes' }, () => persisted('training_sessions', session.id, 'notes', 'PATCH training notes'));
     const attendance = await op(coach, 'POST', '/attendance', 201, { session_id: session.id, participant_id: member.id, status: 'present' },
       (d) => persisted('training_attendance', d.id, 'participant_id', member.id));
+    await op(admin, 'GET', `/clubs/${club.id}/overview`, 200, undefined, (d) => {
+      assert.equal(d.club.id, club.id); assert.equal(d.summary.members, 2); assert.equal(d.summary.coaches, 1);
+      assert.equal(d.summary.attendance_recorded, 1);
+      assert.equal(d.members.records.find((r) => r.user_id === member.id).present, 1);
+      assert.equal(d.coaches.records[0].membership_reviews, 2);
+      assert.ok(d.activity.records.some((r) => r.type === 'attendance' && r.user_id === member.id));
+    });
     await op(member, 'GET', '/attendance', 200, undefined, (d) => assert.ok(d.some((a) => a.id === attendance.id)));
     await op(member, 'GET', `/attendance/${attendance.id}`, 200, undefined, (d) => assert.equal(d.participant_id, member.id));
     const facility = await op(admin, 'POST', '/facilities', 201, { name: 'Operations Court', capacity: 10 }, (d) => persisted('facilities', d.id, 'capacity', 10));
@@ -245,10 +274,10 @@ $db->exec('COMMIT');
     });
   } finally {
     const operations = expected.map((operation) => observations.get(operation) ?? { operation, result: 'NOT TESTED', details: 'Execution stopped before this operation.' });
-    writeFileSync(resolve(evidencePath, 'results.json'), JSON.stringify({ total: 83, operations }, null, 2) + '\n');
+    writeFileSync(resolve(evidencePath, 'results.json'), JSON.stringify({ total: expected.length, operations }, null, 2) + '\n');
     const rows = operations.map((r) => `| ${r.operation} | ${r.expected_status ?? '-'} | ${r.actual_status ?? '-'} | ${r.result} | ${(r.details ?? '').replaceAll('|', '\\|').replaceAll('\n', ' ')} |`);
     writeFileSync(resolve(evidencePath, 'results.md'), '| Operation | Expected | Actual | Result | Details |\n| --- | --- | --- | --- | --- |\n' + rows.join('\n') + '\n');
-    console.log(`83-operation evidence: ${evidencePath}`);
+    console.log(`${expected.length}-operation evidence: ${evidencePath}`);
   }
-  assert.equal(observations.size, 83, 'Every checklist operation must be executed.');
+  assert.equal(observations.size, expected.length, 'Every checklist operation must be executed.');
 }

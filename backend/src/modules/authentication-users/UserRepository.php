@@ -24,6 +24,8 @@ final class UserRepository
 
     public static function publicUser(array $user): array
     {
+        $photo = Database::get()->prepare('SELECT photo_url FROM user_profile_photos WHERE user_id = ?');
+        $photo->execute([(int) $user['id']]);
         return [
             'id' => (int) $user['id'],
             'name' => $user['name'],
@@ -32,6 +34,7 @@ final class UserRepository
             'status' => $user['status'],
             'phone' => $user['phone'],
             'student_id' => $user['student_id'],
+            'photo_url' => $photo->fetchColumn() ?: null,
             'created_at' => self::timestamp($user['created_at']),
             'updated_at' => self::timestamp($user['updated_at']),
         ];

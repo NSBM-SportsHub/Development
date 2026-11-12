@@ -1,0 +1,31 @@
+.club-management { min-width: 0; }
+.club-management > .business-link { display: inline-block; margin-bottom: 20px; }
+.club-management-summary, .club-management > .business-actions { margin-bottom: 20px; }
+.club-management-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(100%, 300px), 1fr)); gap: 20px; }
+.club-management-card { display: flex; flex-direction: column; gap: 12px; color: inherit; text-decoration: none; transition: border-color .15s, transform .15s; }
+.club-management-card:hover { border-color: var(--green, #16654c); transform: translateY(-2px); }
+.club-management-card h2, .club-management-card p { margin: 0; }
+.club-management-card p { flex: 1; }
+.club-management-open { color: var(--green, #16654c); font-weight: 600; }
+.club-management-counts, .club-person-stats, .club-person-contact { display: flex; flex-wrap: wrap; gap: 16px 28px; margin: 12px 0; }
+.club-management-counts dt, .club-management-summary dt, .club-person-stats dt, .club-person-contact dt { font-size: .82rem; color: #56655e; }
+.club-management dd { margin: 4px 0 0; }
+.club-management-counts dd, .club-management-summary dd { font-size: 1.8rem; font-weight: 700; color: #16654c; }
+.club-management-summary { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; margin: 0; }
+.club-management-summary .business-card { padding: 18px; }
+.club-management-tabs, .club-management-pager, .club-activity-filter { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; }
+.club-management-tabs { border-bottom: 1px solid #dce6de; padding: 10px 0 18px; }
+.club-management-section > h2 { margin-bottom: 8px; }
+.club-management-section > p { color: #56655e; line-height: 1.6; margin-bottom: 20px; }
+.club-person-record h3, .club-activity-record h3 { margin: 0; font-size: 1.15rem; }
+.club-person-contact > div { flex: 1 1 170px; min-width: 0; }
+.club-person-contact dd, .club-management h1, .club-management h2, .club-management h3, .club-management p { overflow-wrap: anywhere; }
+.club-person-contact a { color: #16654c; }
+.club-person-stats dd { font-size: 1.2rem; font-weight: 600; }
+.club-management-pager { margin-top: 20px; justify-content: center; }
+.club-activity-filter { justify-content: space-between; margin-bottom: 20px; }
+@media (max-width: 600px) {
+  .club-management .business-record-head { flex-wrap: wrap; }
+  .club-management-tabs .button { flex: 1 1 auto; }
+  .club-person-record .button { white-space: normal; text-align: left; }
+}

@@ -37,6 +37,7 @@ Membership object:
 {
   "id": 7, "club_id": 2, "club_name": "Badminton Club",
   "user_id": 15, "user_name": "Alice Perera", "user_email": "alice@example.com",
+  "user_student_id": "STU-2026-0015", "user_phone": "+94771234567",
   "status": "approved", "message": "I play doubles.", "review_note": "Welcome!",
   "reviewed_by": 4, "reviewed_at": "2026-10-30T09:12:00Z",
   "ended_by": null, "ended_at": null,
@@ -46,10 +47,14 @@ Membership object:
 
 Coach assignment: `{"id", "club_id", "club_name", "sport_id", "user_id", "user_name", "assigned_at"}`.
 
+Membership responses include the applicant's current name, email, student ID and phone from their account profile. `user_student_id` and `user_phone` are nullable; reviewers see "Not provided" for missing values. These fields use the same membership access rules: the applicant can read their own record, Admins can read all records, and active Coaches can read records for their assigned clubs. No extra user-directory access or schema change is required. Passwords and internal account/session fields are never included.
+
 ## UI notes
 
+- **Navigation:** open **More → My memberships**, then use **Apply for membership** on that page. The button remains available with an empty list or existing memberships. The application page links back to My memberships; Apply is no longer a separate menu item.
 - **Apply:** `api.post('/memberships', {club_id, message})`. Show 409 `duplicate_application` as "already applied".
 - **My memberships:** `api.get('/memberships')`.
 - **Review queue:** `api.get('/memberships?status=pending&club_id=...')`. Show it to Admins, and to coaches when `GET /club-coaches?user_id=<me>` returns rows.
+- **Applicant details:** show name, student ID, email, phone, application message and dates on review cards. Student ID/phone and the application message remain visible in the decision dialog before confirmation. Profile changes appear on the next membership read.
 - **Approve or reject:** `api.patch('/memberships/{id}', {status: 'approved', review_note})`.
 - **Member count for a club:** `GET /memberships?club_id=...&status=approved`, then read `pagination.total`. Only reviewers see other users' rows; for a public count, the clubs API should return it.

@@ -11,7 +11,8 @@ final class MembershipService
 {
     public const STATUSES = ['pending', 'approved', 'rejected', 'withdrawn', 'ended'];
     private const OPEN_CLUB_STATUSES = ['active', 'recruiting'];
-    private const SELECT = 'SELECT m.*, c.name AS club_name, c.sport_id, u.name AS user_name, u.email AS user_email
+    private const SELECT = 'SELECT m.*, c.name AS club_name, c.sport_id, u.name AS user_name, u.email AS user_email,
+            u.student_id AS user_student_id, u.phone AS user_phone
         FROM memberships m
         JOIN clubs c ON c.id = m.club_id
         JOIN users u ON u.id = m.user_id';
@@ -251,6 +252,8 @@ final class MembershipService
             'user_id' => (int) $row['user_id'],
             'user_name' => $row['user_name'],
             'user_email' => $row['user_email'],
+            'user_student_id' => $row['user_student_id'],
+            'user_phone' => $row['user_phone'],
             'status' => $row['status'],
             'message' => $row['message'],
             'review_note' => $row['review_note'],

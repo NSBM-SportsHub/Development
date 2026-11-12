@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { api } from "../../shared/api.js";
 import { Button, Notice } from "../../shared/ui.jsx";
 
@@ -64,7 +65,7 @@ export default function MembershipApplication() {
   }
 
   return <section className="business-page" aria-labelledby="membership-apply-title">
-    <header className="business-heading"><div><p className="business-eyebrow">MEMBERSHIPS</p><h1 id="membership-apply-title">Apply to join a club</h1><p>Submit an application and check its progress in My memberships.</p></div></header>
+    <header className="business-heading"><div><p className="business-eyebrow">MEMBERSHIPS</p><h1 id="membership-apply-title">Apply to join a club</h1><p>Submit an application and check its progress in My memberships.</p></div><Link className="button button-secondary business-create" to="/memberships/mine">My memberships</Link></header>
     <form className="business-card business-form" onSubmit={submit} noValidate>
       <Notice>{error}</Notice><Notice type="success">{success}</Notice>
       <div className="business-field">

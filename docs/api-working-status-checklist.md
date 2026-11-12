@@ -17,13 +17,16 @@ Use test records. Create/edit/cancel only records prepared for this check. The a
 
 The paths below include `/api`; locally the backend address is `http://127.0.0.1:8000`. Replace `{id}` with a real record ID and `{uuid}` with an announcement's ID. A coach uses a normal account with an active club assignment. **Signed in** means an authenticated account; permissions may limit which records it can see.
 
-Each row is one method + path. There are **83 API operations**; PUT and PATCH are listed separately where both are supported. All results start as **Not checked** for this teammate's review. This checklist does not claim the reviewer has already tested them.
+Each row is one method + path. There are **89 API operations** (the original 83, the Admin club overview, profile photo upload/removal, and university branding); PUT and PATCH are listed separately where both are supported. Image uploads require configured Cloudinary credentials. All results start as **Not checked** for this teammate's review. This checklist does not claim the reviewer has already tested them.
 
 ## Login and connection
 
 | Method | API path | Purpose | Who can use it | Working condition / expected result | Result | Notes |
 | --- | --- | --- | --- | --- | --- | --- |
 | GET | /api/health | Check the server/database | Anyone | Database is running; response says connected | Not checked | |
+| GET | /api/branding | Read the public university logo | Anyone | Returns the saved logo URL or the default-logo state, without private upload settings | Not checked | |
+| POST | /api/branding/logo | Upload/replace university logo | Admin | Valid multipart logo saves and becomes shared website branding | Not checked | Requires Cloudinary credentials |
+| DELETE | /api/branding/logo | Restore default website logo | Admin | Saved logo is removed from branding; other accounts cannot make changes | Not checked | |
 | GET | /api/auth/session | Check sign-in state | Anyone | Returns current user or no user, plus a request token | Not checked | |
 | POST | /api/auth/register | Create a Student account | Anyone | Valid unused email and valid password create an account | Not checked | |
 | POST | /api/auth/login | Sign in | Anyone | Correct active-account email/password signs in; incorrect details are rejected | Not checked | |
@@ -36,6 +39,8 @@ Each row is one method + path. There are **83 API operations**; PUT and PATCH ar
 | GET | /api/users/me | Read own profile | Signed in | Returns the signed-in account | Not checked | |
 | PATCH | /api/users/me | Update own profile | Signed in | Valid changes save; changing email requires current password | Not checked | |
 | PATCH | /api/users/me/password | Change own password | Signed in | Correct current password and valid new password save successfully | Not checked | |
+| POST | /api/users/me/photo | Upload/replace own photo | Signed in | Valid multipart photo uploads to Cloudinary and persists for the signed-in user | Not checked | Requires Cloudinary credentials; JPEG/PNG/WebP up to 5 MB |
+| DELETE | /api/users/me/photo | Remove own photo | Signed in | Own photo reference is removed; initials return | Not checked | |
 | GET | /api/users | View/search accounts | Admin | Returns matching accounts with paging | Not checked | |
 | POST | /api/users | Create an account | Admin | Valid unused details create the requested account | Not checked | |
 | GET | /api/users/{id} | Read an account | Admin | Existing visible account is returned | Not checked | |
@@ -51,6 +56,7 @@ Each row is one method + path. There are **83 API operations**; PUT and PATCH ar
 | GET | /api/clubs | Browse/search clubs | Signed in | Returns visible clubs matching the filters | Not checked | |
 | POST | /api/clubs | Create a club | Admin | Valid name and sport create a club | Not checked | |
 | GET | /api/clubs/{id} | Read a club | Signed in | Existing visible club details are returned | Not checked | |
+| GET | /api/clubs/{id}/overview | View club members, coaches and activity | Admin | Accurate counts, contact details and paged club-scoped records; other roles rejected | Not checked | |
 | PUT | /api/clubs/{id} | Update a club | Admin | Valid club changes save | Not checked | |
 | PATCH | /api/clubs/{id} | Update a club | Admin | Valid club changes save | Not checked | |
 | DELETE | /api/clubs/{id} | Archive a club | Admin | Club is archived; linked history remains | Not checked | |
@@ -164,7 +170,7 @@ Each row is one method + path. There are **83 API operations**; PUT and PATCH ar
 
 ## Simple completion summary
 
-Working: ___ / 83 | Not working: ___ / 83 | Not checked: ___ / 83
+Working: ___ / 89 | Not working: ___ / 89 | Not checked: ___ / 89
 
 For each problem, record: **API, action attempted, expected result, actual result, screenshot if useful**. A deliberately rejected invalid request or unauthorized action can be a correct result; an empty list can also be correct when there are no matching records.
 
