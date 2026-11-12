@@ -136,7 +136,7 @@ try {
     await adminPage.keyboard.press('Tab');
     await adminPage.keyboard.press('Tab');
     for (let index = 0; index < await links.count(); index++) await adminPage.keyboard.press('Tab');
-    assert.equal(await adminPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Notifications');
+    assert.equal(await adminPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Announcements');
     assert.ok(await adminPage.locator('.side-nav').evaluate((element) => element.scrollTop > 0), 'Lower menu items are not reachable');
     await adminPage.keyboard.press('Tab');
     assert.equal(await adminPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'More');
@@ -161,7 +161,7 @@ try {
     await visit(adminPage, '/profile');
     await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     const adminNav = adminPage.getByRole('navigation', { name: 'Workspace', exact: true });
-    for (const name of ['My profile', 'User management', 'Clubs', 'Membership review', 'Booking review', 'Tournaments', 'Training and attendance', 'Announcements', 'Notifications']) {
+    for (const name of ['My profile', 'User management', 'Clubs', 'Membership review', 'Booking review', 'Tournaments', 'Training and attendance', 'Announcements']) {
       assert.equal(await adminNav.getByRole('link', { name, exact: true }).count(), 1, 'Primary link moved into More: ' + name);
     }
     for (const name of ['Coach assignments', 'Facilities', 'Equipment', 'Apply for membership', 'My memberships', 'My participation history', 'Participation reports']) {
@@ -196,8 +196,8 @@ try {
     await visit(studentPage, '/profile');
     await studentPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     const studentNav = studentPage.getByRole('navigation', { name: 'Workspace', exact: true });
-    assert.equal(await studentNav.getByRole('link').count(), 7);
-    for (const name of ['Sports clubs', 'Training and attendance', 'Tournaments', 'Announcements', 'Notifications', 'My bookings']) assert.equal(await studentNav.getByRole('link', { name, exact: true }).count(), 1);
+    assert.equal(await studentNav.getByRole('link').count(), 6);
+    for (const name of ['Sports clubs', 'Training and attendance', 'Tournaments', 'Announcements', 'My bookings']) assert.equal(await studentNav.getByRole('link', { name, exact: true }).count(), 1);
     await studentNav.getByRole('button', { name: 'More', exact: true }).click();
     let studentDialog = studentPage.getByRole('dialog', { name: 'More tools', exact: true });
     await studentDialog.waitFor();
