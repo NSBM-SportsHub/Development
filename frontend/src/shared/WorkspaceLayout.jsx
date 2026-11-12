@@ -65,7 +65,6 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
           {role !== "admin" && <WorkspaceLink to="/sports-clubs" icon="sport">Sports clubs</WorkspaceLink>}
           <WorkspaceLink to="/training-attendance" icon="calendar">Training and attendance</WorkspaceLink>
           <WorkspaceLink to="/announcements" icon="announcement">Announcements</WorkspaceLink>
-          <WorkspaceLink to="/notifications" icon="bell">Notifications</WorkspaceLink>
           <button type="button" className={`sidebar-more-trigger${moreActive ? " active" : ""}`} aria-label="More" title="More" aria-haspopup="dialog" aria-expanded={moreState !== "closed"} aria-controls={moreState !== "closed" ? "workspace-more-menu" : undefined} onClick={() => setMoreState("open")}><Icon name="more" /><span className="sidebar-link-label">More</span></button>
         </nav>
         <div className="sidebar-account">
@@ -93,7 +92,10 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
       <div className="workspace">
         <header className="topbar">
           <div className="breadcrumb"><Link to="/profile">Workspace</Link><span>/</span><strong>{sectionName}</strong></div>
-          <span className="session-label"><span /> Signed in</span>
+          <div className="topbar-actions">
+            <NavLink to="/notifications" className={({ isActive }) => `notification-button${isActive ? " active" : ""}`} aria-label="Notifications" title="Notifications"><Icon name="bell" /></NavLink>
+            <span className="session-label"><span /> Signed in</span>
+          </div>
         </header>
         <main id="main-content" className="main-content">
           {error && <div className="notice notice-error" role="alert">{error} You are still signed in. Try signing out again.</div>}
