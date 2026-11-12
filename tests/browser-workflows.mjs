@@ -98,7 +98,13 @@ try {
     await adminPage.mouse.move(800, 300);
     await adminPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width <= 81);
     const links = adminPage.getByRole('navigation', { name: 'Workspace', exact: true }).getByRole('link');
-    assert.equal(await links.count(), 9, 'Admin sidebar should retain only primary links');
+    assert.equal(await links.count(), 8, 'Admin sidebar should retain only primary links');
+    const notificationButton = adminPage.getByRole('link', { name: 'Notifications', exact: true });
+    assert.equal(await notificationButton.count(), 1);
+    await notificationButton.click();
+    await adminPage.getByRole('heading', { name: 'Notifications', exact: true }).waitFor();
+    assert.match(await notificationButton.getAttribute('class'), /\bactive\b/);
+    await visit(adminPage, '/profile');
     for (const link of await links.all()) {
       assert.equal(await link.locator('svg').count(), 1);
       assert.ok(await link.getAttribute('aria-label'));
