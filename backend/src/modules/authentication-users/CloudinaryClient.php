@@ -26,6 +26,11 @@ final class CloudinaryClient
         return $this->uploadImage($path, $mime, 'university-logo', 'c_limit,h_512,w_1024');
     }
 
+    public function uploadBanner(string $path, string $mime, int $promotionId): array
+    {
+        return $this->uploadImage($path, $mime, 'events/' . $promotionId, 'c_limit,h_1200,w_2000');
+    }
+
     private function uploadImage(string $path, string $mime, string $scope, string $transformation): array
     {
         $settings = $this->configured();

@@ -29,6 +29,7 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
       ...(role === "student" ? [{ to: "/bookings/new", icon: "booking-new", label: "Request a booking", description: "Reserve a facility or equipment." }] : []),
     ] },
     ...(role === "admin" ? [{ title: "Club management", links: [
+      { to: "/admin/promotions", icon: "announcement", label: "Home page promotions", description: "Publish event banners and campus activities." },
       { to: "/admin/coaches", icon: "coach", label: "Coach assignments", description: "Assign coaches and manage club access." },
       { to: "/sports-clubs", icon: "sport", label: "Sports clubs", description: "Browse club information and edit clubs." },
     ] }] : []),
@@ -40,7 +41,7 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
   const moreActive = location.pathname === "/memberships/apply" || moreGroups.some((group) => group.links.some((link) => location.pathname === link.to || location.pathname.startsWith(link.to + "/")));
   const sectionNames = { "/memberships/apply": "Apply for membership", "/memberships/mine": "My memberships", "/admin/memberships": "Membership review", "/facilities": "Facilities", "/equipment": "Equipment", "/bookings/new": "Request a booking", "/bookings/mine": "My bookings", "/announcements": "Announcements" };
   Object.assign(sectionNames, { "/admin/bookings": "Booking review", "/admin/coaches": "Coach assignments", "/memberships/review": "Club membership review", "/notifications": "Notifications", "/participation": "My participation history", "/admin/reports": "Participation reports" });
-  const sectionName = sectionNames[location.pathname] || (location.pathname.startsWith("/admin/clubs") ? "Club management" : location.pathname.startsWith("/sports-clubs") ? "Sports clubs" : location.pathname.startsWith("/training-attendance") ? "Training and attendance" : location.pathname.startsWith("/bookings/") ? "Bookings" : location.pathname.startsWith("/admin")
+  const sectionName = sectionNames[location.pathname] || (location.pathname === "/admin/promotions" ? "Home page promotions" : location.pathname.startsWith("/admin/clubs") ? "Club management" : location.pathname.startsWith("/sports-clubs") ? "Sports clubs" : location.pathname.startsWith("/training-attendance") ? "Training and attendance" : location.pathname.startsWith("/bookings/") ? "Bookings" : location.pathname.startsWith("/admin")
     ? "User management"
     : location.pathname.startsWith("/tournaments")
       ? "Tournaments"
@@ -50,10 +51,9 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
     <div className={`app-shell ${role}-workspace compact-navigation`}>
       <a href="#main-content" className="skip-link">Skip to content</a>
       <aside className="sidebar">
-        <NavLink to="/profile" className="brand-link" aria-label="NSBM SportsHub home"><Brand /></NavLink>
+        <NavLink to="/" className="brand-link" aria-label="NSBM SportsHub home"><Brand /></NavLink>
         <div className="sidebar-section-label">YOUR WORKSPACE</div>
         <nav className="side-nav" aria-label="Workspace">
-          <WorkspaceLink to="/profile" icon="user">My profile</WorkspaceLink>
           {role === "admin" && <WorkspaceLink to="/admin/users" icon="users">User management</WorkspaceLink>}
           {role === "admin" && <WorkspaceLink to="/admin/clubs" icon="clubs">Clubs</WorkspaceLink>}
           {role === "admin" && <><WorkspaceLink to="/admin/memberships" icon="review">Membership review</WorkspaceLink><WorkspaceLink to="/admin/bookings" icon="booking-review">Booking review</WorkspaceLink></>}
@@ -68,7 +68,7 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
           <button type="button" className={`sidebar-more-trigger${moreActive ? " active" : ""}`} aria-label="More" title="More" aria-haspopup="dialog" aria-expanded={moreState !== "closed"} aria-controls={moreState !== "closed" ? "workspace-more-menu" : undefined} onClick={() => setMoreState("open")}><Icon name="more" /><span className="sidebar-link-label">More</span></button>
         </nav>
         <div className="sidebar-account">
-          <Avatar user={user} />
+          <NavLink to="/profile" className="sidebar-profile-link" aria-label="Open my profile" title="Open my profile"><Avatar user={user} /></NavLink>
           <div><strong>{user.name}</strong><span>{role === "admin" ? "Administrator" : "Student"}</span></div>
           <button
             type="button"

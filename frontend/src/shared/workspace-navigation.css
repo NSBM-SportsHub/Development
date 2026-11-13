@@ -1,7 +1,13 @@
 .sidebar-signout-label { display: none; }
+.sidebar-profile-link { display: inline-flex; align-items: center; justify-content: center; flex-shrink: 0; border-radius: 50%; text-decoration: none; transition: box-shadow 160ms ease, transform 160ms ease; }
+.sidebar-profile-link:hover { box-shadow: 0 0 0 3px #dbe9ce; }
+.sidebar-profile-link.active { background: var(--green); box-shadow: 0 0 0 3px var(--green); }
+.sidebar-profile-link:hover { transform: translateY(-1px); }
+.sidebar-profile-link:focus-visible { outline: 3px solid #68ab88; outline-offset: 4px; }
 .compact-navigation .side-nav .sidebar-more-trigger { display: flex; align-items: center; gap: 12px; min-height: 45px; padding: 12px 13px; border: 0; background: transparent; border-radius: 7px; font-size: 12px; font-weight: 500; color: #6b7a70; text-align: left; }
 .compact-navigation .side-nav .sidebar-more-trigger:hover { background: #f5f8f3; color: var(--green); }
-.compact-navigation .side-nav .sidebar-more-trigger.active { background: #eaf1e5; color: var(--green); font-weight: 650; }
+.compact-navigation .side-nav a.active,
+.compact-navigation .side-nav .sidebar-more-trigger.active { background: var(--green); color: #fff; font-weight: 650; border-color: var(--green); }
 
 @media (min-width: 651px) {
   .compact-navigation .sidebar {
@@ -65,7 +71,8 @@
     margin-top: 12px;
     min-height: 108px;
   }
-  .compact-navigation .sidebar-account > .avatar { width: 32px; height: 32px; }
+  .compact-navigation .sidebar-account > .sidebar-profile-link,
+  .compact-navigation .sidebar-account > .sidebar-profile-link .avatar { width: 32px; height: 32px; }
   .compact-navigation .sidebar-account > div { display: block; }
   .compact-navigation .sidebar-account strong { max-width: 155px; }
   .compact-navigation .sidebar-account .icon-button {
@@ -96,6 +103,9 @@
 .workspace-more-group > div { display: grid; gap: 8px; }
 .workspace-more-link { display: flex; align-items: center; gap: 12px; padding: 13px 12px; border: 1px solid #e4ece5; border-radius: 13px; background: white; color: #203f30; min-width: 0; text-decoration: none; transition: background 160ms ease, border-color 160ms ease, transform 160ms ease; }
 .workspace-more-link:hover, .workspace-more-link.active { background: #edf6ef; border-color: #b9d7c3; color: #174f38; text-decoration: none; }
+.workspace-more-link.active { background: var(--green); border-color: var(--green); color: #fff; }
+.workspace-more-link.active small { color: #e3efdf; }
+.workspace-more-link.active .workspace-more-icon { background: #ffffff1f; color: #fff; }
 .workspace-more-link:hover { transform: translateY(-2px); }
 .workspace-more-icon { width: 42px; height: 42px; flex: 0 0 42px; display: grid; place-items: center; border-radius: 12px; background: #eef5ec; color: #387456; }
 .workspace-more-link > span:nth-child(2) { min-width: 0; flex: 1; }
@@ -111,9 +121,14 @@
 @keyframes workspace-more-open { from { opacity: 0; transform: translateY(18px) scale(.96); } to { opacity: 1; transform: translateY(0) scale(1); } }
 @keyframes workspace-more-close { to { opacity: 0; transform: translateY(8px) scale(.98); } }
 @media (max-width: 650px) {
+  .sidebar-account > .sidebar-profile-link { width: 44px; height: 44px; }
+  .sidebar-account > .sidebar-profile-link .avatar { width: 30px; height: 30px; font-size: 10px; }
   .compact-navigation .side-nav .sidebar-more-trigger { flex-shrink: 0; padding: 11px 0 14px; min-height: 0; font-size: 11px; gap: 8px; background: transparent; border-radius: 0; border-bottom: 2px solid transparent; white-space: nowrap; }
   .compact-navigation .side-nav .sidebar-more-trigger svg { width: 17px; height: 17px; }
-  .compact-navigation .side-nav .sidebar-more-trigger.active { border-bottom-color: var(--green); background: transparent; }
+  .compact-navigation .side-nav { gap: 8px; }
+  .compact-navigation .side-nav a,
+  .compact-navigation .side-nav .sidebar-more-trigger { min-height: 40px; padding: 8px 11px; margin: 3px 0 5px; border-radius: 9px; }
+  .compact-navigation .side-nav .sidebar-more-trigger.active { background: var(--green); color: #fff; border-color: var(--green); }
   .workspace-more-layer .modal-backdrop { padding: 12px; }
   .workspace-more-layer .modal { padding: 22px 18px; border-radius: 20px; max-height: calc(100dvh - 24px); }
   .workspace-more-groups { grid-template-columns: 1fr; gap: 22px; }

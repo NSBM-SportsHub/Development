@@ -31,6 +31,8 @@ import BookingEdit from "./modules/bookings/BookingEdit.jsx";
 import CoachAssignments from "./modules/memberships/CoachAssignments.jsx";
 import NotificationsPage from "./modules/notifications/NotificationsPage.jsx";
 import ParticipationPage from "./modules/reports/ParticipationPage.jsx";
+import HomePage, { EventDetailsPage } from "./modules/events/HomePage.jsx";
+import PromotionsPage from "./modules/events/PromotionsPage.jsx";
 
 function ProtectedRoute({ admin = false, student = false }) {
   const { user, loading, sessionError, reloadSession } = useAuth();
@@ -60,12 +62,6 @@ function Shell() {
   return <Layout user={user} busy={busy} error={error} onSignOut={signOut}><Outlet context={{ onSignOut: signOut, signingOut: busy }} /></Layout>;
 }
 
-function HomeRedirect() {
-  const { user, loading } = useAuth();
-  if (loading) return <Loading />;
-  return <Navigate to={user ? "/profile" : "/login"} replace />;
-}
-
 function AuthFrame() {
   return (
     <div className="auth-route">
@@ -82,7 +78,8 @@ function AuthFrame() {
 export default function App() {
   return (
     <Routes>
-      <Route path="/" element={<HomeRedirect />} />
+      <Route path="/" element={<HomePage />} />
+      <Route path="/events/:eventId" element={<EventDetailsPage />} />
       <Route element={<AuthFrame />}>
         <Route path="/login" element={<AuthPage key="login" />} />
         <Route path="/register" element={<AuthPage key="register" register />} />
@@ -94,6 +91,7 @@ export default function App() {
           <Route path="/participation" element={<ParticipationPage key="personal" />} />
           <Route element={<ProtectedRoute admin />}>
             <Route path="/admin/reports" element={<ParticipationPage key="admin" admin />} />
+            <Route path="/admin/promotions" element={<PromotionsPage />} />
           </Route>
           <Route path="/memberships/apply" element={<MembershipApplication />} />
           <Route path="/memberships/mine" element={<MyMemberships />} />

@@ -20,6 +20,7 @@ require_once dirname(__DIR__) . '/modules/authentication-users/UserRepository.ph
 require_once dirname(__DIR__) . '/modules/authentication-users/CloudinaryClient.php';
 require_once dirname(__DIR__) . '/modules/authentication-users/ProfilePhotoService.php';
 require_once dirname(__DIR__) . '/modules/authentication-users/UniversityBrandingService.php';
+require_once dirname(__DIR__) . '/modules/events/EventPromotionService.php';
 require_once __DIR__ . '/Session.php';
 require_once __DIR__ . '/LoginRateLimiter.php';
 require_once dirname(__DIR__) . '/modules/authentication-users/AuthController.php';

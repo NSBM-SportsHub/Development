@@ -32,6 +32,8 @@ const paths = {
   activity: <><path d="M2 12h4l3-8 6 16 3-8h4" /></>,
   report: <><path d="M3 3v18h18M7 16v-4m5 4V8m5 8V5" /></>,
   more: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
+  mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></>,
+  phone: <path d="M7 3H4a1 1 0 0 0-1 1c0 9.4 7.6 17 17 17a1 1 0 0 0 1-1v-3l-5-2-2 2a14 14 0 0 1-7-7l2-2-2-5Z" />,
 };
 
 export function Icon({ name, size = 20, ...props }) {

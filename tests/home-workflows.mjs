@@ -1,0 +1,104 @@
+import assert from 'node:assert/strict';
+
+// Uses the caller's isolated database, real PHP server, production build and sessions.
+export async function testHomeWorkflows({ step, newBrowserContext, origin, admin, adminPage, studentPage, visit, screenshot, errors }) {
+  const guestContext = await newBrowserContext({ viewport: { width: 1440, height: 1000 } });
+  const guest = await guestContext.newPage(); guest.setDefaultTimeout(12000); guest.on('pageerror', (error) => errors.push(error.message));
+  let firstId, secondId;
+  try {
+    await step('Animated hero and a scrolling play section support dragging, keyboard controls and reduced-motion phones', async () => {
+      await visit(guest, '/'); await guest.getByRole('heading', { name: 'Move your game.', exact: true }).waitFor();
+      assert.equal(await guest.getByRole('link', { name: 'Sign in', exact: true }).count(), 1);
+      assert.equal(await guest.getByRole('link', { name: 'Manage promotions', exact: true }).count(), 0);
+      assert.equal(await guest.getByRole('link', { name: 'Discover activities', exact: false }).count(), 1);
+      assert.equal(await guest.getByRole('link', { name: 'Find your club', exact: false }).count(), 1);
+      assert.equal(await guest.locator('.home-hero-athlete').count(), 1);
+      const arena = guest.locator('.sports-arena'), ant = guest.getByRole('img', { name: 'Ant rolling the tennis ball' });
+      assert.equal(await arena.evaluate((element) => getComputedStyle(element).position), 'relative');
+      assert.ok(await arena.evaluate((element) => !!element.closest('#play-zone')), 'Sports should stay in the play section');
+      await screenshot(guest, 'home-hero-updated-desktop', { animations: 'disabled' });
+      await guest.getByRole('link', { name: 'Take a little play break', exact: false }).click();
+      await arena.scrollIntoViewIfNeeded();
+      const initial = await ant.getAttribute('style'); await guest.waitForFunction((style) => document.querySelector('.sports-animal').getAttribute('style') !== style, initial);
+      assert.ok(!(await ant.getAttribute('style')).includes('rotate('), 'Ant should stay upright');
+      await guest.getByRole('button', { name: 'Pause animations', exact: true }).click();
+      const paused = await ant.getAttribute('style'); await guest.waitForTimeout(150); assert.equal(await ant.getAttribute('style'), paused);
+      const football = guest.getByRole('button', { name: 'Move Football', exact: true });
+      await football.focus(); const before = await football.getAttribute('style'); await guest.keyboard.press('ArrowUp'); assert.notEqual(await football.getAttribute('style'), before);
+      const bounds = await arena.boundingBox(), ball = await football.boundingBox();
+      await guest.mouse.move(ball.x + ball.width / 2, ball.y + ball.height / 2); await guest.mouse.down(); await guest.mouse.move(bounds.x - 100, bounds.y - 100, { steps: 5 }); await guest.mouse.up();
+      const moved = await football.boundingBox(); assert.ok(moved.x >= bounds.x && moved.y >= bounds.y, 'Dragging escaped arena bounds');
+      await screenshot(guest, 'home-play-section-desktop', { animations: 'disabled' });
+      await guest.evaluate(() => scrollTo(0, 0));
+      assert.ok(await arena.evaluate((element) => element.getBoundingClientRect().top > innerHeight), 'Play area should scroll off-screen');
+      await guest.getByRole('link', { name: 'What’s on', exact: true }).click();
+      await guest.waitForFunction(() => document.querySelector('#whats-on').getBoundingClientRect().top < 100);
+      await guest.evaluate(() => scrollTo(0, 0));
+      await guest.emulateMedia({ reducedMotion: 'reduce' }); await guest.setViewportSize({ width: 390, height: 844 });
+      await arena.scrollIntoViewIfNeeded();
+      await guest.locator('.sports-play-caption').getByText('Reduced motion is enabled.', { exact: false }).waitFor();
+      assert.equal(await guest.getByRole('button', { name: 'Drop them again', exact: false }).isDisabled(), true);
+      await guest.waitForFunction(() => [...document.querySelectorAll('.sports-object')].every((element) => { const b = element.getBoundingClientRect(), a = element.parentElement.getBoundingClientRect(); return b.x >= a.x && b.right <= a.right + 1 && b.y >= a.y && b.bottom <= a.bottom + 1; }));
+      assert.equal(await arena.evaluate((element) => getComputedStyle(element).touchAction), 'pan-y');
+      assert.equal(await guest.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await screenshot(guest, 'home-play-section-mobile-reduced-motion', { animations: 'disabled' });
+      await guest.emulateMedia({ reducedMotion: 'no-preference' });
+    });
+    await step('Admin creates and publishes activities; guests see event details and Students cannot manage promotions', async () => {
+      await visit(adminPage, '/admin/promotions'); await adminPage.getByRole('heading', { name: 'Home page promotions', exact: true }).waitFor();
+      await adminPage.getByRole('button', { name: 'New promotion', exact: true }).click();
+      let dialog = adminPage.getByRole('dialog', { name: 'New promotion', exact: true });
+      await dialog.getByLabel('Event title', { exact: true }).fill('Browser Campus Camp');
+      await dialog.getByLabel('Activity type', { exact: true }).selectOption('camp');
+      await dialog.getByLabel('Venue', { exact: true }).fill('Campus Sports Ground');
+      await dialog.getByLabel('Starts at', { exact: true }).fill('2090-01-01T09:00');
+      await dialog.getByLabel('Ends at', { exact: true }).fill('2090-01-01T12:00');
+      await dialog.getByLabel('Description & participation instructions', { exact: true }).fill('Contact the organising club to join this synthetic camp.');
+      await dialog.getByRole('button', { name: 'Save promotion', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
+      let saved = (await admin('/event-promotions')).events.find((event) => event.title === 'Browser Campus Camp'); assert.ok(saved); firstId = saved.id; assert.equal(saved.published, false);
+      await visit(guest, `/events/${firstId}`); await guest.getByRole('alert').filter({ hasText: 'This event is no longer available.' }).waitFor();
+      await adminPage.getByRole('button', { name: 'Edit Browser Campus Camp', exact: true }).click();
+      dialog = adminPage.getByRole('dialog', { name: 'Edit promotion', exact: true }); await dialog.getByLabel('Publish for everyone to see', { exact: true }).check();
+      await dialog.getByRole('button', { name: 'Save promotion', exact: true }).click(); await dialog.waitFor({ state: 'hidden' });
+      saved = (await admin('/event-promotions')).events.find((event) => event.id === firstId); assert.equal(saved.published, true);
+      const upload = adminPage.getByLabel('Upload banner for Browser Campus Camp', { exact: true });
+      await upload.setInputFiles({ name: 'bad.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg></svg>') });
+      await adminPage.getByRole('alert').filter({ hasText: 'Check the submitted fields.' }).waitFor();
+      await upload.setInputFiles({ name: 'banner.png', mimeType: 'image/png', buffer: Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64') });
+      await adminPage.getByRole('alert').filter({ hasText: 'Image uploads are not configured.' }).waitFor();
+      await visit(guest, `/events/${firstId}`); await guest.getByRole('heading', { name: 'Browser Campus Camp', exact: true }).waitFor();
+      assert.equal(await guest.getByRole('link', { name: 'Sign in to explore clubs', exact: false }).count(), 1);
+      await visit(studentPage, '/'); await studentPage.getByRole('link', { name: 'My workspace', exact: true }).waitFor();
+      assert.equal(await studentPage.getByRole('link', { name: 'Manage promotions', exact: true }).count(), 0);
+      await visit(studentPage, '/admin/promotions'); await studentPage.waitForURL('**/profile');
+      const second = await admin('/event-promotions', 'POST', { title: 'Browser Sports Day', description: 'Synthetic browser-only event.', category: 'sports_day', venue: 'Campus court', starts_at: '2090-01-02T09:00:00Z', ends_at: '2090-01-02T11:00:00Z', published: true, featured: true, display_order: 1 }); secondId = second.id;
+    });
+    await step('Featured events rotate, pause on hover/focus, support arrows and swipe, and keep guest registration protected', async () => {
+      await guest.setViewportSize({ width: 1440, height: 1000 }); await visit(guest, '/');
+      const carousel = guest.getByRole('region', { name: 'Featured events', exact: true }); await carousel.waitFor();
+      await carousel.scrollIntoViewIfNeeded(); await guest.mouse.move(5, 5);
+      await carousel.getByRole('heading', { name: 'Browser Campus Camp', exact: true }).waitFor();
+      await carousel.getByRole('heading', { name: 'Browser Sports Day', exact: true }).waitFor({ timeout: 9000 });
+      await carousel.hover(); const title = await carousel.getByRole('heading').textContent(); await guest.waitForTimeout(6300); assert.equal(await carousel.getByRole('heading').textContent(), title);
+      await carousel.getByRole('button', { name: 'Previous event', exact: true }).click(); await carousel.getByRole('heading', { name: 'Browser Campus Camp', exact: true }).waitFor();
+      await guest.mouse.move(5, 5); await guest.waitForTimeout(6300); assert.equal(await carousel.getByRole('heading').textContent(), 'Browser Campus Camp', 'Keyboard focus should pause rotation');
+      await carousel.getByRole('button', { name: 'Pause event rotation', exact: true }).click(); assert.equal(await carousel.getByRole('button', { name: 'Play event rotation', exact: true }).getAttribute('aria-pressed'), 'true');
+      await screenshot(guest, 'home-featured-events-desktop', { animations: 'disabled' });
+      await guest.setViewportSize({ width: 390, height: 844 }); await carousel.scrollIntoViewIfNeeded();
+      const touchSession = await guest.context().newCDPSession(guest);
+      const swipeBox = await carousel.boundingBox(), swipeY = Math.min(700, Math.max(60, swipeBox.y + 260));
+      await touchSession.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 300, y: swipeY }] });
+      await touchSession.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 100, y: swipeY }] });
+      await touchSession.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+      await touchSession.detach();
+      await carousel.getByRole('heading', { name: 'Browser Sports Day', exact: true }).waitFor();
+      assert.equal(await guest.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+      await screenshot(guest, 'home-featured-events-mobile', { animations: 'disabled' });
+      await carousel.getByRole('link', { name: 'View event', exact: true }).click(); await guest.getByRole('heading', { name: 'Browser Sports Day', exact: true }).waitFor();
+      await guest.getByRole('link', { name: 'Sign in to explore clubs', exact: false }).click(); await guest.waitForURL('**/login');
+      assert.equal(await guest.getByRole('button', { name: 'Sign in', exact: true }).count(), 1);
+      await visit(adminPage, '/admin/promotions'); await adminPage.getByRole('button', { name: 'Remove promotion', exact: true }).first().click();
+      assert.ok(!(await admin('/event-promotions')).events.some((event) => event.id === firstId));
+    });
+  } finally { await guestContext.close(); }
+}

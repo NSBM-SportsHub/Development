@@ -41,6 +41,18 @@ try {
         '/api/participation/me' => ['GET'],
         '/api/reports/participation' => ['GET'],
     ];
+    $eventPublic = false;
+    $eventRoute = false;
+    $eventId = null;
+    $eventBanner = false;
+    if (preg_match('~\A/api/(public/events|event-promotions)(?:/([1-9][0-9]{0,17})(/banner)?)?\z~', $path, $match)) {
+        $eventRoute = true;
+        $eventPublic = $match[1] === 'public/events';
+        $eventId = isset($match[2]) ? (int) $match[2] : null;
+        $eventBanner = isset($match[3]);
+        if ($eventPublic && $eventBanner) throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+        $routes[$path] = $eventPublic ? ['GET'] : ($eventId === null ? ['GET', 'POST'] : ($eventBanner ? ['POST', 'DELETE'] : ['PATCH', 'DELETE']));
+    }
     $notificationId = null;
     if (preg_match('~\A/api/notifications/([1-9][0-9]{0,17})\z~', $path, $match)) {
         $notificationId = (int) $match[1];
@@ -116,8 +128,29 @@ try {
         \SportsHub\Validation::allowed($_GET, []);
         Http::json(\SportsHub\UniversityBrandingService::publicBranding());
     }
+    if ($eventPublic) {
+        \SportsHub\Validation::allowed($_GET, []);
+        Http::json(\SportsHub\EventPromotionService::listing(false, $eventId));
+    }
     Session::start();
     Session::currentUser(); // Refresh the account status and session version on every request.
+    if ($eventRoute) {
+        $actor = Session::requireAdmin();
+        \SportsHub\Validation::allowed($_GET, []);
+        if ($method === 'GET') Http::json(\SportsHub\EventPromotionService::listing(true));
+        Session::verifyCsrf();
+        if ($eventBanner) {
+            if ($method === 'DELETE') \SportsHub\Validation::allowed(Http::body(), []);
+            Http::json((new \SportsHub\EventPromotionService())->banner($actor, $eventId, $method === 'POST' ? \SportsHub\ImageUpload::receive('banner') : null), $method === 'POST' ? 201 : 200);
+        }
+        $eventBody = Http::body();
+        if ($method === 'DELETE') {
+            \SportsHub\Validation::allowed($eventBody, []);
+            \SportsHub\EventPromotionService::remove($actor, $eventId);
+            Http::noContent();
+        }
+        Http::json(\SportsHub\EventPromotionService::save($actor, $eventId, $eventBody), $method === 'POST' ? 201 : 200);
+    }
     if ($path === '/api/branding/logo') {
         $actor = Session::requireAdmin();
         Session::verifyCsrf();
