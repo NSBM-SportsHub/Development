@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
+import NotFoundPage from "../../shared/NotFoundPage.jsx";
 import ClubDetails from "./ClubDetails.jsx";
 import ClubForm from "./ClubForm.jsx";
 import ClubList from "./ClubList.jsx";
@@ -67,7 +68,7 @@ export default function SportsClubs() {
           <Route path="new" element={<ClubForm clubs={clubList} loading={loading} onSave={saveClub} />} />
           <Route path=":clubId/edit" element={<ClubForm clubs={clubList} loading={loading} onSave={saveClub} />} />
           <Route path=":clubId" element={<ClubDetails clubs={clubList} loading={loading} onDelete={deleteClub} />} />
-          <Route path="*" element={<Navigate to="/sports-clubs" replace />} />
+          <Route path="*" element={<NotFoundPage embedded />} />
         </Routes>
       </main>
       <footer className="sports-footer">NSBM Sports Hub <span>Every moment builds future champions.</span></footer>

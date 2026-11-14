@@ -13,6 +13,9 @@ if (($argv[1] ?? '') === 'seed') {
     $statement = $db->prepare("INSERT INTO users (name, email, password_hash) VALUES (?, ?, ?)");
     $statement->execute(['Backup Test Student', 'backup@example.test', password_hash(bin2hex(random_bytes(24)), PASSWORD_DEFAULT)]);
     $user = (int) $db->lastInsertId();
+    $announcement = '11111111-1111-4111-8111-111111111111';
+    $db->prepare("INSERT INTO announcements (announcement_id, title, body) VALUES (?, 'Backup announcement', 'Synthetic backup image fixture.')")->execute([$announcement]);
+    $db->prepare("INSERT INTO announcement_images (announcement_id, cloud_name, public_id, version, image_url) VALUES (?, 'fixture', 'backup/announcement', '1', 'https://res.cloudinary.com/fixture/image/upload/v1/backup/announcement.webp')")->execute([$announcement]);
     $db->prepare("INSERT INTO event_promotions (title,description,category,venue,starts_at,ends_at,created_by) VALUES ('Backup Test Camp','Synthetic fixture','camp','Test ground','2090-01-01 09:00:00','2090-01-01 11:00:00',?)")->execute([$user]);
     $db->prepare("INSERT INTO user_profile_photos (user_id, cloud_name, public_id, version, photo_url) VALUES (?, 'fixture', 'backup/photo', '1', 'https://res.cloudinary.com/fixture/image/upload/v1/backup/photo.webp')")->execute([$user]);
     $db->prepare("UPDATE site_branding SET cloud_name = 'fixture', public_id = 'backup/university-logo', version = '1', logo_url = 'https://res.cloudinary.com/fixture/image/upload/v1/backup/university-logo.webp', updated_by = ? WHERE id = 1")->execute([$user]);

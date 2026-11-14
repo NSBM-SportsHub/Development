@@ -12,6 +12,7 @@ import { testClubOverview } from './club-overview.mjs';
 import { testProfilePhotos } from './profile-photos.mjs';
 import { testUniversityBranding } from './university-branding.mjs';
 import { testEventPromotions } from './event-promotions.mjs';
+import { testAnnouncementImages } from './announcement-images.mjs';
 import { testResourcesAndBookings } from './resources-bookings.mjs';
 import { testNotificationsReports } from './notifications-reports.mjs';
 import { testBookingConcurrency } from './booking-concurrency.mjs';
@@ -283,6 +284,7 @@ try {
   await testProfilePhotos({ check, Client, admin, cli, ...membershipContext });
   await testUniversityBranding({ check, Client, admin, cli, ...membershipContext });
   await testEventPromotions({ check, Client, admin, cli, ...membershipContext });
+  await testAnnouncementImages({ check, Client, admin, cli, ...membershipContext });
   await testNotificationsReports({ check, Client, admin, password, ...membershipContext });
   await testBookingConcurrency({ check, Client, admin, php, root, env, ...membershipContext });
   await testApiOperations({ check, Client, admin, password, suffix, php, root, env, ...membershipContext });

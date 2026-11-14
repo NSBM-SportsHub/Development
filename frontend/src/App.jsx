@@ -31,8 +31,9 @@ import BookingEdit from "./modules/bookings/BookingEdit.jsx";
 import CoachAssignments from "./modules/memberships/CoachAssignments.jsx";
 import NotificationsPage from "./modules/notifications/NotificationsPage.jsx";
 import ParticipationPage from "./modules/reports/ParticipationPage.jsx";
-import HomePage, { EventDetailsPage } from "./modules/events/HomePage.jsx";
+import HomePage, { AnnouncementDetailsPage, EventDetailsPage } from "./modules/events/HomePage.jsx";
 import PromotionsPage from "./modules/events/PromotionsPage.jsx";
+import NotFoundPage from "./shared/NotFoundPage.jsx";
 
 function ProtectedRoute({ admin = false, student = false }) {
   const { user, loading, sessionError, reloadSession } = useAuth();
@@ -80,6 +81,7 @@ export default function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/events/:eventId" element={<EventDetailsPage />} />
+      <Route path="/news/:announcementId" element={<AnnouncementDetailsPage />} />
       <Route element={<AuthFrame />}>
         <Route path="/login" element={<AuthPage key="login" />} />
         <Route path="/register" element={<AuthPage key="register" register />} />
@@ -125,7 +127,7 @@ export default function App() {
           </Route>
         </Route>
       </Route>
-      <Route path="*" element={<Navigate to="/" replace />} />
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "test": "node --test src/shared/api.test.js src/shared/bird-flight.test.js src/modules/sports-clubs/clubsService.test.js src/modules/events/ant-behavior.test.js",
+    "test": "node --test src/shared/api.test.js src/shared/bird-flight.test.js src/modules/sports-clubs/clubsService.test.js src/modules/events/ant-behavior.test.js src/modules/events/event-utils.test.js",
     "preview": "vite preview"
   },
   "dependencies": {

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 export default function AnnouncementForm({ announcements = [], loading = false, error: loadError = "", onSave }) {
@@ -8,6 +8,27 @@ export default function AnnouncementForm({ announcements = [], loading = false, 
   const editing = Boolean(announcementId);
   const [error, setError] = useState("");
   const [saving, setSaving] = useState(false);
+  const [image, setImage] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [removeImage, setRemoveImage] = useState(false);
+  const [savedId, setSavedId] = useState(null);
+  const fileInput = useRef(null);
+  useEffect(() => {
+    if (!image) { setPreview(null); return; }
+    const url = URL.createObjectURL(image);
+    setPreview(url);
+    return () => URL.revokeObjectURL(url);
+  }, [image]);
+
+  function chooseImage(event) {
+    const selected = event.target.files?.[0] ?? null;
+    if (selected && (!['image/jpeg', 'image/png', 'image/webp'].includes(selected.type) || selected.size > 5 * 1024 * 1024 || selected.size === 0)) {
+      setError('Choose a JPEG, PNG or WebP image no larger than 5 MB.');
+      event.target.value = '';
+      return;
+    }
+    setImage(selected); setRemoveImage(false); setError('');
+  }
 
   if (loading) return <div className="club-state" role="status">Loading announcement…</div>;
   if (loadError) return <div className="club-state" role="alert">{loadError}</div>;
@@ -43,7 +64,9 @@ export default function AnnouncementForm({ announcements = [], loading = false, 
     setError("");
     try {
       const id = await onSave({
-        id: announcement?.announcement_id,
+        id: savedId ?? announcement?.announcement_id,
+        image,
+        removeImage,
         fields: {
           title,
           body,
@@ -53,6 +76,7 @@ export default function AnnouncementForm({ announcements = [], loading = false, 
       });
       navigate(`/announcements/${id}`);
     } catch (saveError) {
+      if (saveError.announcementId) setSavedId(saveError.announcementId);
       setError(saveError instanceof Error ? saveError.message : "Unable to save the announcement.");
     } finally {
       setSaving(false);
@@ -75,6 +99,16 @@ export default function AnnouncementForm({ announcements = [], loading = false, 
         </div>
         <label>Title<input name="title" defaultValue={announcement?.title ?? ""} minLength="3" maxLength="255" required /></label>
         <label>Message<textarea name="body" rows="7" defaultValue={announcement?.body ?? ""} minLength="10" maxLength="65535" required /></label>
+        <div className="announcement-image-field">
+          <label htmlFor="announcement-image">Image <span className="optional-label">(optional)</span></label>
+          <p id="announcement-image-help">Add an image to feature this announcement on the public home page. JPEG, PNG or WebP, up to 5 MB.</p>
+          <input id="announcement-image" ref={fileInput} type="file" accept="image/jpeg,image/png,image/webp" onChange={chooseImage} disabled={saving} aria-describedby="announcement-image-help" />
+          {(preview || (!removeImage && announcement?.image_url)) && <div className="announcement-image-preview">
+            <img src={preview || announcement.image_url} alt="Announcement image preview" referrerPolicy="no-referrer" />
+            <button type="button" className="button button-secondary button-small" disabled={saving} onClick={() => { setImage(null); setRemoveImage(Boolean(announcement?.image_url)); fileInput.current.value = ''; }}>Remove image</button>
+          </div>}
+          {removeImage && announcement?.image_url && <p>This image will be removed when you save. <button className="text-button" type="button" disabled={saving} onClick={() => setRemoveImage(false)}>Keep current image</button></p>}
+        </div>
         <label>Club ID <span className="optional-label">(optional for campus-wide announcements)</span>
           <input name="club_id" type="number" min="1" max="2147483647" step="1" defaultValue={announcement?.club_id ?? ""} />
         </label>

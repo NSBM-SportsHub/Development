@@ -1,8 +1,10 @@
 import { Link, NavLink, useLocation } from "react-router-dom";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useClubAccess } from "./useClubAccess.js";
 import { Avatar, Brand, Icon, Modal } from "./ui.jsx";
 import "./workspace-navigation.css";
+
+const MOBILE_NAV_QUERY = '(max-width: 650px), (max-width: 1024px) and (hover: none)';
 
 function WorkspaceLink({ to, icon, children }) {
   return <NavLink to={to} aria-label={children} title={children}><Icon name={icon} /><span className="sidebar-link-label">{children}</span></NavLink>;
@@ -12,8 +14,25 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
   const location = useLocation();
   const access = useClubAccess();
   const [moreState, setMoreState] = useState("closed");
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+  const mobileToggle = useRef(null);
   const closeMore = useCallback(() => setMoreState((state) => state === "closed" ? state : "closing"), []);
-  useEffect(() => { closeMore(); }, [location.key, user.id, role, closeMore]);
+  const closeMobileNav = useCallback(() => { setMobileNavOpen(false); mobileToggle.current?.focus(); }, []);
+  useEffect(() => { closeMore(); setMobileNavOpen(false); }, [location.key, user.id, role, closeMore]);
+  useEffect(() => {
+    const media = window.matchMedia(MOBILE_NAV_QUERY);
+    const resize = () => { if (!media.matches) setMobileNavOpen(false); };
+    media.addEventListener('change', resize);
+    return () => media.removeEventListener('change', resize);
+  }, []);
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    const escape = event => { if (event.key === 'Escape') { event.preventDefault(); closeMobileNav(); } };
+    document.addEventListener('keydown', escape);
+    return () => { document.body.style.overflow = previousOverflow; document.removeEventListener('keydown', escape); };
+  }, [mobileNavOpen, closeMobileNav]);
   useEffect(() => {
     if (moreState !== "closing") return;
     const timer = window.setTimeout(() => setMoreState("closed"), 160);
@@ -48,12 +67,13 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
       : "My profile");
 
   return (
-    <div className={`app-shell ${role}-workspace compact-navigation`}>
+    <div className={`app-shell ${role}-workspace compact-navigation${mobileNavOpen ? ' mobile-navigation-open' : ''}`}>
       <a href="#main-content" className="skip-link">Skip to content</a>
       <aside className="sidebar">
         <NavLink to="/" className="brand-link" aria-label="NSBM SportsHub home"><Brand /></NavLink>
+        <button ref={mobileToggle} className="sidebar-mobile-toggle" type="button" aria-label={mobileNavOpen ? 'Collapse navigation' : 'Expand navigation'} title={mobileNavOpen ? 'Collapse navigation' : 'Expand navigation'} aria-expanded={mobileNavOpen} aria-controls="workspace-navigation" onClick={() => setMobileNavOpen(value => !value)}><Icon name={mobileNavOpen ? 'close' : 'menu'} /><span className="sidebar-toggle-label">Close menu</span></button>
         <div className="sidebar-section-label">YOUR WORKSPACE</div>
-        <nav className="side-nav" aria-label="Workspace">
+        <nav id="workspace-navigation" className="side-nav" aria-label="Workspace">
           {role === "admin" && <WorkspaceLink to="/admin/users" icon="users">User management</WorkspaceLink>}
           {role === "admin" && <WorkspaceLink to="/admin/clubs" icon="clubs">Clubs</WorkspaceLink>}
           {role === "admin" && <><WorkspaceLink to="/admin/memberships" icon="review">Membership review</WorkspaceLink><WorkspaceLink to="/admin/bookings" icon="booking-review">Booking review</WorkspaceLink></>}
@@ -65,7 +85,7 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
           {role !== "admin" && <WorkspaceLink to="/sports-clubs" icon="sport">Sports clubs</WorkspaceLink>}
           <WorkspaceLink to="/training-attendance" icon="calendar">Training and attendance</WorkspaceLink>
           <WorkspaceLink to="/announcements" icon="announcement">Announcements</WorkspaceLink>
-          <button type="button" className={`sidebar-more-trigger${moreActive ? " active" : ""}`} aria-label="More" title="More" aria-haspopup="dialog" aria-expanded={moreState !== "closed"} aria-controls={moreState !== "closed" ? "workspace-more-menu" : undefined} onClick={() => setMoreState("open")}><Icon name="more" /><span className="sidebar-link-label">More</span></button>
+          <button type="button" className={`sidebar-more-trigger${moreActive ? " active" : ""}`} aria-label="More" title="More" aria-haspopup="dialog" aria-expanded={moreState !== "closed"} aria-controls={moreState !== "closed" ? "workspace-more-menu" : undefined} onClick={() => { setMobileNavOpen(false); setMoreState("open"); }}><Icon name="more" /><span className="sidebar-link-label">More</span></button>
         </nav>
         <div className="sidebar-account">
           <NavLink to="/profile" className="sidebar-profile-link" aria-label="Open my profile" title="Open my profile"><Avatar user={user} /></NavLink>
@@ -82,6 +102,7 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
           </button>
         </div>
       </aside>
+      {mobileNavOpen && <button type="button" className="sidebar-mobile-backdrop" aria-label="Close navigation" tabIndex={-1} onClick={closeMobileNav} />}
       {moreState !== "closed" && <div id="workspace-more-menu" className={`workspace-more-layer${moreState === "closing" ? " is-closing" : ""}`}>
         <Modal title="More tools" subtitle="Your memberships, resources and activity, all in one place." onClose={closeMore} busy={moreState === "closing"}>
           <div className="workspace-more-groups" inert={moreState === "closing"}>{moreGroups.map((group) => <section key={group.title} className="workspace-more-group" aria-label={group.title}>
@@ -89,7 +110,7 @@ export default function WorkspaceLayout({ user, role, busy, error, onSignOut, ch
           </section>)}</div>
         </Modal>
       </div>}
-      <div className="workspace">
+      <div className="workspace" inert={mobileNavOpen}>
         <header className="topbar">
           <div className="breadcrumb"><Link to="/profile">Workspace</Link><span>/</span><strong>{sectionName}</strong></div>
           <div className="topbar-actions">

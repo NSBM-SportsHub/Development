@@ -145,7 +145,8 @@ echo $query->fetchColumn();
     // Verify configuration resolved by the exact environment inherited by the HTTP worker.
     const runtime = JSON.parse(runPhp(inspectPhp, env));
     assert.equal(runtime.database, database);
-    assert.equal(Object.keys(runtime.tables).length, 20);
+    assert.equal(Object.keys(runtime.tables).length, 21);
+    assert.ok(runtime.tables.announcement_images);
     report.http_worker_database = { host: runtime.host, port: runtime.port, database: runtime.database, server_port: runtime.server_port };
     server = spawn(php, ['-S', `127.0.0.1:${port}`, '-t', 'backend/public', 'backend/router.php'], { env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     server.stdout.on('data', (chunk) => { serverLog += chunk; });

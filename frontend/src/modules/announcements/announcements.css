@@ -1,3 +1,9 @@
+.announcement-image-field { display: grid; gap: 10px; padding: 18px; border: 1px dashed #9cb7a5; border-radius: 10px; background: #f3f8f1; }
+.announcement-image-field p { font-size: 12px; line-height: 1.7; color: #566f60; margin: 0; }
+.announcement-image-preview { display: grid; justify-items: start; gap: 12px; }
+.announcement-image-preview img { max-width: 100%; max-height: 250px; object-fit: contain; border-radius: 8px; }
+.announcement-card-image { display: block; width: 100%; max-height: 200px; object-fit: contain; object-position: left; border-radius: 6px; margin-bottom: 14px; }
+.announcement-detail-image { display: block; max-width: 100%; max-height: 600px; object-fit: contain; margin: 24px auto; border-radius: 12px; }
 .announcements-hub .announcement-page,
 .announcements-hub .announcement-detail {
   padding: clamp(26px, 6vw, 64px);

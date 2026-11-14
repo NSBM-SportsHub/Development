@@ -31,6 +31,12 @@ final class CloudinaryClient
         return $this->uploadImage($path, $mime, 'events/' . $promotionId, 'c_limit,h_1200,w_2000');
     }
 
+    public function uploadAnnouncementImage(string $path, string $mime, string $announcementId): array
+    {
+        if (!preg_match('/\A[0-9a-f-]{36}\z/', $announcementId)) throw new \InvalidArgumentException('Invalid announcement ID.');
+        return $this->uploadImage($path, $mime, 'announcements/' . $announcementId, 'c_limit,h_1200,w_2000');
+    }
+
     private function uploadImage(string $path, string $mime, string $scope, string $transformation): array
     {
         $settings = $this->configured();

@@ -55,6 +55,10 @@ try {
     }
     $connection->exec('USE `' . $database . '`');
     $expected = [
+        'announcement_images' => [
+            'announcement_id' => 'char(36)', 'cloud_name' => 'varchar(100)', 'public_id' => 'varchar(255)',
+            'version' => 'varchar(30)', 'image_url' => 'varchar(1000)', 'created_at' => 'datetime', 'updated_at' => 'datetime',
+        ],
         'event_promotions' => [
             'id' => 'bigint unsigned', 'title' => 'varchar(150)', 'description' => 'text',
             'category' => "enum('tournament','trial','camp','sports_day','other')", 'tournament_id' => 'bigint unsigned',
@@ -182,7 +186,7 @@ try {
             'user_profile_photos' => ['user_id'],
             'users' => ['id', 'email', 'student_id'],
             'auth_rate_limits' => ['key_hash'],
-            'announcements' => ['announcement_id'],
+            'announcements', 'announcement_images' => ['announcement_id'],
             default => ['id'],
         };
         foreach ($requiredUnique as $field) {

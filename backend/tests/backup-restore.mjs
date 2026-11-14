@@ -40,6 +40,8 @@ try {
   assert.equal(after.user_profile_photos.rows, 1);
   assert.equal(after.site_branding.rows, 1);
   assert.equal(after.event_promotions.rows, 1);
+  assert.equal(after.announcements.rows, 1);
+  assert.equal(after.announcement_images.rows, 1);
   assert.ok(after.sports.rows > 0 && after.clubs.rows > 0);
   cli('backend/bin/setup.php', databases[1], ['--existing-database']);
   console.log(`PASS backup/restore: ${Object.keys(after).length} tables, exact row fingerprints, foreign-key fixtures and schema setup after restore`);

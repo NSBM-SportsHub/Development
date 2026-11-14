@@ -63,9 +63,14 @@ try {
         $routes[$path] = $sportsRoute['methods'];
     }
     $announcementId = null;
-    if (preg_match('~\A/api/announcements/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})\z~i', $path, $match)) {
-        $announcementId = strtolower($match[1]);
-        $routes[$path] = ['GET', 'PATCH', 'DELETE'];
+    $announcementImage = false;
+    $publicAnnouncements = false;
+    if (preg_match('~\A/api/(announcements|public/announcements)(?:/([0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12})(/image)?)?\z~i', $path, $match)) {
+        $publicAnnouncements = $match[1] === 'public/announcements';
+        $announcementId = isset($match[2]) ? strtolower($match[2]) : null;
+        $announcementImage = isset($match[3]);
+        if ($publicAnnouncements && $announcementImage) throw new ApiException(404, 'not_found', 'This endpoint could not be found.');
+        $routes[$path] = $publicAnnouncements ? ['GET'] : ($announcementId === null ? ['GET', 'POST'] : ($announcementImage ? ['POST', 'DELETE'] : ['GET', 'PATCH', 'DELETE']));
     }
     $userId = null;
     $moduleRoute = null;
@@ -132,8 +137,19 @@ try {
         \SportsHub\Validation::allowed($_GET, []);
         Http::json(\SportsHub\EventPromotionService::listing(false, $eventId));
     }
+    if ($publicAnnouncements) {
+        \SportsHub\Validation::allowed($_GET, []);
+        Http::json(\SportsHub\AnnouncementRepository::featured($announcementId));
+    }
     Session::start();
     Session::currentUser(); // Refresh the account status and session version on every request.
+    if ($announcementImage) {
+        $actor = Session::requireAdmin();
+        Session::verifyCsrf();
+        \SportsHub\Validation::allowed($_GET, []);
+        if ($method === 'DELETE') \SportsHub\Validation::allowed(Http::body(), []);
+        Http::json((new \SportsHub\AnnouncementImageService())->save($actor, $announcementId, $method === 'POST' ? \SportsHub\ImageUpload::receive('image') : null), $method === 'POST' ? 201 : 200);
+    }
     if ($eventRoute) {
         $actor = Session::requireAdmin();
         \SportsHub\Validation::allowed($_GET, []);

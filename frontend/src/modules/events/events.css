@@ -1,3 +1,7 @@
+.promotion-visibility { display: grid; gap: 5px; margin-top: 12px; padding: 10px 12px; border: 1px solid #dfcfa8; border-radius: 8px; background: #faf2df; color: #78561e; }
+.promotion-visibility strong { font-size: 11px; line-height: 1.5; }
+.promotion-visibility span { font-size: 11px; line-height: 1.7; }
+.promotion-visibility.is-public { border-color: #bdd9c6; background: #edf7ee; color: #276441; }
 .discovery-page { --discovery-green: #123c2f; --discovery-lime: #d6f577; background: #f7f8f2; color: #17382d; min-height: 100vh; }
 .discovery-page a { text-decoration: none; }
 .sports-play-placeholder { min-height: 520px; }
@@ -82,6 +86,7 @@
 .discovery-event-grid { display: grid; grid-template-columns: repeat(3,minmax(0,1fr)); gap: 26px; }
 .discovery-event-card { display: block; border: 1px solid #e0e5d9; border-radius: 18px; background: white; overflow: hidden; transition: transform .3s, box-shadow .3s; }
 .discovery-event-card:hover { transform: translateY(-7px); box-shadow: 0 18px 40px #22482b12; }
+.discovery-event-card.is-featured { border-color: #b0c57c; box-shadow: 0 4px 18px #425c2410; }
 .event-card-image { position: relative; aspect-ratio: 1.55; overflow: hidden; }
 .event-card-image .event-court strong { font-size: 28px; }
 .event-card-image img { transition: transform .6s; }

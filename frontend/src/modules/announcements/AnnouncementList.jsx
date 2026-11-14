@@ -50,6 +50,7 @@ export default function AnnouncementList({ announcements, isAdmin, loading = fal
           <p className="eyebrow">{announcement.club_id === null ? "Campus-wide" : `Club ${announcement.club_id}`}</p>
           <h1>{announcement.title}</h1>
         </div>
+        {announcement.image_url && <img className="announcement-detail-image" src={announcement.image_url} alt={announcement.title} referrerPolicy="no-referrer" />}
         <div className="announcement-body">{announcement.body}</div>
         {isAdmin && (
           <div className="announcement-admin-actions">
@@ -81,6 +82,7 @@ export default function AnnouncementList({ announcements, isAdmin, loading = fal
         {announcements.length ? announcements.map((item) => (
           <article className="announcement-card" key={item.announcement_id}>
             <Link className="announcement-card-link" to={`/announcements/${item.announcement_id}`}>
+              {item.image_url && <img className="announcement-card-image" src={item.image_url} alt="" loading="lazy" referrerPolicy="no-referrer" />}
               <span className="announcement-card-meta">
                 {item.is_pinned && <span className="announcement-status">Pinned</span>}
                 <span>{item.club_id === null ? "Campus-wide" : `Club ${item.club_id}`}</span>

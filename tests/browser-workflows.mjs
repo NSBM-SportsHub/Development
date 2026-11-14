@@ -99,7 +99,7 @@ try {
     await page.getByRole('option', { name: text, exact: true }).click();
   }
   let clubId, trainingId, bookingId, tournamentId;
-  await testHomeWorkflows({ step, newBrowserContext, origin, admin, adminPage, studentPage, visit, screenshot, errors });
+  await testHomeWorkflows({ step, newBrowserContext, origin, admin, adminPage, studentPage, visit, screenshot, errors, cli });
   await step('Animated profile keeps real account details, responsive edit controls and reduced-motion support', async () => {
     await adminPage.setViewportSize({ width: 1440, height: 1100 });
     await visit(adminPage, '/profile');
@@ -195,7 +195,7 @@ try {
     assert.equal(await studentPage.locator('.sidebar .brand-mark img').count(), 0);
     for (const page of [adminPage, studentPage, coachPage]) await page.unroute(cdn);
   });
-  await step('Sidebar icons expand on hover and keyboard focus, collapse on mouse leave, and stay labelled on touch', async () => {
+  await step('Sidebar hover works on desktop and mobile uses a tap-to-expand icon rail', async () => {
     await adminPage.setViewportSize({ width: 1440, height: 1000 });
     await visit(adminPage, '/profile');
     await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
@@ -263,8 +263,13 @@ try {
     await visit(touchPage, '/profile');
     await touchPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     assert.equal(await touchPage.evaluate(() => matchMedia('(hover: none)').matches), true);
-    assert.equal(await touchPage.locator('.sidebar').evaluate((element) => element.getBoundingClientRect().width), 260);
+    await touchPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 64);
+    assert.equal(await touchPage.locator('.sidebar-link-label').first().evaluate((element) => getComputedStyle(element).opacity), '0');
+    await touchPage.getByRole('button', { name: 'Expand navigation', exact: true }).tap();
+    await touchPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 260);
     assert.equal(await touchPage.locator('.sidebar-link-label').first().evaluate((element) => getComputedStyle(element).opacity), '1');
+    await touchPage.getByRole('button', { name: 'Close navigation', exact: true }).tap({ position: { x: 800, y: 300 } });
+    await touchPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 64);
     assert.equal(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await touch.close();
     await adminPage.setViewportSize({ width: 390, height: 844 });
@@ -274,7 +279,12 @@ try {
     await adminPage.waitForURL('**/profile');
     await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     assert.equal(await adminPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.equal(await adminPage.locator('.sidebar-link-label').first().evaluate((element) => getComputedStyle(element).opacity), '0');
+    await adminPage.getByRole('button', { name: 'Expand navigation', exact: true }).click();
+    await adminPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 260);
     assert.equal(await adminPage.locator('.sidebar-link-label').first().evaluate((element) => getComputedStyle(element).opacity), '1');
+    await adminPage.keyboard.press('Escape');
+    await adminPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 64);
     await adminPage.setViewportSize({ width: 1440, height: 1000 });
   });
   await step('More groups secondary links with animated, keyboard-accessible popups and role-specific mobile navigation', async () => {
