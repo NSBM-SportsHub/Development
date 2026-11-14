@@ -5,6 +5,7 @@ import { api } from "../../shared/api.js";
 import { Loading } from "../../shared/ui.jsx";
 import AnnouncementForm from "./AnnouncementForm.jsx";
 import AnnouncementList from "./AnnouncementList.jsx";
+import NotFoundPage from "../../shared/NotFoundPage.jsx";
 import "../sports-clubs/sports-clubs.css";
 import "./announcements.css";
 
@@ -36,13 +37,28 @@ export default function Announcements() {
 
   async function saveAnnouncement(values) {
     setError("");
-    const result = values.id
+    let result = values.id
       ? await api.patch(`/announcements/${values.id}`, values.fields)
       : await api.post("/announcements", values.fields);
     setAnnouncements((items) => sortAnnouncements([
       result,
       ...items.filter((item) => item.announcement_id !== result.announcement_id),
     ]));
+    if (values.image || values.removeImage) {
+      try {
+        if (values.image) {
+          const body = new FormData(); body.append('image', values.image);
+          result = await api.post(`/announcements/${result.announcement_id}/image`, body);
+        } else {
+          result = await api.delete(`/announcements/${result.announcement_id}/image`);
+        }
+        setAnnouncements((items) => sortAnnouncements(items.map((item) => item.announcement_id === result.announcement_id ? result : item)));
+      } catch (failure) {
+        failure.announcementId = result.announcement_id;
+        failure.message = `Announcement saved, but the image could not be updated. ${failure.message} You can retry saving without creating another announcement.`;
+        throw failure;
+      }
+    }
     return result.announcement_id;
   }
 
@@ -111,7 +127,7 @@ export default function Announcements() {
               onDelete={deleteAnnouncement}
             />
           } />
-          <Route path="*" element={<Navigate to="/announcements" replace />} />
+          <Route path="*" element={<NotFoundPage embedded />} />
         </Routes>
       </main>
       <footer className="sports-footer">NSBM Sports Hub <span>Every moment builds future champions.</span></footer>

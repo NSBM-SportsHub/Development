@@ -27,7 +27,7 @@ Back up an existing database before running:
 php backend/bin/setup.php --existing-database
 ```
 
-Migration `010_user_profile_photos.sql` creates one additional table, `user_profile_photos`, with one photo reference per user and a foreign key to `users`. Existing user columns, data and all other tables remain unchanged. A fresh setup now has 18 tables. Setup checks the new table's types and unique user index if it already exists and stops on incompatibility. Older incompatible legacy databases still require their separately reviewed compatibility migration; this change does not silently upgrade them.
+Migration `010_user_profile_photos.sql` creates one additional table, `user_profile_photos`, with one photo reference per user and a foreign key to `users`. Existing user columns, data and all other tables remain unchanged. The later university-branding and event-promotion migrations each add another table; a fresh setup now has 20 tables. See [profile and university branding](profile-experience.md) and [public activities](public-home-and-activities.md). Setup checks the photo table's types and unique user index if it already exists and stops on incompatibility. Older incompatible legacy databases still require their separately reviewed compatibility migration; this change does not silently upgrade them.
 
 The local development database was backed up, restored into a separate verification database, compared table-for-table, then migrated. Ignored backup evidence is under `.artifacts/profile-photo-backup-20261112-131050/`. All original 17 table definitions and row fingerprints were unchanged after migration. Keep the SQL backup private; it contains existing data.
 
@@ -59,4 +59,4 @@ After adding credentials and restarting PHP:
 4. Remove the photo; confirm initials return and the asset is removed or its cleanup failure is logged.
 5. Repeat upload/removal for an Admin account and check an invalid file is rejected.
 
-The API checklist now has 86 operations. Without real credentials, successful live photo upload remains **Not checked**. Offline operation evidence records its expected safe 503 and leaves its live success marked **NOT TESTED**.
+The API checklist now has 97 operations, including university branding and event promotions. Without real credentials, successful live image uploads remain **Not checked**. Offline operation evidence records their expected safe 503 responses and leaves their live success marked **NOT TESTED**.

@@ -17,7 +17,20 @@ Use test records. Create/edit/cancel only records prepared for this check. The a
 
 The paths below include `/api`; locally the backend address is `http://127.0.0.1:8000`. Replace `{id}` with a real record ID and `{uuid}` with an announcement's ID. A coach uses a normal account with an active club assignment. **Signed in** means an authenticated account; permissions may limit which records it can see.
 
-Each row is one method + path. There are **89 API operations** (the original 83, the Admin club overview, profile photo upload/removal, and university branding); PUT and PATCH are listed separately where both are supported. Image uploads require configured Cloudinary credentials. All results start as **Not checked** for this teammate's review. This checklist does not claim the reviewer has already tested them.
+Each row is one method + path. There are **97 API operations** (the original 83, the Admin club overview, profile photo upload/removal, university branding and eight public event/promotion operations); PUT and PATCH are listed separately where both are supported. Image uploads require configured Cloudinary credentials. All results start as **Not checked** for this teammate's review. This checklist does not claim the reviewer has already tested them.
+
+## Public home page and event promotions
+
+| Method | API path | Purpose | Who can use it | Working condition / expected result | Result | Notes |
+| --- | --- | --- | --- | --- | --- | --- |
+| GET | /api/public/events | Browse published upcoming/current events | Anyone | Excludes drafts, finished/removed events and draft/cancelled/completed linked tournaments; ordered by display order | Not checked | |
+| GET | /api/public/events/{id} | Read public event details | Anyone | Published active promotion returns details; hidden or expired event returns 404 | Not checked | |
+| GET | /api/event-promotions | Manage home page promotions | Admin | Includes drafts and finished promotions, without private image credentials | Not checked | |
+| POST | /api/event-promotions | Create a promotion | Admin | Valid event persists; defaults to unpublished | Not checked | |
+| PATCH | /api/event-promotions/{id} | Edit/publish/order a promotion | Admin | Valid changes persist; invalid dates and tournament links rejected | Not checked | |
+| DELETE | /api/event-promotions/{id} | Remove a promotion from public view | Admin | Record retained with deleted_at; no longer listed | Not checked | |
+| POST | /api/event-promotions/{id}/banner | Upload/replace event banner | Admin | Valid multipart banner saves to Cloudinary and appears publicly | Not checked | Requires Cloudinary credentials |
+| DELETE | /api/event-promotions/{id}/banner | Remove banner | Admin | Saved banner cleared; event remains with default artwork | Not checked | |
 
 ## Login and connection
 

@@ -38,6 +38,8 @@ These commands use the ignored portable PHP tools already on this workstation. W
 
 The API base URL is http://127.0.0.1:8000/api. The React development server proxies same-origin /api calls to PHP. GET /api/health checks database access too.
 
+Announcements support optional images through migration `013_announcement_images.sql`. Image announcements populate the public home-page hero; text-only announcements remain behind sign-in. Uploads reuse the existing Cloudinary configuration. See [announcement images and public routes](../docs/announcement-images.md).
+
 ## Persistent configuration
 
 The API and CLI locate `backend/.env` independently of the terminal's working directory. The dependency-free loader accepts `KEY=value`, blank lines, `#` comment lines, optional `export`, and single- or double-quoted values. It performs no variable interpolation or command execution.

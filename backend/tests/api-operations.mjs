@@ -9,7 +9,7 @@ export async function testApiOperations({ check, Client, admin, newStudent, spor
   const checklist = readFileSync(resolve(root, 'docs/api-working-status-checklist.md'), 'utf8');
   const expected = [...checklist.matchAll(/^\| (GET|POST|PUT|PATCH|DELETE) \| ([^|]+)\|/gm)]
     .map((match) => `${match[1]} ${match[2].trim()}`);
-  assert.equal(expected.length, 89);
+  assert.equal(expected.length, 97);
   assert.equal(new Set(expected).size, expected.length);
   const observations = new Map();
   const evidencePath = resolve(root, '.artifacts', `api-operations-${suffix}`);
@@ -23,6 +23,7 @@ export async function testApiOperations({ check, Client, admin, newStudent, spor
       .replace(/\/[1-9][0-9]*(?=\/|$)/g, '/{id}');
   }
   function adminOnly(method, path) {
+    if (path.startsWith('/api/event-promotions')) return true;
     if (method !== 'GET' && path === '/api/branding/logo') return true;
     return (method === 'GET' && ['/api/users', '/api/users/{id}', '/api/reports/participation', '/api/clubs/{id}/overview'].includes(path)) ||
       (method !== 'GET' && (/^\/api\/(?:users(?:\/\{id\})?|clubs(?:\/\{id\}(?:\/archive)?)?|facilities(?:\/\{id\})?|equipment(?:\/\{id\})?|club-coaches(?:\/\{id\})?|tournaments(?:\/\{id\})?|announcements(?:\/\{uuid\})?)$/.test(path) ||
@@ -62,7 +63,7 @@ $db->exec('COMMIT');
     let data;
     try {
       await check(`Checklist ${key}`, async () => {
-        if (!key.includes(' /api/auth/') && !['GET /api/health', 'GET /api/branding'].includes(key)) {
+        if (!key.includes(' /api/auth/') && !key.includes(' /api/public/events') && !['GET /api/health', 'GET /api/branding'].includes(key)) {
           assert.equal((await anonymous.request(path, { method, body })).status, 401, `Authentication: ${key}`);
           result.authentication = 'unauthenticated request rejected (401)';
         }
@@ -96,6 +97,19 @@ $db->exec('COMMIT');
     });
     member.id = registration.user.id;
     studentActor = member;
+    const promotion = await op(admin, 'POST', '/event-promotions', 201, { title: `Operations camp ${suffix}`, description: 'Synthetic API coverage only.', category: 'camp', venue: 'Test ground', starts_at: '2090-01-01T09:00:00Z', ends_at: '2090-01-01T11:00:00Z' }, (d) => { assert.equal(d.published, false); persisted('event_promotions', d.id, 'title', `Operations camp ${suffix}`); });
+    await op(admin, 'PATCH', `/event-promotions/${promotion.id}`, 200, { published: true, display_order: 3 }, (d) => { assert.equal(d.published, true); persisted('event_promotions', d.id, 'published', 1); });
+    await op(anonymous, 'GET', '/public/events', 200, undefined, (d) => assert.ok(d.events.some((item) => item.id === promotion.id)));
+    await op(anonymous, 'GET', `/public/events/${promotion.id}`, 200, undefined, (d) => assert.equal(d.title, promotion.title));
+    await op(admin, 'GET', '/event-promotions', 200, undefined, (d) => assert.ok(d.events.some((item) => item.id === promotion.id)));
+    const banner = new FormData(); banner.append('banner', new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64')], { type: 'image/png' }), 'banner.png');
+    await op(admin, 'POST', `/event-promotions/${promotion.id}/banner`, 503, banner);
+    observations.get('POST /api/event-promotions/{id}/banner').result = 'NOT TESTED';
+    observations.get('POST /api/event-promotions/{id}/banner').details = 'Live Cloudinary upload requires credentials. Safe provider failure checked over HTTP; upload/persistence/replacement tested separately with an injected provider double.';
+    const seededBanner = spawnSync(php, ['backend/tests/event-promotions.php', '--seed-banner', String(promotion.id)], { cwd: root, env, encoding: 'utf8', windowsHide: true });
+    assert.equal(seededBanner.status, 0);
+    await op(admin, 'DELETE', `/event-promotions/${promotion.id}/banner`, 200, undefined, (d) => { assert.equal(d.banner_url, null); persisted('event_promotions', promotion.id, 'banner_url', null); });
+    await op(admin, 'DELETE', `/event-promotions/${promotion.id}`, 204, undefined, () => { persisted('event_promotions', promotion.id, 'published', 0); });
     const logo = new FormData();
     logo.append('logo', new Blob([Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64')], { type: 'image/png' }), 'logo.png');
     await op(admin, 'POST', '/branding/logo', 503, logo);

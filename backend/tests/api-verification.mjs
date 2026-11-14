@@ -85,7 +85,7 @@ echo $query->fetchColumn();
   const report = { ...releaseContext(), executed_at: new Date().toISOString(), timezone: 'Asia/Colombo',
     scope: '37 report cases replayed with synthetic accounts; original tester environment unavailable',
     working_database: before, fixture_database: database, api_base: `http://127.0.0.1:${port}/api`,
-    existing_database_migrations_applied: [], fresh_fixture_migrations: '001-011 through backend/bin/setup.php',
+    existing_database_migrations_applied: [], fresh_fixture_migrations: '001-012 through backend/bin/setup.php',
     original_cases: [], supplementary_checks: [], backend_errors: [], working_database_unchanged: null };
   let server;
   let serverLog = '';
@@ -145,7 +145,8 @@ echo $query->fetchColumn();
     // Verify configuration resolved by the exact environment inherited by the HTTP worker.
     const runtime = JSON.parse(runPhp(inspectPhp, env));
     assert.equal(runtime.database, database);
-    assert.equal(Object.keys(runtime.tables).length, 19);
+    assert.equal(Object.keys(runtime.tables).length, 21);
+    assert.ok(runtime.tables.announcement_images);
     report.http_worker_database = { host: runtime.host, port: runtime.port, database: runtime.database, server_port: runtime.server_port };
     server = spawn(php, ['-S', `127.0.0.1:${port}`, '-t', 'backend/public', 'backend/router.php'], { env, windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
     server.stdout.on('data', (chunk) => { serverLog += chunk; });

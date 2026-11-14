@@ -2,6 +2,7 @@ import { useEffect, useId, useRef, useState } from "react";
 import { useBranding } from "./BrandingContext.jsx";
 
 const paths = {
+  menu: <path d="M4 6h16M4 12h16M4 18h16" />,
   user: <><path d="M20 21v-2a7 7 0 0 0-14 0v2" /><circle cx="13" cy="7" r="4" /></>,
   users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15 3.13a4 4 0 0 1 0 7.75" /><circle cx="9" cy="7" r="4" /></>,
   shield: <><path d="M12 22s8-4 8-11V5l-8-3-8 3v6c0 7 8 11 8 11Z" /><path d="m9 12 2 2 4-4" /></>,
@@ -32,6 +33,8 @@ const paths = {
   activity: <><path d="M2 12h4l3-8 6 16 3-8h4" /></>,
   report: <><path d="M3 3v18h18M7 16v-4m5 4V8m5 8V5" /></>,
   more: <><circle cx="5" cy="12" r="1" /><circle cx="12" cy="12" r="1" /><circle cx="19" cy="12" r="1" /></>,
+  mail: <><rect x="3" y="5" width="18" height="14" rx="2" /><path d="m3 6 9 7 9-7" /></>,
+  phone: <path d="M7 3H4a1 1 0 0 0-1 1c0 9.4 7.6 17 17 17a1 1 0 0 0 1-1v-3l-5-2-2 2a14 14 0 0 1-7-7l2-2-2-5Z" />,
 };
 
 export function Icon({ name, size = 20, ...props }) {

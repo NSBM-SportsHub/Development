@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Navigate, Route, Routes } from "react-router-dom";
+import { Route, Routes } from "react-router-dom";
+import NotFoundPage from "../../shared/NotFoundPage.jsx";
 import "../sports-clubs/sports-clubs.css";
 import AttendanceForm from "./AttendanceForm.jsx";
 import AttendanceList from "./AttendanceList.jsx";
@@ -69,7 +70,7 @@ export default function TrainingAttendance() {
           <Route path=":sessionId/attendance" element={<AttendanceList sessions={sessions} loading={loading} />} />
           <Route path=":sessionId/edit" element={<TrainingForm sessions={sessions} loading={loading} onSave={saveSession} />} />
           <Route path=":sessionId" element={<TrainingSchedule sessions={sessions} loading={loading} onCancel={cancelSession} />} />
-          <Route path="*" element={<Navigate to="/training-attendance" replace />} />
+          <Route path="*" element={<NotFoundPage embedded />} />
         </Routes>
       </main>
       <footer className="sports-footer">NSBM Sports Hub <span>Every moment builds future champions.</span></footer>

@@ -7,12 +7,13 @@ use PDO;
 
 final class AnnouncementRepository
 {
+    private const SELECT = 'SELECT a.announcement_id, a.club_id, a.title, a.body, a.is_pinned, a.is_deleted, i.image_url FROM announcements a LEFT JOIN announcement_images i ON i.announcement_id = a.announcement_id';
+
     public static function listing(bool $includeDeleted = false): array
     {
-        $where = $includeDeleted ? '' : ' WHERE is_deleted = 0';
+        $where = $includeDeleted ? '' : ' WHERE a.is_deleted = 0';
         $statement = Database::get()->query(
-            'SELECT announcement_id, club_id, title, body, is_pinned, is_deleted FROM announcements' .
-            $where . ' ORDER BY is_pinned DESC, announcement_id DESC'
+            self::SELECT . $where . ' ORDER BY a.is_pinned DESC, a.announcement_id DESC'
         );
         return array_map([self::class, 'publicAnnouncement'], $statement->fetchAll());
     }
@@ -20,8 +21,7 @@ final class AnnouncementRepository
     public static function find(string $id, bool $includeDeleted = false): ?array
     {
         $statement = Database::get()->prepare(
-            'SELECT announcement_id, club_id, title, body, is_pinned, is_deleted FROM announcements ' .
-            'WHERE announcement_id = ?' . ($includeDeleted ? '' : ' AND is_deleted = 0')
+            self::SELECT . ' WHERE a.announcement_id = ?' . ($includeDeleted ? '' : ' AND a.is_deleted = 0')
         );
         $statement->execute([$id]);
         $announcement = $statement->fetch();
@@ -46,6 +46,16 @@ final class AnnouncementRepository
             NotificationService::announcement($db, $id, $data);
         });
         return self::find($id) ?? throw new \RuntimeException('The created announcement could not be loaded.');
+    }
+
+    public static function featured(?string $id = null): array
+    {
+        $statement = Database::get()->prepare(self::SELECT . ' WHERE a.is_deleted = 0 AND i.image_url IS NOT NULL' .
+            ($id === null ? ' ORDER BY a.is_pinned DESC, i.updated_at DESC, a.announcement_id DESC' : ' AND a.announcement_id = ?'));
+        $statement->execute($id === null ? [] : [$id]);
+        $rows = array_map([self::class, 'publicAnnouncement'], $statement->fetchAll());
+        if ($id !== null) return $rows[0] ?? throw new ApiException(404, 'not_found', 'This announcement is no longer available.');
+        return ['announcements' => $rows];
     }
 
     public static function update(string $id, array $changes): ?array
@@ -91,6 +101,7 @@ final class AnnouncementRepository
             'club_id' => $announcement['club_id'] === null ? null : (int) $announcement['club_id'],
             'title' => $announcement['title'],
             'body' => $announcement['body'],
+            'image_url' => $announcement['image_url'] ?? null,
             'is_pinned' => (bool) $announcement['is_pinned'],
             'is_deleted' => (bool) $announcement['is_deleted'],
         ];

@@ -9,6 +9,7 @@ const playwrightPath = process.env.SPORTSHUB_PLAYWRIGHT_PATH || (existsSync('.to
 const { chromium } = await import(playwrightPath ? pathToFileURL(playwrightPath).href : 'playwright');
 import { preview } from '../frontend/node_modules/vite/dist/node/index.js';
 import { releaseContext } from '../scripts/release-context.mjs';
+import { testHomeWorkflows } from './home-workflows.mjs';
 
 const root = process.cwd();
 const php = process.env.SPORTSHUB_PHP || (existsSync('.tools/php/php.exe') ? resolve('.tools/php/php.exe') : 'php');
@@ -31,11 +32,18 @@ async function port() {
   return p;
 }
 let backend, vite, browser;
+async function newBrowserContext(options = {}) {
+  const context = await browser.newContext(options);
+  // External font delivery must not block local acceptance checks or screenshots.
+  // The app's system-font fallback is exercised in every browser context.
+  await context.route('https://fonts.googleapis.com/**', (route) => route.fulfill({ status: 200, contentType: 'text/css', body: '' }));
+  return context;
+}
 const passedSteps = [];
 const screenshots = [];
-async function screenshot(page, name, { fullPage = true } = {}) {
+async function screenshot(page, name, { fullPage = true, animations = 'allow' } = {}) {
   const path = `.artifacts/${name}.png`;
-  await page.screenshot({ path, fullPage, timeout: 30000 });
+  await page.screenshot({ path, fullPage, animations, timeout: 30000 });
   screenshots.push(path);
 }
 try {
@@ -46,8 +54,8 @@ try {
   vite = await preview({ root: resolve('frontend'), configFile: resolve('frontend/vite.config.js'), preview: { host: '127.0.0.1', port: await port(), strictPort: true, proxy: { '/api': { target: `http://127.0.0.1:${phpPort}`, changeOrigin: true } } } });
   const origin = `http://127.0.0.1:${vite.httpServer.address().port}`;
   browser = await chromium.launch({ ...(process.env.SPORTSHUB_BROWSER_CHANNEL ? { channel: process.env.SPORTSHUB_BROWSER_CHANNEL } : {}), headless: true });
-  const adminContext = await browser.newContext();
-  const studentContext = await browser.newContext({ viewport: { width: 1440, height: 1000 } });
+  const adminContext = await newBrowserContext();
+  const studentContext = await newBrowserContext({ viewport: { width: 1440, height: 1000 } });
   async function client(context) {
     let csrf;
     return async (path, method = 'GET', body) => {
@@ -65,7 +73,7 @@ try {
   const studentId = `STU-${suffix}`;
   const studentPhone = '+94770001122';
   const registered = await student('/auth/register', 'POST', { name: 'Workflow Student', email: `student-${suffix}@example.test`, password, student_id: studentId, phone: studentPhone });
-  const coachContext = await browser.newContext();
+  const coachContext = await newBrowserContext();
   const coach = await client(coachContext);
   await coach('/auth/session');
   const coachUser = await coach('/auth/register', 'POST', { name: 'Workflow Coach', email: `coach-${suffix}@example.test`, password });
@@ -91,14 +99,111 @@ try {
     await page.getByRole('option', { name: text, exact: true }).click();
   }
   let clubId, trainingId, bookingId, tournamentId;
-  await step('Sidebar icons expand on hover and keyboard focus, collapse on mouse leave, and stay labelled on touch', async () => {
+  await testHomeWorkflows({ step, newBrowserContext, origin, admin, adminPage, studentPage, visit, screenshot, errors, cli });
+  await step('Animated profile keeps real account details, responsive edit controls and reduced-motion support', async () => {
+    await adminPage.setViewportSize({ width: 1440, height: 1100 });
+    await visit(adminPage, '/profile');
+    await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
+    await adminPage.getByRole('button', { name: 'Change university logo', exact: true }).waitFor();
+    await screenshot(adminPage, 'profile-redesign-admin-desktop', { animations: 'disabled' });
+    await visit(studentPage, '/profile');
+    await studentPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
+    assert.equal(await studentPage.getByRole('heading', { name: 'University logo', exact: true }).count(), 0);
+    assert.equal(await studentPage.locator('.profile-columns input').count(), 0);
+    assert.equal(await studentPage.locator('.profile-court-trail').evaluate((element) => getComputedStyle(element).animationName), 'profile-track-lap');
+    await studentPage.locator('.profile-stage').hover();
+    assert.ok(await studentPage.locator('.profile-stage').evaluate((element) => element.style.getPropertyValue('--spot-x').endsWith('px')));
+    assert.equal(await studentPage.locator('.profile-shortcut').count(), 3);
+    await screenshot(studentPage, 'profile-redesign-student-desktop', { animations: 'disabled' });
+    for (const width of [768, 390, 320]) {
+      await studentPage.setViewportSize({ width, height: 844 });
+      assert.equal(await studentPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, 'Profile overflow at ' + width);
+      if (width === 390) await screenshot(studentPage, 'profile-redesign-mobile', { animations: 'disabled' });
+    }
+    await studentPage.emulateMedia({ reducedMotion: 'reduce' });
+    assert.equal(await studentPage.locator('.profile-court-trail').evaluate((element) => getComputedStyle(element).animationName), 'none');
+    await studentPage.emulateMedia({ reducedMotion: 'no-preference' });
+    await studentPage.setViewportSize({ width: 1440, height: 1000 });
+    await adminPage.setViewportSize({ width: 1440, height: 1000 });
+  });
+  await step('Admin-only university logo is shared by Student/login branding and the loading screen (provider stub)', async () => {
+    await visit(adminPage, '/profile');
+    await adminPage.getByRole('button', { name: 'Change university logo', exact: true }).click();
+    const logoInput = adminPage.getByLabel('Choose a university logo', { exact: true });
+    await logoInput.setInputFiles({ name: 'logo.svg', mimeType: 'image/svg+xml', buffer: Buffer.from('<svg></svg>') });
+    await adminPage.getByRole('alert').filter({ hasText: 'Choose a JPEG, PNG or WebP logo.' }).waitFor();
+    const png = Buffer.from((await adminPage.evaluate(() => {
+      const canvas = document.createElement('canvas'); canvas.width = 96; canvas.height = 96;
+      const context = canvas.getContext('2d'); context.fillStyle = '#1d6048'; context.fillRect(0, 0, 96, 96);
+      context.fillStyle = '#fff'; context.font = 'bold 64px sans-serif'; context.textAlign = 'center'; context.fillText('N', 48, 70);
+      return canvas.toDataURL('image/png');
+    })).split(',')[1], 'base64');
+    await logoInput.setInputFiles({ name: 'university.png', mimeType: 'image/png', buffer: png });
+    await adminPage.getByRole('button', { name: 'Save university logo', exact: true }).click();
+    await adminPage.getByRole('alert').filter({ hasText: 'Image uploads are not configured.' }).waitFor();
+    const cdn = 'https://res.cloudinary.com/fixture/**';
+    for (const page of [adminPage, studentPage, coachPage]) await page.route(cdn, (route) => route.fulfill({ status: 200, contentType: 'image/png', body: png }));
+    await adminPage.route('**/api/branding/logo', async (route) => {
+      assert.equal(route.request().method(), 'POST');
+      assert.match(route.request().headers()['content-type'], /^multipart\/form-data; boundary=/);
+      cli('backend/tests/university-branding.php', ['--seed']);
+      await route.fulfill({ status: 201, json: { data: await admin('/branding'), error: null } });
+    });
+    const personalPhoto = (await admin('/users/me')).photo_url;
+    await adminPage.getByRole('button', { name: 'Save university logo', exact: true }).click();
+    await adminPage.getByText('The university logo has been updated across SportsHub.', { exact: true }).waitFor();
+    await adminPage.unroute('**/api/branding/logo');
+    const savedLogo = (await admin('/branding')).university_logo_url;
+    assert.equal(await adminPage.locator('.sidebar .brand-mark img').getAttribute('src'), savedLogo);
+    assert.equal((await admin('/users/me')).photo_url, personalPhoto);
+    await adminPage.reload({ waitUntil: 'domcontentloaded' });
+    await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
+    assert.equal(await adminPage.locator('.sidebar .brand-mark img').getAttribute('src'), savedLogo);
+    await visit(studentPage, '/profile');
+    await studentPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
+    assert.equal(await studentPage.locator('.sidebar .brand-mark img').getAttribute('src'), savedLogo);
+    assert.equal(await studentPage.getByRole('button', { name: 'Change university logo', exact: true }).count(), 0);
+    await visit(coachPage, '/profile');
+    await coachPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
+    assert.equal(await coachPage.getByRole('button', { name: 'Change university logo', exact: true }).count(), 0);
+    const guestContext = await newBrowserContext({ viewport: { width: 1440, height: 1000 } });
+    const guest = await guestContext.newPage(); guest.on('pageerror', (error) => errors.push(error.message));
+    await guest.route(cdn, (route) => route.fulfill({ status: 200, contentType: 'image/png', body: png }));
+    let releaseSession;
+    const gate = new Promise((resolve) => { releaseSession = resolve; });
+    await guest.route('**/api/auth/session', async (route) => { await gate; await route.continue(); });
+    try {
+      await visit(guest, '/login');
+      await guest.getByRole('status', { name: 'Loading NSBM SportsHub', exact: true }).waitFor();
+      await guest.locator('.site-loading-screen .brand-mark img').waitFor();
+      assert.equal(await guest.locator('.site-loading-screen .brand-mark img').getAttribute('src'), savedLogo);
+      await screenshot(guest, 'university-branded-loading-screen', { fullPage: false, animations: 'disabled' });
+    } finally { releaseSession(); }
+    await guest.getByRole('button', { name: 'Sign in', exact: true }).waitFor();
+    assert.equal(await guest.locator('.auth-story .brand-mark img').getAttribute('src'), savedLogo);
+    await guest.unroute('**/api/auth/session');
+    await guest.route('**/api/branding', (route) => route.fulfill({ status: 503, json: { data: null, error: { code: 'service_unavailable', message: 'Branding fixture outage.' } } }));
+    await guest.reload({ waitUntil: 'domcontentloaded' });
+    await guest.getByRole('button', { name: 'Sign in', exact: true }).waitFor();
+    assert.equal(await guest.locator('.site-loading-screen').count(), 0, 'Branding failure blocks login');
+    await guestContext.close();
+    await adminPage.getByRole('button', { name: 'Use default logo', exact: true }).click();
+    await adminPage.getByText('The default website logo has been restored.', { exact: true }).waitFor();
+    assert.equal((await admin('/branding')).university_logo_url, null);
+    await visit(studentPage, '/profile');
+    await studentPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
+    assert.equal(await studentPage.locator('.sidebar .brand-mark img').count(), 0);
+    for (const page of [adminPage, studentPage, coachPage]) await page.unroute(cdn);
+  });
+  await step('Sidebar hover works on desktop and mobile uses a tap-to-expand icon rail', async () => {
     await adminPage.setViewportSize({ width: 1440, height: 1000 });
     await visit(adminPage, '/profile');
     await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     await adminPage.mouse.move(800, 300);
     await adminPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width <= 81);
     const links = adminPage.getByRole('navigation', { name: 'Workspace', exact: true }).getByRole('link');
-    assert.equal(await links.count(), 8, 'Admin sidebar should retain only primary links');
+    assert.equal(await links.count(), 7, 'Profile access belongs to the account avatar');
+    assert.equal(await adminPage.getByRole('navigation', { name: 'Workspace', exact: true }).getByRole('link', { name: 'My profile', exact: true }).count(), 0);
     const notificationButton = adminPage.getByRole('link', { name: 'Notifications', exact: true });
     assert.equal(await notificationButton.count(), 1);
     await notificationButton.click();
@@ -121,6 +226,10 @@ try {
     await adminPage.mouse.move(800, 300);
     await adminPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width <= 81);
     assert.equal(await adminPage.getByRole('navigation', { name: 'Workspace', exact: true }).getByRole('link', { name: 'Clubs', exact: true }).getAttribute('aria-current'), 'page');
+    await adminPage.getByRole('link', { name: 'Open my profile', exact: true }).click();
+    await adminPage.waitForURL('**/profile');
+    await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
+    assert.equal(await adminPage.getByRole('link', { name: 'Open my profile', exact: true }).getAttribute('aria-current'), 'page');
     await visit(studentPage, '/profile');
     await studentPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     await studentPage.mouse.move(800, 300);
@@ -129,7 +238,7 @@ try {
     await studentPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width >= 259);
     assert.equal(await studentPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'NSBM SportsHub home');
     await studentPage.keyboard.press('Tab');
-    assert.equal(await studentPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'My profile');
+    assert.equal(await studentPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'My bookings');
     await adminPage.setViewportSize({ width: 1440, height: 600 });
     await visit(adminPage, '/profile');
     await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
@@ -137,31 +246,52 @@ try {
     await adminPage.keyboard.press('Tab');
     for (let index = 0; index < await links.count(); index++) await adminPage.keyboard.press('Tab');
     assert.equal(await adminPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Announcements');
-    assert.ok(await adminPage.locator('.side-nav').evaluate((element) => element.scrollTop > 0), 'Lower menu items are not reachable');
+    assert.ok(await adminPage.locator('.side-nav').evaluate((element) => {
+      const visible = element.getBoundingClientRect();
+      const focused = document.activeElement.getBoundingClientRect();
+      return focused.top >= visible.top - 1 && focused.bottom <= visible.bottom + 1;
+    }), 'Focused menu item is outside the visible navigation');
     await adminPage.keyboard.press('Tab');
     assert.equal(await adminPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'More');
-    const touch = await browser.newContext({ storageState: await adminContext.storageState(), hasTouch: true, viewport: { width: 1024, height: 900 } });
+    await adminPage.keyboard.press('Tab');
+    assert.equal(await adminPage.evaluate(() => document.activeElement.getAttribute('aria-label')), 'Open my profile');
+    await adminPage.keyboard.press('Enter');
+    await adminPage.waitForURL('**/profile');
+    const touch = await newBrowserContext({ storageState: await adminContext.storageState(), hasTouch: true, viewport: { width: 1024, height: 900 } });
     const touchPage = await touch.newPage();
     touchPage.on('pageerror', (error) => errors.push(error.message));
     await visit(touchPage, '/profile');
     await touchPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     assert.equal(await touchPage.evaluate(() => matchMedia('(hover: none)').matches), true);
-    assert.equal(await touchPage.locator('.sidebar').evaluate((element) => element.getBoundingClientRect().width), 260);
+    await touchPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 64);
+    assert.equal(await touchPage.locator('.sidebar-link-label').first().evaluate((element) => getComputedStyle(element).opacity), '0');
+    await touchPage.getByRole('button', { name: 'Expand navigation', exact: true }).tap();
+    await touchPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 260);
     assert.equal(await touchPage.locator('.sidebar-link-label').first().evaluate((element) => getComputedStyle(element).opacity), '1');
+    await touchPage.getByRole('button', { name: 'Close navigation', exact: true }).tap({ position: { x: 800, y: 300 } });
+    await touchPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 64);
     assert.equal(await touchPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
     await touch.close();
     await adminPage.setViewportSize({ width: 390, height: 844 });
-    await visit(adminPage, '/profile');
+    await visit(adminPage, '/notifications');
+    await adminPage.getByRole('heading', { name: 'Notifications', exact: true }).waitFor();
+    await adminPage.getByRole('link', { name: 'Open my profile', exact: true }).click();
+    await adminPage.waitForURL('**/profile');
     await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     assert.equal(await adminPage.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true);
+    assert.equal(await adminPage.locator('.sidebar-link-label').first().evaluate((element) => getComputedStyle(element).opacity), '0');
+    await adminPage.getByRole('button', { name: 'Expand navigation', exact: true }).click();
+    await adminPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 260);
     assert.equal(await adminPage.locator('.sidebar-link-label').first().evaluate((element) => getComputedStyle(element).opacity), '1');
+    await adminPage.keyboard.press('Escape');
+    await adminPage.waitForFunction(() => document.querySelector('.sidebar').getBoundingClientRect().width === 64);
     await adminPage.setViewportSize({ width: 1440, height: 1000 });
   });
   await step('More groups secondary links with animated, keyboard-accessible popups and role-specific mobile navigation', async () => {
     await visit(adminPage, '/profile');
     await adminPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     const adminNav = adminPage.getByRole('navigation', { name: 'Workspace', exact: true });
-    for (const name of ['My profile', 'User management', 'Clubs', 'Membership review', 'Booking review', 'Tournaments', 'Training and attendance', 'Announcements']) {
+    for (const name of ['User management', 'Clubs', 'Membership review', 'Booking review', 'Tournaments', 'Training and attendance', 'Announcements']) {
       assert.equal(await adminNav.getByRole('link', { name, exact: true }).count(), 1, 'Primary link moved into More: ' + name);
     }
     for (const name of ['Coach assignments', 'Facilities', 'Equipment', 'Apply for membership', 'My memberships', 'My participation history', 'Participation reports']) {
@@ -171,7 +301,7 @@ try {
     let dialog = adminPage.getByRole('dialog', { name: 'More tools', exact: true });
     await dialog.waitFor();
     assert.equal(await dialog.evaluate((element) => getComputedStyle(element).animationName), 'workspace-more-open');
-    assert.equal(await dialog.getByRole('link').count(), 7);
+    assert.equal(await dialog.getByRole('link').count(), 8);
     assert.equal(await dialog.getByRole('link', { name: 'Apply for membership', exact: true }).count(), 0);
     assert.equal(await dialog.getByRole('link', { name: 'Request a booking', exact: true }).count(), 0);
     await adminPage.waitForFunction(() => getComputedStyle(document.querySelector('.workspace-more-layer .modal')).opacity === '1' && getComputedStyle(document.querySelector('.workspace-more-layer .modal-backdrop')).opacity === '1');
@@ -196,7 +326,7 @@ try {
     await visit(studentPage, '/profile');
     await studentPage.getByRole('heading', { name: 'My profile', exact: true }).waitFor();
     const studentNav = studentPage.getByRole('navigation', { name: 'Workspace', exact: true });
-    assert.equal(await studentNav.getByRole('link').count(), 6);
+    assert.equal(await studentNav.getByRole('link').count(), 5);
     for (const name of ['Sports clubs', 'Training and attendance', 'Tournaments', 'Announcements', 'My bookings']) assert.equal(await studentNav.getByRole('link', { name, exact: true }).count(), 1);
     await studentNav.getByRole('button', { name: 'More', exact: true }).click();
     let studentDialog = studentPage.getByRole('dialog', { name: 'More tools', exact: true });
@@ -459,7 +589,7 @@ try {
     await studentPage.getByLabel('Team or entrant name', { exact: true }).fill('Workflow Entrant');
     await studentPage.getByRole('button', { name: 'Submit entry', exact: true }).click();
     await studentPage.getByRole('cell', { name: 'Workflow Entrant', exact: true }).waitFor();
-    const rivalContext = await browser.newContext();
+    const rivalContext = await newBrowserContext();
     const rival = await client(rivalContext); await rival('/auth/session');
     const rivalUser = await rival('/auth/register', 'POST', { name: 'Workflow Rival', email: `rival-${suffix}@example.test`, password });
     const membership = await rival('/memberships', 'POST', { club_id: clubId });
@@ -616,7 +746,7 @@ try {
     await adminPage.getByRole('form', { name: 'Edit profile', exact: true }).getByRole('button', { name: 'Cancel', exact: true }).click();
     assert.equal(await adminPage.locator('.profile-saved-details').getByText('Browser Admin', { exact: true }).count(), 1);
     assert.equal(await adminPage.locator('.profile-columns input').count(), 0);
-    const context = await browser.newContext();
+    const context = await newBrowserContext();
     const page = await context.newPage();
     page.on('pageerror', (error) => errors.push(error.message));
     await visit(page, '/login');
@@ -694,7 +824,7 @@ try {
     await context.close();
   });
   assert.deepEqual(errors, []);
-  writeFileSync('.artifacts/browser-evidence.json', JSON.stringify({ ...releaseContext(), checked_at: new Date().toISOString(), status: 'passed', target: 'local production build with real PHP/MySQL', browser_channel: process.env.SPORTSHUB_BROWSER_CHANNEL || 'chromium', workflow_groups: passedSteps, screenshots, runtime_errors: 0, synthetic_data_only: true }, null, 2) + '\n');
+  writeFileSync('.artifacts/browser-evidence.json', JSON.stringify({ ...releaseContext(), checked_at: new Date().toISOString(), status: 'passed', target: 'local production build with real PHP/MySQL', browser_channel: process.env.SPORTSHUB_BROWSER_CHANNEL || 'chromium', external_fonts: 'disabled; system-font fallback exercised', workflow_groups: passedSteps, screenshots, runtime_errors: 0, synthetic_data_only: true }, null, 2) + '\n');
   console.log('PASS real browser workflows against the production frontend build, PHP and MySQL; isolated database cleaned on exit.');
 } finally {
   if (browser) await browser.close();

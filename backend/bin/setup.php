@@ -55,6 +55,19 @@ try {
     }
     $connection->exec('USE `' . $database . '`');
     $expected = [
+        'announcement_images' => [
+            'announcement_id' => 'char(36)', 'cloud_name' => 'varchar(100)', 'public_id' => 'varchar(255)',
+            'version' => 'varchar(30)', 'image_url' => 'varchar(1000)', 'created_at' => 'datetime', 'updated_at' => 'datetime',
+        ],
+        'event_promotions' => [
+            'id' => 'bigint unsigned', 'title' => 'varchar(150)', 'description' => 'text',
+            'category' => "enum('tournament','trial','camp','sports_day','other')", 'tournament_id' => 'bigint unsigned',
+            'venue' => 'varchar(160)', 'starts_at' => 'datetime', 'ends_at' => 'datetime',
+            'published' => 'tinyint(1)', 'featured' => 'tinyint(1)', 'display_order' => 'smallint unsigned',
+            'cloud_name' => 'varchar(100)', 'public_id' => 'varchar(255)', 'version' => 'varchar(30)',
+            'banner_url' => 'varchar(1000)', 'created_by' => 'bigint unsigned',
+            'created_at' => 'datetime', 'updated_at' => 'datetime', 'deleted_at' => 'datetime',
+        ],
         'site_branding' => [
             'id' => 'tinyint unsigned', 'cloud_name' => 'varchar(100)', 'public_id' => 'varchar(255)',
             'version' => 'varchar(30)', 'logo_url' => 'varchar(1000)', 'updated_by' => 'bigint unsigned',
@@ -173,7 +186,7 @@ try {
             'user_profile_photos' => ['user_id'],
             'users' => ['id', 'email', 'student_id'],
             'auth_rate_limits' => ['key_hash'],
-            'announcements' => ['announcement_id'],
+            'announcements', 'announcement_images' => ['announcement_id'],
             default => ['id'],
         };
         foreach ($requiredUnique as $field) {

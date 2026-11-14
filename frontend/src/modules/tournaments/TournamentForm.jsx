@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { api } from "../../shared/api.js";
+import { toApiDateTime } from "../../shared/business.js";
 import { Feedback } from "../../shared/Feedback.jsx";
 import { FormField } from "../../shared/FormField.jsx";
 import { Button, Modal } from "../../shared/ui.jsx";
@@ -84,7 +85,7 @@ export default function TournamentForm({ tournament, onClose, onSaved }) {
       starts_on: values.starts_on,
       ends_on: values.ends_on,
       registration_closes_at: values.registration_closes_at
-        ? new Date(values.registration_closes_at).toISOString()
+        ? toApiDateTime(values.registration_closes_at)
         : null,
       max_entries: values.max_entries === "" ? null : Number(values.max_entries),
       ...(values.format === "league" ? {
