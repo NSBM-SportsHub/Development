@@ -1,3 +1,5 @@
+import { advancePerchedBehavior } from './bird-perched.js';
+
 const TAU = Math.PI * 2;
 const clamp = (value, minimum, maximum) => Math.max(minimum, Math.min(maximum, value));
 const between = (minimum, maximum, random) => minimum + (maximum - minimum) * random();
@@ -30,14 +32,15 @@ export function advanceBirdFlight(bird, viewport, elapsed, random = Math.random)
   const perch = viewport.perch;
   if (perch && !bird.perchAvailable) {
     bird.perchAvailable = true;
-    bird.landAt = bird.time + 6;
+    bird.landAt = bird.time + (viewport.perchDelay ?? 6);
   } else if (!perch && bird.perchAvailable) {
     bird.perchAvailable = false; bird.landAt = null;
     bird.mode = 'flying'; bird.nextRoute = bird.time;
   }
   if (perch && bird.time >= bird.landAt && bird.mode === 'flying') bird.mode = 'landing';
+  advancePerchedBehavior(bird, dt, random);
   if (bird.mode === 'perched' && perch) {
-    bird.x = perch.x; bird.y = perch.y; bird.vx = 0; bird.vy = 0; bird.bank = 0; bird.facingRight = false;
+    bird.x = perch.x; bird.y = perch.y; bird.vx = 0; bird.vy = 0; bird.bank = 0; bird.facingRight = perch.facingRight ?? false;
     bird.perchBlend += (1 - bird.perchBlend) * (1 - Math.exp(-7 * dt));
     return bird;
   }
@@ -66,7 +69,7 @@ export function advanceBirdFlight(bird, viewport, elapsed, random = Math.random)
   if (bird.x < area.minX || bird.x > area.maxX) { bird.vx *= -.65; bird.nextRoute = bird.time; }
   if (bird.y < area.minY || bird.y > area.maxY) { bird.vy *= -.65; bird.nextRoute = bird.time; }
   containBird(bird, viewport);
-  if (landing && distance < 120) bird.facingRight = false;
+  if (landing && distance < 120) bird.facingRight = perch.facingRight ?? false;
   else if (Math.abs(bird.vx) > 8) bird.facingRight = bird.vx > 0;
   const bank = clamp(Math.atan2(bird.vy, Math.max(10, Math.abs(bird.vx))) * 180 / Math.PI * (bird.facingRight ? 1 : -1), -22, 22) * (landing ? Math.min(1, distance / 120) : 1);
   bird.bank += (bank - bird.bank) * (1 - Math.exp(-4 * dt));
@@ -74,7 +77,7 @@ export function advanceBirdFlight(bird, viewport, elapsed, random = Math.random)
   bird.phase = (bird.phase + dt * TAU * (landing ? 3.5 : 4 + bird.speed / 190)) % TAU;
   bird.perchBlend += ((landing ? clamp(1 - distance / 90, 0, .8) : 0) - bird.perchBlend) * (1 - Math.exp(-7 * dt));
   if (landing && distance < 1 && Math.hypot(bird.vx, bird.vy) < 7) {
-    bird.mode = 'perched'; bird.x = perch.x; bird.y = perch.y; bird.vx = 0; bird.vy = 0; bird.bank = 0; bird.facingRight = false;
+    bird.mode = 'perched'; bird.x = perch.x; bird.y = perch.y; bird.vx = 0; bird.vy = 0; bird.bank = 0; bird.facingRight = perch.facingRight ?? false;
   }
   return bird;
 }

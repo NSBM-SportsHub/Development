@@ -8,8 +8,8 @@
 .home-hero-intro { color: #687a6b; font-size: 15px; line-height: 1.9; margin: 0 0 28px; max-width: 375px; animation-delay: .16s; }
 .home-hero-actions { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 28px; animation-delay: .24s; }
 .home-hero-actions .discovery-button { gap: 23px; padding: 15px 20px; }
-.home-hero-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 17px; border: 1px solid #cbd7c4; border-radius: 12px; padding: 15px 20px; color: #32583c; font-size: 13px; font-weight: 700; transition: background .2s, transform .2s; }
-.home-hero-secondary:hover { background: #eaf0e2; transform: translateY(-2px); }
+.home-hero-secondary { display: inline-flex; align-items: center; justify-content: center; gap: 17px; border: 1px solid var(--button-secondary-bg); border-radius: 12px; padding: 15px 20px; background: var(--button-secondary-bg); color: var(--button-secondary-text); font-size: 13px; font-weight: 700; transition: background .2s, border-color .2s, transform .2s; }
+.home-hero-secondary:hover { background: var(--button-secondary-hover); border-color: var(--button-secondary-hover); transform: translateY(-2px); }
 .home-hero-shortcuts { display: flex; align-items: center; gap: 22px; border-top: 1px solid #dfe7d6; padding-top: 22px; max-width: 375px; animation-delay: .32s; }
 .home-hero-shortcuts a { display: flex; align-items: center; gap: 7px; color: #6e8065; font-size: 11px; font-weight: 600; transition: color .2s, transform .2s; }
 .home-hero-shortcuts a:hover { color: #1e6041; transform: translateY(-2px); }
