@@ -46,6 +46,8 @@
   .mobile-tab:hover { color: #174f38; background: #eaf3e9; text-decoration: none; }
   .mobile-tab.is-active { color: #174f38; background: #e2efde; }
   .mobile-tab-icon { display: grid; place-items: center; height: 26px; }
+  .mobile-tab-icon .avatar { width: 25px; height: 25px; font-size: .625rem; box-shadow: 0 0 0 1px #bfcfc1; }
+  .mobile-tab.is-active .avatar { box-shadow: 0 0 0 2px #397c55; }
   .mobile-tab:focus-visible { outline: 3px solid #397c55; outline-offset: 1px; }
 
   /* The bottom tabs take over mobile navigation and free up the page width. */

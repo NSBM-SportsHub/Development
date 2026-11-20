@@ -83,7 +83,7 @@ export default function MobileNavigation() {
   const moreActive = open || !tabs.some(([to]) => active(to));
   return <>
     <nav className="mobile-bottom-nav" aria-label="Mobile navigation">
-      {tabs.map(([to, icon, label]) => <Link key={to} to={to} className={`mobile-tab${active(to) ? ' is-active' : ''}`} aria-current={active(to) ? 'page' : undefined}><span className="mobile-tab-icon"><Icon name={icon} size={22} /></span><span>{label}</span></Link>)}
+      {tabs.map(([to, icon, label]) => <Link key={to} to={to} className={`mobile-tab${active(to) ? ' is-active' : ''}`} aria-current={active(to) ? 'page' : undefined}><span className="mobile-tab-icon">{to === '/profile' ? <Avatar user={user} /> : <Icon name={icon} size={22} />}</span><span>{label}</span></Link>)}
       <button type="button" className={`mobile-tab${moreActive ? ' is-active' : ''}`} aria-label="More navigation" aria-haspopup="dialog" aria-expanded={open} onClick={() => setOpen(value => !value)}><span className="mobile-tab-icon"><Icon name="more" size={22} /></span><span>More</span></button>
     </nav>
     {open && <MobileMoreMenu user={user} onClose={() => setOpen(false)} />}

@@ -13,7 +13,7 @@ const origin = `http://127.0.0.1:${server.httpServer.address().port}`;
 const browser = await chromium.launch({ headless: true, ...(process.env.SPORTSHUB_BROWSER_CHANNEL ? { channel: process.env.SPORTSHUB_BROWSER_CHANNEL } : {}) });
 const errors = [];
 const student = { id: 1, name: 'SportsHub Student', role: 'student', email: 'student@example.test', created_at: '2026-01-01T00:00:00Z' };
-const administrator = { ...student, id: 2, role: 'admin', name: 'SportsHub Admin' };
+const administrator = { ...student, id: 2, role: 'admin', name: 'SportsHub Admin', photo_url: 'https://res.cloudinary.com/test/image/upload/v1/test/avatar.webp' };
 const screenshots = resolve('.artifacts/mobile-christmas');
 mkdirSync(screenshots, { recursive: true });
 
@@ -90,6 +90,12 @@ try {
   for (const user of [student, administrator]) {
     const { page, context } = await openPage({ user, coach: user.role === 'student', path: '/profile' });
     const nav = page.getByRole('navigation', { name: 'Mobile navigation' });
+    const profileAvatar = nav.getByRole('link', { name: 'Profile', exact: true }).locator('.avatar');
+    if (user.photo_url) {
+      await profileAvatar.locator('img').waitFor();
+      assert.equal(await profileAvatar.locator('img').getAttribute('src'), user.photo_url);
+      await page.waitForFunction(() => document.querySelector('.mobile-bottom-nav .avatar img')?.naturalWidth > 0);
+    } else assert.equal(await profileAvatar.textContent(), 'SS');
     assert.equal(await page.locator('.sidebar').isVisible(), false);
     assert.equal(await page.locator('.workspace').evaluate(element => element.getBoundingClientRect().left), 0);
     await noOverflow(page);
