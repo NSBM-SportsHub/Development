@@ -31,27 +31,6 @@
   50% { transform: translate3d(var(--snow-drift), 50dvh, 0); }
   100% { transform: translate3d(calc(var(--snow-drift) * -.3), calc(100dvh + 24px), 0); }
 }
-.christmas-snow-toggle {
-  position: fixed;
-  z-index: 50;
-  right: max(18px, env(safe-area-inset-right));
-  bottom: max(18px, env(safe-area-inset-bottom));
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 7px;
-  min-height: 44px;
-  padding: 10px 14px;
-  border: 1px solid #d6e5df;
-  border-radius: 999px;
-  color: #245c45;
-  background: #f8fcf8f2;
-  box-shadow: 0 4px 18px #153d3114;
-  font-size: .75rem;
-  font-weight: 650;
-}
-.christmas-snow-toggle:hover { background: #e6f0e4; }
-
 /* Irregular powder, fine grain and a shaded underside give the snow some depth. */
 :is(.button-primary, .discovery-button, .primary-button) { position: relative; }
 :is(.button-primary, .discovery-button, .primary-button)::before {
@@ -82,6 +61,5 @@
 .profile-details-panel::before { left: 3px; right: 3px; opacity: .9; }
 @media (max-width: 767px), (max-width: 1024px) and (hover: none) {
   .christmas-snowflake:nth-child(n+25) { display: none; }
-  .christmas-snow-toggle { bottom: var(--mobile-navigation-space); right: max(14px, env(safe-area-inset-right)); min-height: 36px; padding: 7px 11px; }
 }
 @media (prefers-reduced-motion: reduce) { .christmas-snowfall { display: none; } }

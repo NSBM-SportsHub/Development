@@ -77,15 +77,15 @@ try {
   await page.getByLabel('Email address', { exact: true }).fill('student@example.test');
   await page.getByLabel('Password', { exact: true }).fill('Synthetic-test-password');
   await noOverflow(page);
-  await page.getByRole('button', { name: 'Turn off falling snow' }).click();
-  assert.equal(await page.locator('.christmas-snowfall').count(), 0);
+  assert.equal(await page.locator('.christmas-snow-toggle').count(), 0);
+  // A setting saved by the removed toggle must not leave snowfall disabled.
+  await page.evaluate(() => localStorage.setItem('sportshub.snowfall.v1', 'off'));
   await page.reload();
-  await page.getByRole('button', { name: 'Turn on falling snow' }).waitFor();
-  assert.equal(await page.locator('.christmas-snowfall').count(), 0);
-  await page.getByRole('button', { name: 'Turn on falling snow' }).click();
+  await page.locator('.christmas-snowfall').waitFor({ state: 'attached' });
+  assert.equal(await page.locator('.christmas-snow-toggle').count(), 0);
   assert.equal(await page.locator('.christmas-snowfall').count(), 1);
   await context.close();
-  console.log('PASS phone tabs, anchor navigation, menu focus, sign-in inputs, snow preference persistence');
+  console.log('PASS phone tabs, anchor navigation, menu focus, sign-in inputs, snowfall without a toggle');
 
   for (const user of [student, administrator]) {
     const { page, context } = await openPage({ user, coach: user.role === 'student', path: '/profile' });
