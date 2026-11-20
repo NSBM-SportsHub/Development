@@ -1,4 +1,5 @@
 import { useImperativeHandle, useRef } from 'react';
+import { SantaHatArtwork } from './SantaHat.jsx';
 
 // A jointed vector interpretation of the supplied green-and-yellow parrot.
 export default function Parrot({ motionRef }) {
@@ -52,6 +53,7 @@ export default function Parrot({ motionRef }) {
     <path d="M46 62 C37 60 32 70 35 79 Q37 85 42 88 Q39 79 47 76 L54 70 Q52 64 46 62Z" fill="#79aa96" />
     <path d="M47 76 L43 80 Q47 82 50 85 L51 75Z" fill="#245e5c" />
     <g ref={eye} className="parrot-eye"><circle cx="64" cy="67" r="4.2" fill="#111b15" /><circle cx="65.1" cy="65.8" r="1.25" fill="white" /></g>
+    <g className="parrot-christmas-hat" transform="translate(43 13) scale(.8) rotate(-9 30 36)"><SantaHatArtwork /></g>
     </g>
     </g>
     <g ref={feet} className="parrot-feet" opacity="0" stroke="#596c36" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path ref={leftFoot} className="parrot-foot parrot-left-foot" d="M108 155 L106 170 L107 182 M107 182 Q104 181 100 184 M107 182 Q110 181 113 183" /><path ref={rightFoot} className="parrot-foot parrot-right-foot" d="M123 159 L125 172 L124 182 M124 182 Q120 181 117 184 M124 182 Q128 181 131 184" /></g>

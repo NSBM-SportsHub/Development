@@ -6,19 +6,23 @@ import { AuthProvider } from "./shared/AuthContext.jsx";
 import { BrandingProvider } from "./shared/BrandingContext.jsx";
 import ApplicationStartup from "./shared/ApplicationStartup.jsx";
 import { MotionProvider } from "./shared/MotionContext.jsx";
+import MobileNavigation from "./shared/MobileNavigation.jsx";
 // Module imports are evaluated before the shared baseline. Glass effects are
 // scoped to module previews so the existing account screens keep their styles.
 import "./shared/styles.css";
 import "./glass.css";
 import "./shared/module-navigation.css";
 import "./shared/competition-ui.css";
+import "./shared/mobile-navigation.css";
+import "./shared/christmas.css";
 
 const FlyingBird = React.lazy(() => import("./shared/FlyingBird.jsx"));
+const ChristmasEffects = React.lazy(() => import("./shared/ChristmasEffects.jsx"));
 
 ReactDOM.createRoot(document.getElementById("root")).render(
   <React.StrictMode>
     <BrowserRouter>
-      <BrandingProvider><AuthProvider><MotionProvider><ApplicationStartup><App /><React.Suspense fallback={null}><FlyingBird /></React.Suspense></ApplicationStartup></MotionProvider></AuthProvider></BrandingProvider>
+      <BrandingProvider><AuthProvider><MotionProvider><ApplicationStartup><App /><MobileNavigation /><React.Suspense fallback={null}><ChristmasEffects /><FlyingBird /></React.Suspense></ApplicationStartup></MotionProvider></AuthProvider></BrandingProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );

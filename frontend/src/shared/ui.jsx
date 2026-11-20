@@ -1,7 +1,10 @@
 import { useEffect, useId, useRef, useState } from "react";
 import { useBranding } from "./BrandingContext.jsx";
+import SantaHat from "./SantaHat.jsx";
 
 const paths = {
+  home: <><path d="m3 10 9-7 9 7v11h-6v-7H9v7H3Z" /></>,
+  snowflake: <><path d="M12 2v20M3.34 7l17.32 10M3.34 17 20.66 7M9 4l3 3 3-3M9 20l3-3 3 3M3.6 10.6l4.1-1.1-1.1-4.1m10.8 13.2-1.1-4.1 4.1-1.1M6.6 18.6l1.1-4.1-4.1-1.1m16.8-2.8-4.1-1.1 1.1-4.1" /></>,
   menu: <path d="M4 6h16M4 12h16M4 18h16" />,
   user: <><path d="M20 21v-2a7 7 0 0 0-14 0v2" /><circle cx="13" cy="7" r="4" /></>,
   users: <><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2m20 0v-2a4 4 0 0 0-3-3.87M15 3.13a4 4 0 0 1 0 7.75" /><circle cx="9" cy="7" r="4" /></>,
@@ -46,7 +49,7 @@ export function UniversityMark({ className = "" }) {
   const [failedUrl, setFailedUrl] = useState(null);
   const url = branding.university_logo_url;
   const custom = url && url !== failedUrl;
-  return <span className={`brand-mark ${custom ? "brand-mark-custom" : ""} ${className}`} aria-hidden="true">{custom ? <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} /> : <>N<span>&#8599;</span></>}</span>;
+  return <span className={`brand-mark ${custom ? "brand-mark-custom" : ""} ${className}`} aria-hidden="true">{custom ? <img src={url} alt="" referrerPolicy="no-referrer" onError={() => setFailedUrl(url)} /> : <>N<span>&#8599;</span></>}<SantaHat /></span>;
 }
 
 export function Brand({ light = false }) {
