@@ -108,7 +108,8 @@ export async function testHomeWorkflows({ step, newBrowserContext, origin, admin
       const png = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNk+A8AAQUBAScY42YAAAAASUVORK5CYII=', 'base64');
       await image.setInputFiles({ name: 'announcement.png', mimeType: 'image/png', buffer: png });
       await adminPage.getByAltText('Announcement image preview').waitFor();
-      await adminPage.getByRole('button', { name: 'Save announcement', exact: false }).click();
+      // A rejected upload stays on this form; wait for its feedback below.
+      await adminPage.getByRole('button', { name: 'Save announcement', exact: false }).click({ noWaitAfter: true });
       await adminPage.getByRole('alert').filter({ hasText: 'Announcement saved, but the image could not be updated.' }).waitFor();
       const before = (await admin('/announcements')).announcements;
       const saved = before.find(item => item.title === 'Browser image announcement'); assert.ok(saved);

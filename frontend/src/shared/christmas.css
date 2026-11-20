@@ -1,0 +1,65 @@
+.brand-mark > .christmas-hat {
+  position: absolute;
+  z-index: 2;
+  width: 120%;
+  height: auto;
+  top: -63%;
+  left: -14%;
+  overflow: visible;
+  transform: rotate(-12deg);
+  pointer-events: none;
+  filter: drop-shadow(0 1px 1px #8b283426);
+}
+
+.christmas-snowfall { position: fixed; inset: 0; z-index: 40; overflow: hidden; pointer-events: none; contain: strict; }
+.christmas-snowflake {
+  position: absolute;
+  top: -12px;
+  left: var(--snow-left);
+  width: var(--snow-size);
+  height: var(--snow-size);
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 4px #a4bdcc60;
+  opacity: .7;
+  animation: christmas-snow-fall var(--snow-duration) var(--snow-delay) linear infinite;
+}
+.christmas-snowflake:nth-child(3n) { opacity: .4; filter: blur(1px); }
+.christmas-snowfall.is-paused .christmas-snowflake { animation-play-state: paused; }
+@keyframes christmas-snow-fall {
+  0% { transform: translate3d(0, -10px, 0); }
+  50% { transform: translate3d(var(--snow-drift), 50dvh, 0); }
+  100% { transform: translate3d(calc(var(--snow-drift) * -.3), calc(100dvh + 24px), 0); }
+}
+/* Irregular powder, fine grain and a shaded underside give the snow some depth. */
+:is(.button-primary, .discovery-button, .primary-button) { position: relative; }
+:is(.button-primary, .discovery-button, .primary-button)::before {
+  content: '';
+  position: absolute;
+  z-index: 2;
+  left: -2px;
+  right: -2px;
+  top: -12px;
+  height: 21px;
+  background: url('../assets/snow-button.svg') no-repeat center / 100% 100%;
+  pointer-events: none;
+}
+.auth-form .button-primary::before, .profile-edit-button::before { transform: scaleX(-1); }
+.announcement-hero, .discovery-invite, .profile-details-panel, .directory-summary { position: relative; }
+:is(.announcement-hero, .discovery-invite, .profile-details-panel, .directory-summary)::before {
+  content: '';
+  position: absolute;
+  z-index: 5;
+  top: -13px;
+  left: 10px;
+  right: 10px;
+  height: 32px;
+  background: url('../assets/snow-drift.svg') no-repeat center / 100% 100%;
+  pointer-events: none;
+}
+.discovery-invite::before, .directory-summary::before { transform: scaleX(-1); }
+.profile-details-panel::before { left: 3px; right: 3px; opacity: .9; }
+@media (max-width: 767px), (max-width: 1024px) and (hover: none) {
+  .christmas-snowflake:nth-child(n+25) { display: none; }
+}
+@media (prefers-reduced-motion: reduce) { .christmas-snowfall { display: none; } }
