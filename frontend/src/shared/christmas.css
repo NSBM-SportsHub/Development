@@ -52,37 +52,34 @@
 }
 .christmas-snow-toggle:hover { background: #e6f0e4; }
 
-/* Snow rests on a selection of primary actions, leaving labels and hit areas clear. */
+/* Irregular powder, fine grain and a shaded underside give the snow some depth. */
 :is(.button-primary, .discovery-button, .primary-button) { position: relative; }
 :is(.button-primary, .discovery-button, .primary-button)::before {
   content: '';
   position: absolute;
   z-index: 2;
-  left: 8px;
-  right: 8px;
-  top: -5px;
-  height: 10px;
-  border: 1px solid #dcebf1;
-  border-bottom: 0;
-  border-radius: 60% 45% 32% 38% / 85% 75% 45% 40%;
-  background: linear-gradient(#fff, #e9f4fa);
-  box-shadow: 12px 3px 0 -1px #f2f9fc, -6px 2px 0 -1px #f7fcff;
+  left: -2px;
+  right: -2px;
+  top: -12px;
+  height: 21px;
+  background: url('../assets/snow-button.svg') no-repeat center / 100% 100%;
   pointer-events: none;
 }
+.auth-form .button-primary::before, .profile-edit-button::before { transform: scaleX(-1); }
 .announcement-hero, .discovery-invite, .profile-details-panel, .directory-summary { position: relative; }
 :is(.announcement-hero, .discovery-invite, .profile-details-panel, .directory-summary)::before {
   content: '';
   position: absolute;
   z-index: 5;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 14px;
-  border-radius: inherit;
-  background: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='16' viewBox='0 0 180 16'%3E%3Cpath d='M0 0h180v5c-13 0-14 5-26 4-10-1-13-4-23-3-8 1-7 8-13 8s-3-7-12-7c-13-1-17 3-29 3S60 5 49 6c-9 0-8 6-13 6s-4-5-11-5C13 6 9 10 0 7Z' fill='%23f3faff'/%3E%3C/svg%3E") repeat-x top left / 180px 16px;
-  filter: drop-shadow(0 1px 1px #8bafbe40);
+  top: -13px;
+  left: 10px;
+  right: 10px;
+  height: 32px;
+  background: url('../assets/snow-drift.svg') no-repeat center / 100% 100%;
   pointer-events: none;
 }
+.discovery-invite::before, .directory-summary::before { transform: scaleX(-1); }
+.profile-details-panel::before { left: 3px; right: 3px; opacity: .9; }
 @media (max-width: 767px), (max-width: 1024px) and (hover: none) {
   .christmas-snowflake:nth-child(n+25) { display: none; }
   .christmas-snow-toggle { bottom: var(--mobile-navigation-space); right: max(14px, env(safe-area-inset-right)); min-height: 36px; padding: 7px 11px; }

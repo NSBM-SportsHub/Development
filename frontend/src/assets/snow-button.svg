@@ -1,0 +1,44 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="360" height="48" viewBox="0 0 360 48" fill="none" preserveAspectRatio="none">
+  <defs>
+    <linearGradient id="powder" x1="180" y1="10" x2="180" y2="37" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff"/>
+      <stop offset=".46" stop-color="#fcfdff"/>
+      <stop offset=".77" stop-color="#e9f0f5"/>
+      <stop offset="1" stop-color="#c5d3df"/>
+    </linearGradient>
+    <linearGradient id="light" x1="176" y1="15" x2="178" y2="32" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#fff" stop-opacity=".95"/>
+      <stop offset="1" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <filter id="snow" x="-5%" y="-50%" width="110%" height="200%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency=".72" numOctaves="3" seed="17" result="grain"/>
+      <feDisplacementMap in="SourceGraphic" in2="grain" scale="1.4" xChannelSelector="R" yChannelSelector="G" result="edge"/>
+      <feColorMatrix in="grain" type="saturate" values="0"/>
+      <feComponentTransfer>
+        <feFuncR type="linear" slope=".28" intercept=".7"/>
+        <feFuncG type="linear" slope=".28" intercept=".7"/>
+        <feFuncB type="linear" slope=".25" intercept=".75"/>
+        <feFuncA type="linear" slope="0" intercept=".35"/>
+      </feComponentTransfer>
+      <feComposite in2="edge" operator="in" result="texture"/>
+      <feBlend in="edge" in2="texture" mode="multiply"/>
+      <feDropShadow dx="0" dy="1.4" stdDeviation="1.1" flood-color="#233c49" flood-opacity=".23"/>
+    </filter>
+  </defs>
+  <g filter="url(#snow)">
+    <!-- Wind builds uneven pockets of powder with thin, broken edges. -->
+    <path d="M7 32c7-1 10-5 18-6 9-2 11-1 16-4 8-4 17-4 23-3 9 1 13-6 23-6 7 0 11 2 18 2 12 0 15-7 27-6 12 0 16 6 27 7 9 0 14-2 22 0 10 2 12 6 23 7 10 1 13 0 22 4l13 5-8 1-9-1-7 3-12-1-9 2-11-2-8 2-11-1-12 1-14-2-11 2-10-1-12 2-9-2-13 1-11-1-9 2-8-2-12 1-7-2-10 1-7-2-7 1Z" fill="url(#powder)"/>
+    <path d="M248 33c8-2 11-6 19-6 7-1 10 2 16 0 7-3 11-6 19-5 9 0 11 5 18 5 8 0 13 3 19 5l11 3-10 1-9-1-9 2-8-2-12 1-11-2-9 2-9-1-10 1-7-2Z" fill="url(#powder)"/>
+    <path d="M27 27c13-1 17-6 29-5 12 1 21-5 32-5 15 1 28-6 43-5 13 1 20 7 32 7 14-1 26 1 36 6-26-3-32 2-49-1-14-2-23 3-37 1-13-2-21 3-34 2-19-2-30 3-52 0Z" fill="url(#light)"/>
+    <path d="m44 29 16-1 10 1m54 1 12-1 9 1m28-4 9 1m110 4 12-1 11 2" stroke="#d2dee7" stroke-opacity=".6" stroke-width=".65" stroke-linecap="round"/>
+    <g fill="#f8fcff">
+      <ellipse cx="12" cy="29" rx="2" ry="1"/><ellipse cx="5" cy="36" rx="1.4" ry=".8"/>
+      <ellipse cx="41" cy="36" rx="2.6" ry=".9"/><circle cx="62" cy="17" r=".9"/>
+      <ellipse cx="97" cy="36" rx="2" ry=".8"/><circle cx="126" cy="7" r=".8"/>
+      <circle cx="181" cy="14" r=".9"/><ellipse cx="205" cy="35" rx="1.8" ry=".7"/>
+      <ellipse cx="238" cy="34" rx="2.4" ry="1"/><circle cx="243" cy="31" r=".9"/>
+      <ellipse cx="280" cy="37" rx="2.2" ry=".8"/><circle cx="312" cy="21" r=".7"/>
+      <ellipse cx="348" cy="38" rx="1.6" ry=".7"/><circle cx="354" cy="35" r=".7"/>
+    </g>
+  </g>
+</svg>
