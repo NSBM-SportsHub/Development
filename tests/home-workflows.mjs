@@ -86,7 +86,7 @@ export async function testHomeWorkflows({ step, newBrowserContext, origin, admin
       await guest.locator(`a[href="/events/${secondId}"]`).click();
       await guest.getByRole('heading', { name: 'Browser Sports Day', exact: true }).waitFor();
       await guest.getByRole('link', { name: 'Sign in to explore clubs', exact: false }).click(); await guest.waitForURL('**/login');
-      assert.equal(await guest.getByRole('button', { name: 'Sign in', exact: true }).count(), 1);
+      await guest.getByRole('button', { name: 'Sign in', exact: true }).waitFor();
       await visit(adminPage, '/admin/promotions'); await adminPage.getByRole('button', { name: 'Remove promotion', exact: true }).first().click();
       assert.ok(!(await admin('/event-promotions')).events.some((event) => event.id === firstId));
     });
